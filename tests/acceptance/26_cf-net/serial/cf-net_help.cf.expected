@@ -1,5 +1,0 @@
-Command:     help
-Usage:       cf-net help [command]
-Description: Prints general help or per topic
-
-You did it, you used the help command!

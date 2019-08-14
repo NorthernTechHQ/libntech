@@ -1,3 +1,0 @@
-{
- "augments": [ "$(sys.inputdir)/augmenter.json" ]
-}

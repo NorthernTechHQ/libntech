@@ -1,3 +1,0 @@
-Inserted block
-Block line 1
-Block line 2

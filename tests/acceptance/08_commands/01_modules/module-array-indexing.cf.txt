@@ -1,5 +1,0 @@
-^context=arrays
-=foo[a]=a_foo
-=foo[b]=b_foo
-@foo_idx={"a","b"}
-+arrays_loaded

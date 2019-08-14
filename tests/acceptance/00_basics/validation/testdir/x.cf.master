@@ -1,5 +1,0 @@
-bundle agent x
-{
-  reports:
-      "$(this.bundle): x";
-}

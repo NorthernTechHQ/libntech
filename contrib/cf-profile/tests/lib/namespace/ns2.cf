@@ -1,7 +1,0 @@
-body file control {
-	namespace => "ns2";
-}
-bundle agent ns2 {
-	commands:
-		"/bin/sleep 2";
-}

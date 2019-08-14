@@ -1,5 +1,0 @@
-bundle common info
-{
-  classes:
-      "included_info_global_class" expression => "any";
-}

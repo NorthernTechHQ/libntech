@@ -1,9 +1,0 @@
-bundle agent good
-{
-  classes:
-      "dummy" expression =>
-          regextract("(.*)\.sub", "$(this.promise_filename)", "fn");
-
-  reports:
-      "$(fn[1]) Pass";
-}

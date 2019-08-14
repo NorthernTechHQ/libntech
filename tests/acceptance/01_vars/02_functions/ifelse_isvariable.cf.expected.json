@@ -1,4 +1,0 @@
-{
-  "use_passwd_file": "/tmp/custom_passwd",
-  "use_shadow_file": "/etc/shadow"
-}

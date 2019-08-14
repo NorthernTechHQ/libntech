@@ -1,6 +1,0 @@
-Reports IP addresses of hosts that have the same key (as happens
-when a VM is cloned or CFEngine key burned onto an image).
-
-Use --module flag to use CFEngine module protocol.
-
-Takes 30 minutes to run.
