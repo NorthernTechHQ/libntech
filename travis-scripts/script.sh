@@ -4,14 +4,6 @@ set -x
 
 cd $TRAVIS_BUILD_DIR || exit 1
 
-# Unshallow the clone. Fetch the tags from upstream even if we are on a
-# foreign clone. Needed for determine-version.py to work, specifically
-# `git describe --tags HEAD` was failing once the last tagged commit
-# became too old.
-git fetch --unshallow
-git remote add upstream https://github.com/cfengine/core.git  \
-    && git fetch upstream 'refs/tags/*:refs/tags/*'
-
 if [ "$TRAVIS_OS_NAME" = osx ]
 then
     ./autogen.sh --enable-debug

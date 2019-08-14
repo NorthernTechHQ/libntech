@@ -23,7 +23,7 @@ dnl included file COSL.txt.
 dnl
 dnl ##########################################################################
 dnl #
-dnl # Build CFEngine
+dnl # Build libntech
 dnl #
 dnl # Run ./autogen.sh to build configure script
 dnl #
@@ -31,22 +31,9 @@ dnl ##########################################################################
 
 AC_PREREQ(2.63)
 
-m4_define([cfversion_from_env],  m4_normalize(m4_esyscmd([echo $EXPLICIT_VERSION])))
-m4_define([cfversion_from_file], m4_normalize(m4_esyscmd([cat CFVERSION])))
-m4_ifval(cfversion_from_env, [
-    m4_define([cfversion], cfversion_from_env)
-], [
-    m4_ifval(cfversion_from_file, [
-        m4_define([cfversion], cfversion_from_file)
-    ], [
-        m4_fatal([Could not determine CFEngine version;
-                  please set EXPLICIT_VERSION in the environment,
-                  or make sure all git tags are up to date and rerun autogen.sh])
-    ])
-])
+libntech_version=0.1.0
 
-
-AC_INIT(cfengine, cfversion)
+AC_INIT(libntech, $libntech_version)
 AC_CANONICAL_TARGET
 
 dnl
@@ -72,12 +59,6 @@ AM_INIT_AUTOMAKE([tar-ustar] SERIAL_TESTS)
 AM_MAINTAINER_MODE([enable])
 
 m4_divert_text([DEFAULTS], [: "${AR_FLAGS=cr}"])
-
-cfengine_version=cfversion
-
-m4_undefine([cfversion])
-m4_undefine([cfversion_from_file])
-m4_undefine([cfversion_from_env])
 
 AC_DEFINE(BUILD_YEAR, esyscmd([date +%Y | tr -d '\n']), "Software build year")
 
@@ -1530,7 +1511,7 @@ dnl ######################################################################
 AC_MSG_RESULT( )
 
 AC_MSG_RESULT(Summary:)
-AC_MSG_RESULT(> Version: $cfengine_version)
+AC_MSG_RESULT(> Version: $libntech_version)
 
 AC_MSG_RESULT([> Required libraries])
 
@@ -1634,4 +1615,4 @@ AC_CONFIG_FILES([Makefile
 
 AC_OUTPUT
 
-AC_MSG_RESULT(DONE: Configuration done. Run make/gmake to build CFEngine Community.)
+AC_MSG_RESULT(DONE: Configuration done. Run make/gmake to build libntech.)
