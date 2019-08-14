@@ -33,9 +33,4 @@ else
     sudo apt-get autoremove -y
     sudo apt-get install    -y byacc
     sudo apt-get -qy install curl
-
-    if [ "$JOB_TYPE" = valgrind_health_check ]
-    then
-        sudo apt-get install -y valgrind
-    fi
 fi

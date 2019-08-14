@@ -47,7 +47,6 @@ m4_ifval(cfversion_from_env, [
 
 
 AC_INIT(cfengine, cfversion)
-AC_CONFIG_SRCDIR([libpromises/generic_agent.c])
 AC_CANONICAL_TARGET
 
 dnl
@@ -1431,103 +1430,6 @@ if test "x$with_shell" = "xno"; then
 fi
 AC_DEFINE_UNQUOTED(SHELL_PATH, "$with_shell", [Path to the POSIX-compatible shell])
 
-dnl ######################################################################
-dnl init.d script installation
-dnl ######################################################################
-
-AC_ARG_WITH(init-script, AS_HELP_STRING([--with-init-script=PATH],
-    [Install init.d script in given path. The default is no, but if specified, the default path is platform specific.]),
-[
-    if test -n "$withval" && test "x$withval" != "xno"; then
-        if test "x$withval" = "xyes"; then
-            AS_CASE(["$target_os"],
-            [aix*],
-            [
-                INIT_D_PATH=/etc/rc.d/init.d
-            ],
-            [hpux*],
-            [
-                INIT_D_PATH=/sbin/init.d
-            ],
-            [
-                INIT_D_PATH=/etc/init.d
-            ])
-        else
-            INIT_D_PATH="$withval"
-        fi
-        AC_SUBST([INIT_D_PATH])
-        AC_CONFIG_FILES([misc/init.d/cfengine3], [chmod +x misc/init.d/cfengine3])
-    fi
-])
-AM_CONDITIONAL([WITH_INIT_D_SCRIPT], [test -n "$INIT_D_PATH"])
-
-dnl ######################################################################
-dnl systemd unit file installation
-dnl ######################################################################
-
-SYSTEMD_SERVICE_PATH=""
-
-AC_ARG_WITH(systemd-service, AS_HELP_STRING([--with-systemd-service=PATH],
-    [Install systemd service file in given path. The default is no, but if specified, the default path is /usr/lib/systemd/system.]),
-[
-    if test -n "$withval" && test "x$withval" != "xno"; then
-        if test "x$withval" = "xyes"; then
-            SYSTEMD_SERVICE_PATH=/usr/lib/systemd/system
-        else
-            SYSTEMD_SERVICE_PATH="$withval"
-        fi
-    fi
-]
-,
-[
-    AC_PATH_PROG([systemctl], [systemctl], [no])
-    AS_IF([test "x$systemctl" == "xno"],
-    [AC_MSG_CHECKING([Not a systemd system])],
-    [
-        SYSTEMD_SERVICE_PATH=/usr/lib/systemd/system
-    ])
-])
-
-AS_IF([test "x$SYSTEMD_SERVICE_PATH" = "x"], [], [
-    AC_SUBST([SYSTEMD_SERVICE_PATH])
-    AC_CONFIG_FILES([misc/systemd/cfengine3.service])
-    AC_CONFIG_FILES([misc/systemd/cf-apache.service])
-    AC_CONFIG_FILES([misc/systemd/cf-execd.service])
-    AC_CONFIG_FILES([misc/systemd/cf-hub.service])
-    AC_CONFIG_FILES([misc/systemd/cf-monitord.service])
-    AC_CONFIG_FILES([misc/systemd/cf-postgres.service])
-    AC_CONFIG_FILES([misc/systemd/cf-runalerts.service])
-    AC_CONFIG_FILES([misc/systemd/cf-serverd.service])
-])
-
-AM_CONDITIONAL([WITH_SYSTEMD_SERVICE], [test -n "$SYSTEMD_SERVICE_PATH"])
-
-AC_ARG_WITH(environment-path, AS_HELP_STRING([--with-environment-path=PATH],
-    [Specifies the location of the environment files for the platform. Currently used only by systemd.]))
-OS_ENVIRONMENT_PATH=
-if test -z "$with_environment_path" || test "$with_environment_path" = "yes"; then
-    if test -n "$SYSTEMD_SERVICE_PATH"; then
-        for i in /etc/sysconfig /etc/default; do
-            if test -d $i; then
-                OS_ENVIRONMENT_PATH=$i
-                break
-            fi
-        done
-        if test -z "$OS_ENVIRONMENT_PATH"; then
-            AC_MSG_ERROR([Unable to detect location of environment files on the platform (e.g. '/etc/sysconfig'). Please specify it using --with-environment-path, or turn off systemd support.])
-        fi
-    fi
-else
-    if test "$with_environment_path" = "no"; then
-        if test -n "$SYSTEMD_SERVICE_PATH"; then
-            AC_MSG_ERROR([It is not possible to both specify systemd support and not provide an environment path with --without-environment-path.])
-        fi
-    else
-        OS_ENVIRONMENT_PATH="$with_environment_path"
-    fi
-fi
-AC_SUBST([OS_ENVIRONMENT_PATH])
-
 
 dnl #####################################################################
 dnl Hostname and Version stuff
@@ -1706,22 +1608,6 @@ else
   AC_MSG_RESULT([-> Enterprise extensions: Plugin or not included])
 fi
 
-if test -n "$INIT_D_PATH"; then
-  AC_MSG_RESULT([-> init.d script: $INIT_D_PATH])
-else
-  AC_MSG_RESULT([-> init.d script: disabled])
-fi
-
-if test -n "$SYSTEMD_SERVICE_PATH"; then
-  AC_MSG_RESULT([-> Systemd service: $SYSTEMD_SERVICE_PATH])
-else
-  AC_MSG_RESULT([-> Systemd service: disabled])
-fi
-
-if test -n "$OS_ENVIRONMENT_PATH"; then
-  AC_MSG_RESULT([-> Path of platform environment files: $OS_ENVIRONMENT_PATH])
-fi
-
 m4_indir(incstart[]incend, [nova/config.m4])
 
 AC_MSG_RESULT([-> Workdir: $WORKDIR])
@@ -1741,29 +1627,10 @@ dnl ######################################################################
 AC_CONFIG_FILES([Makefile
     libcompat/Makefile
     libutils/Makefile
-    libcfnet/Makefile
-    libenv/Makefile
-    libpromises/Makefile
-    cf-agent/Makefile
-    cf-check/Makefile
-    cf-promises/Makefile
-    cf-execd/Makefile
-    cf-key/Makefile
-    cf-monitord/Makefile
-    cf-upgrade/Makefile
-    cf-runagent/Makefile
-    cf-serverd/Makefile
-    cf-testd/Makefile
-    cf-net/Makefile
     config.post.h
-    misc/Makefile
     ext/Makefile
-    examples/Makefile
     tests/Makefile
-    tests/acceptance/Makefile
-    tests/acceptance/25_cf-execd/Makefile
-    tests/unit/Makefile
-    tests/load/Makefile])
+    tests/unit/Makefile])
 
 AC_OUTPUT
 

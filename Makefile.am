@@ -29,23 +29,7 @@ LCOV_FLAGS = $(if $(filter-out 0,$(V)),,-q)
 
 SUBDIRS = libcompat \
 	libutils \
-	libcfnet \
-	libenv \
-	cf-check \
-	libpromises \
-	cf-agent \
-	cf-execd \
-	cf-key \
-	cf-monitord \
-	cf-promises \
-	cf-runagent \
-	cf-serverd \
-	cf-testd \
-	cf-upgrade \
-	cf-net \
-	misc \
 	ext \
-	examples \
 	tests
 
 
@@ -54,9 +38,9 @@ TAR_OPTIONS = --owner=0 --group=0
 export TAR_OPTIONS
 
 
-EXTRA_DIST = ChangeLog INSTALL README.md LICENSE CFVERSION
+EXTRA_DIST = README.md LICENSE
 
-doc_DATA = README.md ChangeLog
+doc_DATA = README.md
 
 #
 # Some basic clean ups
@@ -132,18 +116,6 @@ collect-coverage:
 
 coverage: clean-coverage run-coverage collect-coverage
 
-################################################################################
-# Identical to what is in libpromises/Makefile.am.
-# This is because there is a circular dependency libcfnet <-> libpromises
-# so we need to generate it before everything else.
-################################################################################
-BUILT_SOURCES = \
-       $(srcdir)/libpromises/enterprise_extension.c \
-       $(srcdir)/libpromises/enterprise_extension.h
-libpromises/enterprise_extension.c: libpromises/extensions_template.c.pre libpromises/enterprise_extension.sed
-	$(V_SED) $(SED) -f $(srcdir)/libpromises/enterprise_extension.sed $< > $@
-libpromises/enterprise_extension.h: libpromises/extensions_template.h.pre libpromises/enterprise_extension.sed
-	$(V_SED) $(SED) -f $(srcdir)/libpromises/enterprise_extension.sed $< > $@
 V_PERL = $(cf__v_PERL_$(V))
 cf__v_PERL_ = $(cf__v_PERL_$(AM_DEFAULT_VERBOSITY))
 cf__v_PERL_0 = @echo "  PERL    " "$@";
