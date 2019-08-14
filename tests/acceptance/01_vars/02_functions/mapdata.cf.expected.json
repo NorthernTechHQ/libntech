@@ -1,0 +1,546 @@
+{
+  "X": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "Y": [
+    "1",
+    "2",
+    "3",
+    "4"
+  ],
+  "jsonspec1": "{ \"key\": \"$(this.k)\", \"value\": \"$(this.v)\"",
+  "jsonspec2": "{ \"key\": \"$(this.k)\", \"value\": \"$(this.v)\" }",
+  "jsonspec3": "[ \"$(this.k)\", \"$(this.v)\" ]",
+  "jsonspec4": "{ \"key\": \"$(this.k)\", \"key2\": \"$(this.k[1])\", \"value\": \"$(this.v)\" }",
+  "justastring": "me",
+  "load1": [
+    1,
+    2,
+    3
+  ],
+  "load2": [
+    "eleme\"nt1",
+    "element2",
+    "element3"
+  ],
+  "load3": {
+    "x"x": "y\"y"
+  },
+  "load4": [],
+  "load5[anotherkey]": "anothervalue",
+  "load5[lastkey!]": [
+    "o\"ne",
+    "two",
+    "three"
+  ],
+  "load5[mykey]": [
+    "myvalue"
+  ],
+  "load6": {
+    "a": {
+      "b": "c"
+    }
+  },
+  "mapdata_canonify_1_1": [
+    "key___0",
+    "key___1",
+    "key___2"
+  ],
+  "mapdata_canonify_1_2": [
+    "key___0__value___1",
+    "key___1__value___2",
+    "key___2__value___3"
+  ],
+  "mapdata_canonify_1_3": [
+    "key___0__key2_____this_k_1____value___1",
+    "key___1__key2_____this_k_1____value___2",
+    "key___2__key2_____this_k_1____value___3"
+  ],
+  "mapdata_canonify_1_4": [
+    "xvalue_should_be_0value",
+    "xvalue_should_be_1value",
+    "xvalue_should_be_2value"
+  ],
+  "mapdata_canonify_2_1": [
+    "key___0",
+    "key___1",
+    "key___2"
+  ],
+  "mapdata_canonify_2_2": [
+    "key___0__value___eleme_nt1",
+    "key___1__value___element2",
+    "key___2__value___element3"
+  ],
+  "mapdata_canonify_2_3": [
+    "key___0__key2_____this_k_1____value___eleme_nt1",
+    "key___1__key2_____this_k_1____value___element2",
+    "key___2__key2_____this_k_1____value___element3"
+  ],
+  "mapdata_canonify_2_4": [
+    "xvalue_should_be_0value",
+    "xvalue_should_be_1value",
+    "xvalue_should_be_2value"
+  ],
+  "mapdata_canonify_3_1": [
+    "key___x_x"
+  ],
+  "mapdata_canonify_3_2": [
+    "key___x_x__value___y_y"
+  ],
+  "mapdata_canonify_3_3": [
+    "key___x_x__key2_____this_k_1____value___y_y"
+  ],
+  "mapdata_canonify_3_4": [
+    "xvalue_should_be_xxvalue"
+  ],
+  "mapdata_canonify_4_1": [],
+  "mapdata_canonify_4_2": [],
+  "mapdata_canonify_4_3": [],
+  "mapdata_canonify_4_4": [],
+  "mapdata_canonify_5_1": [
+    "key___anotherkey",
+    "key___lastkey_",
+    "key___mykey"
+  ],
+  "mapdata_canonify_5_2": [
+    "key___anotherkey__value___anothervalue",
+    "key___lastkey___value___o_ne",
+    "key___lastkey___value___two",
+    "key___lastkey___value___three",
+    "key___mykey__value___myvalue"
+  ],
+  "mapdata_canonify_5_3": [
+    "key___anotherkey__key2_____this_k_1____value___anothervalue",
+    "key___lastkey___key2_____this_k_1____value___o_ne",
+    "key___lastkey___key2_____this_k_1____value___two",
+    "key___lastkey___key2_____this_k_1____value___three",
+    "key___mykey__key2_____this_k_1____value___myvalue"
+  ],
+  "mapdata_canonify_5_4": [
+    "xvalue_should_be_anothervalue",
+    "xvalue_should_be_lastvalue",
+    "xvalue_should_be_myvalue"
+  ],
+  "mapdata_canonify_6_1": [
+    "key___a"
+  ],
+  "mapdata_canonify_6_2": [
+    "key___a__value___c"
+  ],
+  "mapdata_canonify_6_3": [
+    "key___a__key2___b__value___c"
+  ],
+  "mapdata_canonify_6_4": [
+    "xvalue_should_be_avalue"
+  ],
+  "mapdata_canonify_eval_1_1": [
+    "key___0",
+    "key___1",
+    "key___2"
+  ],
+  "mapdata_canonify_eval_1_2": [
+    "key___0__value___1",
+    "key___1__value___2",
+    "key___2__value___3"
+  ],
+  "mapdata_canonify_eval_1_3": [
+    "key___0__key2_____this_k_1____value___1",
+    "key___1__key2_____this_k_1____value___2",
+    "key___2__key2_____this_k_1____value___3"
+  ],
+  "mapdata_canonify_eval_1_4": [
+    "xvalue_should_be_0value",
+    "xvalue_should_be_1value",
+    "xvalue_should_be_2value"
+  ],
+  "mapdata_canonify_eval_2_1": [
+    "key___0",
+    "key___1",
+    "key___2"
+  ],
+  "mapdata_canonify_eval_2_2": [
+    "key___0__value___eleme_nt1",
+    "key___1__value___element2",
+    "key___2__value___element3"
+  ],
+  "mapdata_canonify_eval_2_3": [
+    "key___0__key2_____this_k_1____value___eleme_nt1",
+    "key___1__key2_____this_k_1____value___element2",
+    "key___2__key2_____this_k_1____value___element3"
+  ],
+  "mapdata_canonify_eval_2_4": [
+    "xvalue_should_be_0value",
+    "xvalue_should_be_1value",
+    "xvalue_should_be_2value"
+  ],
+  "mapdata_canonify_eval_3_1": [
+    "key___x_x"
+  ],
+  "mapdata_canonify_eval_3_2": [
+    "key___x_x__value___y_y"
+  ],
+  "mapdata_canonify_eval_3_3": [
+    "key___x_x__key2_____this_k_1____value___y_y"
+  ],
+  "mapdata_canonify_eval_3_4": [
+    "xvalue_should_be_xxvalue"
+  ],
+  "mapdata_canonify_eval_4_1": [],
+  "mapdata_canonify_eval_4_2": [],
+  "mapdata_canonify_eval_4_3": [],
+  "mapdata_canonify_eval_4_4": [],
+  "mapdata_canonify_eval_5_1": [
+    "key___anotherkey",
+    "key___lastkey_",
+    "key___mykey"
+  ],
+  "mapdata_canonify_eval_5_2": [
+    "key___anotherkey__value___anothervalue",
+    "key___lastkey___value___o_ne",
+    "key___lastkey___value___two",
+    "key___lastkey___value___three",
+    "key___mykey__value___myvalue"
+  ],
+  "mapdata_canonify_eval_5_3": [
+    "key___anotherkey__key2_____this_k_1____value___anothervalue",
+    "key___lastkey___key2_____this_k_1____value___o_ne",
+    "key___lastkey___key2_____this_k_1____value___two",
+    "key___lastkey___key2_____this_k_1____value___three",
+    "key___mykey__key2_____this_k_1____value___myvalue"
+  ],
+  "mapdata_canonify_eval_5_4": [
+    "xvalue_should_be_anothervalue",
+    "xvalue_should_be_lastvalue",
+    "xvalue_should_be_myvalue"
+  ],
+  "mapdata_canonify_eval_6_1": [
+    "key___a"
+  ],
+  "mapdata_canonify_eval_6_2": [
+    "key___a__value___c"
+  ],
+  "mapdata_canonify_eval_6_3": [
+    "key___a__key2___b__value___c"
+  ],
+  "mapdata_canonify_eval_6_4": [
+    "xvalue_should_be_avalue"
+  ],
+  "mapdata_json_1_1": [],
+  "mapdata_json_1_2": [
+    {
+      "key": "0",
+      "value": "1"
+    },
+    {
+      "key": "1",
+      "value": "2"
+    },
+    {
+      "key": "2",
+      "value": "3"
+    }
+  ],
+  "mapdata_json_1_3": [
+    [
+      "0",
+      "1"
+    ],
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ]
+  ],
+  "mapdata_json_1_4": [
+    {
+      "key": "0",
+      "key2": "$(this.k[1])",
+      "value": "1"
+    },
+    {
+      "key": "1",
+      "key2": "$(this.k[1])",
+      "value": "2"
+    },
+    {
+      "key": "2",
+      "key2": "$(this.k[1])",
+      "value": "3"
+    }
+  ],
+  "mapdata_json_2_1": [],
+  "mapdata_json_2_2": [
+    {
+      "key": "0",
+      "value": "eleme\"nt1"
+    },
+    {
+      "key": "1",
+      "value": "element2"
+    },
+    {
+      "key": "2",
+      "value": "element3"
+    }
+  ],
+  "mapdata_json_2_3": [
+    [
+      "0",
+      "eleme\"nt1"
+    ],
+    [
+      "1",
+      "element2"
+    ],
+    [
+      "2",
+      "element3"
+    ]
+  ],
+  "mapdata_json_2_4": [
+    {
+      "key": "0",
+      "key2": "$(this.k[1])",
+      "value": "eleme\"nt1"
+    },
+    {
+      "key": "1",
+      "key2": "$(this.k[1])",
+      "value": "element2"
+    },
+    {
+      "key": "2",
+      "key2": "$(this.k[1])",
+      "value": "element3"
+    }
+  ],
+  "mapdata_json_3_1": [],
+  "mapdata_json_3_2": [
+    {
+      "key": "x\"x",
+      "value": "y\"y"
+    }
+  ],
+  "mapdata_json_3_3": [
+    [
+      "x\"x",
+      "y\"y"
+    ]
+  ],
+  "mapdata_json_3_4": [
+    {
+      "key": "x\"x",
+      "key2": "$(this.k[1])",
+      "value": "y\"y"
+    }
+  ],
+  "mapdata_json_4_1": [],
+  "mapdata_json_4_2": [],
+  "mapdata_json_4_3": [],
+  "mapdata_json_4_4": [],
+  "mapdata_json_5_1": [],
+  "mapdata_json_5_2": [
+    {
+      "key": "anotherkey",
+      "value": "anothervalue"
+    },
+    {
+      "key": "lastkey!",
+      "value": "o\"ne"
+    },
+    {
+      "key": "lastkey!",
+      "value": "two"
+    },
+    {
+      "key": "lastkey!",
+      "value": "three"
+    },
+    {
+      "key": "mykey",
+      "value": "myvalue"
+    }
+  ],
+  "mapdata_json_5_3": [
+    [
+      "anotherkey",
+      "anothervalue"
+    ],
+    [
+      "lastkey!",
+      "o\"ne"
+    ],
+    [
+      "lastkey!",
+      "two"
+    ],
+    [
+      "lastkey!",
+      "three"
+    ],
+    [
+      "mykey",
+      "myvalue"
+    ]
+  ],
+  "mapdata_json_5_4": [
+    {
+      "key": "anotherkey",
+      "key2": "$(this.k[1])",
+      "value": "anothervalue"
+    },
+    {
+      "key": "lastkey!",
+      "key2": "$(this.k[1])",
+      "value": "o\"ne"
+    },
+    {
+      "key": "lastkey!",
+      "key2": "$(this.k[1])",
+      "value": "two"
+    },
+    {
+      "key": "lastkey!",
+      "key2": "$(this.k[1])",
+      "value": "three"
+    },
+    {
+      "key": "mykey",
+      "key2": "$(this.k[1])",
+      "value": "myvalue"
+    }
+  ],
+  "mapdata_json_6_1": [],
+  "mapdata_json_6_2": [
+    {
+      "key": "a",
+      "value": "c"
+    }
+  ],
+  "mapdata_json_6_3": [
+    [
+      "a",
+      "c"
+    ]
+  ],
+  "mapdata_json_6_4": [
+    {
+      "key": "a",
+      "key2": "b",
+      "value": "c"
+    }
+  ],
+  "mapdata_none_1_1": [
+    "key = 0",
+    "key = 1",
+    "key = 2"
+  ],
+  "mapdata_none_1_2": [
+    "key = 0, value = 1",
+    "key = 1, value = 2",
+    "key = 2, value = 3"
+  ],
+  "mapdata_none_1_3": [
+    "key = 0, key2 = $(this.k[1]), value = 1",
+    "key = 1, key2 = $(this.k[1]), value = 2",
+    "key = 2, key2 = $(this.k[1]), value = 3"
+  ],
+  "mapdata_none_1_4": [
+    "xvalue should be 0value",
+    "xvalue should be 1value",
+    "xvalue should be 2value"
+  ],
+  "mapdata_none_2_1": [
+    "key = 0",
+    "key = 1",
+    "key = 2"
+  ],
+  "mapdata_none_2_2": [
+    "key = 0, value = eleme\"nt1",
+    "key = 1, value = element2",
+    "key = 2, value = element3"
+  ],
+  "mapdata_none_2_3": [
+    "key = 0, key2 = $(this.k[1]), value = eleme\"nt1",
+    "key = 1, key2 = $(this.k[1]), value = element2",
+    "key = 2, key2 = $(this.k[1]), value = element3"
+  ],
+  "mapdata_none_2_4": [
+    "xvalue should be 0value",
+    "xvalue should be 1value",
+    "xvalue should be 2value"
+  ],
+  "mapdata_none_3_1": [
+    "key = x\"x"
+  ],
+  "mapdata_none_3_2": [
+    "key = x\"x, value = y\"y"
+  ],
+  "mapdata_none_3_3": [
+    "key = x\"x, key2 = $(this.k[1]), value = y\"y"
+  ],
+  "mapdata_none_3_4": [
+    "xvalue should be xxvalue"
+  ],
+  "mapdata_none_4_1": [],
+  "mapdata_none_4_2": [],
+  "mapdata_none_4_3": [],
+  "mapdata_none_4_4": [],
+  "mapdata_none_5_1": [
+    "key = anotherkey",
+    "key = lastkey!",
+    "key = mykey"
+  ],
+  "mapdata_none_5_2": [
+    "key = anotherkey, value = anothervalue",
+    "key = lastkey!, value = o\"ne",
+    "key = lastkey!, value = two",
+    "key = lastkey!, value = three",
+    "key = mykey, value = myvalue"
+  ],
+  "mapdata_none_5_3": [
+    "key = anotherkey, key2 = $(this.k[1]), value = anothervalue",
+    "key = lastkey!, key2 = $(this.k[1]), value = o\"ne",
+    "key = lastkey!, key2 = $(this.k[1]), value = two",
+    "key = lastkey!, key2 = $(this.k[1]), value = three",
+    "key = mykey, key2 = $(this.k[1]), value = myvalue"
+  ],
+  "mapdata_none_5_4": [
+    "xvalue should be anothervalue",
+    "xvalue should be lastvalue",
+    "xvalue should be myvalue"
+  ],
+  "mapdata_none_6_1": [
+    "key = a"
+  ],
+  "mapdata_none_6_2": [
+    "key = a, value = c"
+  ],
+  "mapdata_none_6_3": [
+    "key = a, key2 = b, value = c"
+  ],
+  "mapdata_none_6_4": [
+    "xvalue should be avalue"
+  ],
+  "spec1": "key = $(this.k)",
+  "spec2": "key = $(this.k), value = ${this.v}",
+  "spec3": "key = $(this.k), key2 = $(this.k[1]), value = ${this.v}",
+  "spec4": "xvalue should be $(static[$(this.k)])",
+  "static[0]": "0value",
+  "static[1]": "1value",
+  "static[2]": "2value",
+  "static[a]": "avalue",
+  "static[anotherkey]": "anothervalue",
+  "static[lastkey!]": "lastvalue",
+  "static[mykey]": "myvalue",
+  "static[x"x]": "xxvalue",
+  "static[x]": "xvalue"
+}

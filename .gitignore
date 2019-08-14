@@ -1,0 +1,139 @@
+# git mergetool leftovers
+
+*.[ch].orig
+
+# intermediate / autogen
+
+*.la
+*.lo
+*.o
+.deps
+.libs
+Makefile
+Makefile.in
+stamp-h1
+.dirstamp
+
+# Created by autogen.sh
+/CFVERSION
+/aclocal.m4
+/autom4te.cache
+/compile
+/config.cache
+/config.guess
+/config.h
+/config.h.in
+/config.log
+/config.post.h
+/config.status
+/config.sub
+/configure
+/depcomp
+
+/install-sh
+/libtool
+/ltmain.sh
+/m4/libtool.m4
+/m4/lt*.m4
+/missing
+/revision
+/ylwrap
+/test-driver
+/tests/unit/*.log
+/tests/unit/init_script_test_helper
+/tests/load/*.log
+
+/configure_flags.env
+
+# tarballs
+/*.tar.gz
+
+# binaries
+/cf-agent/cf-agent
+/cf-agent/cf-agent.exe
+/cf-check/cf-check
+/cf-check/cf-check.exe
+/cf-execd/cf-execd
+/cf-execd/cf-execd.exe
+/cf-key/cf-key
+/cf-key/cf-key.exe
+/cf-monitord/cf-monitord
+/cf-monitord/cf-monitord.exe
+/cf-promises/cf-promises
+/cf-promises/cf-promises.exe
+/cf-runagent/cf-runagent
+/cf-runagent/cf-runagent.exe
+/cf-net/cf-net
+/cf-net/cf-net.exe
+/cf-serverd/cf-serverd
+/cf-serverd/cf-serverd.exe
+/cf-testd/cf-testd
+/cf-testd/cf-testd.exe
+/cf-upgrade/cf-upgrade
+/cf-upgrade/cf-upgrade.exe
+/ext/rpmvercmp
+/ext/rpmvercmp.exe
+
+# autogen
+/libpromises/cf3lex.c
+/libpromises/cf3parse.c
+/libpromises/cf3parse.h
+/libutils/config.h
+/libutils/config.h.in
+/libutils/config.post.h
+
+# examples
+/examples/cfengine_stdlib.cf
+
+# misc - systemd services (from AC templates)
+misc/systemd/*.service
+
+# gcov/lcov
+*.gcno
+*.gcda
+*.trace
+coverage-html/
+coverage/
+
+# links
+/nova
+
+# tags
+TAGS
+tags
+cscope.*
+
+# vim
+*~
+.*.swp
+.*.swo
+
+# emacs
+*~
+\#*#
+.dir-locals.el
+/contrib/*.elc
+
+# eclipse
+.cproject
+.project
+.settings
+
+# qt-creator
+/core.config
+/core.creator
+/core.creator.user
+/core.files
+/core.includes
+*.autosave
+
+# clang
+.clang_complete
+*.pch
+
+# Mac
+.DS_Store
+*.dSYM
+
+# python
+__pycache__

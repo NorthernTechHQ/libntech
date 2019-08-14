@@ -1,0 +1,34 @@
+######################################################
+#
+#  Test that @if works with patch level
+#
+#####################################################
+
+body common control
+{
+      inputs => { "../../default.cf.sub" };
+      bundlesequence  => { default("$(this.promise_filename)") };
+}
+
+bundle agent init
+{
+  files:
+      "$(G.testdir)/test.cf"
+        create => "true",
+        edit_template => "$(this.promise_filename).sub.template",
+        template_method => "mustache";
+}
+
+bundle agent check
+{
+  methods:
+      "check" usebundle => dcs_passif_output(".*$(G.testdir)/test.cf Pass.*",
+                                             ".*FAIL.*",
+                                             "$(sys.cf_agent) -D AUTO -Kf $(G.testdir)/test.cf",
+                                             $(this.promise_filename));
+}
+
+@if minimum_version(300.600.0)
+
+This text should never be seen, it's completely ignored
+@endif

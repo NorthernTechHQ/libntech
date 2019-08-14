@@ -1,0 +1,22 @@
+{
+  "acl": [
+    ".*$(def.domain) note this will remain unexpanded!!!"
+  ],
+  "domain": "mydomain",
+  "input_name_patterns": [
+    ".*\\.cf",
+    ".*\\.dat",
+    ".*\\.txt",
+    ".*\\.conf",
+    ".*\\.mustache",
+    ".*\\.sh",
+    ".*\\.pl",
+    ".*\\.py",
+    ".*\\.rb",
+    "cf_promises_release_id",
+    ".*\\.json",
+    ".*\\.yaml",
+    ".*\\.js"
+  ],
+  "jq": "jq --compact-output --monochrome-output --ascii-output --unbuffered --sort-keys"
+}

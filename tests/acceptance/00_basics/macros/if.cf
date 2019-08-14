@@ -1,0 +1,69 @@
+######################################################
+#
+#  Test that @if works
+#
+#####################################################
+
+body common control
+{
+      inputs => { "../../default.cf.sub" };
+      bundlesequence  => { default("$(this.promise_filename)") };
+      version => "1.0";
+}
+
+bundle common test
+{
+@if minimum_version(3.7)
+  classes:
+      "expected" expression => "any";
+@endif
+
+@if minimum_version(3.6)
+  classes:
+      "expected2" expression => "any";
+@endif
+
+@if minimum_version(2.100)
+  classes:
+      "expected_2_100" expression => "any";
+@endif
+
+@if minimum_version(300.700)
+  classes:
+      "not_expected" expression => "any";
+@endif
+}
+
+bundle agent check
+{
+  methods:
+      "" usebundle => dcs_passif_expected("expected,expected2,expected_2_100",
+                                         "not_expected",
+                                         $(this.promise_filename));
+}
+
+@if minimum_version(300.600)
+
+This text should never be seen, it's completely ignored
+@endif
+
+@if minimum_version(300.600)
+
+Nor should this
+
+@endif
+
+@if minimum_version(300.600)
+
+Nor this
+
+Not this either
+
+@endif
+
+@if minimum_version(300.600)
+Nothing should be seen here really
+
+Who knows, perhaps this text doesn't exist..?
+
+@endif

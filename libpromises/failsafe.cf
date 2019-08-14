@@ -1,0 +1,490 @@
+#
+#  Copyright 2019 Northern.tech AS
+#
+#  This file is part of CFEngine 3 - written and maintained by Northern.tech AS.
+#
+#  This program is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by the
+#  Free Software Foundation; version 3.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+#
+# To the extent this program is licensed as part of the Enterprise
+# versions of CFEngine, the applicable Commercial Open Source License
+# (COSL) may apply to this file if you as a licensee so wish it. See
+# included file COSL.txt.
+
+########## CFEngine Bootstrap / Failsafe Policy ##############################
+# This file (failsafe.cf) is re-generated inside "inputs" directory every time
+# you bootstrap. This means that custom changes will be overwritten.
+#
+# The role of this standalone policy file is to fetch the main promises from
+# the policy hub for the first time when bootstrapping, and to recover the
+# system by fetching policies in case the standard agent run fails.
+##############################################################################
+
+body agent control
+{
+      # Bootstrapping can't continue without keys
+      abortclasses => { "no_ppkeys_ABORT_kept" };
+      # Make sure that running failsafe many times in a row does not
+      # change functionality
+      ifelapsed => "0";
+}
+
+################################################################################
+
+bundle agent main
+{
+  meta:
+
+      "description"
+        string => "Perform bootstrap or failsafe recovery operations.";
+
+  methods:
+
+      "Check Keys"
+        usebundle => failsafe_cfe_internal_checkkeys,
+        comment => "Without a valid keypair we aren't going to be able
+                    to establish trust";
+
+      "Fetch Inputs"
+        usebundle => failsafe_cfe_internal_update,
+        comment => "We need to fetch policy from upstream if we are
+                    bootstrapping or if we are performing failsafe
+                    recovery.";
+
+      "Actuate Update Policy"
+        usebundle => failsafe_cfe_internal_call_update,
+        comment => "In order to speed up convergence and reporting we
+                    trigger the update policy right after initial
+                    bootstrap. This allows the first scheduled run to
+                    happen with the most up to date and complete
+                    information.";
+
+      "Trigger Policy"
+        usebundle => failsafe_cfe_internal_trigger_policy,
+        comment => "In order to speed up convergence and reporting we
+                    trigger the whole policy right after initial
+                    bootstrap. This allows the first report to provide
+                    more complete data.";
+
+      "Report"
+        usebundle => failsafe_cfe_internal_report,
+        comment => "It's important to let the user know what happened
+                    as the result of the bootstrap or failsafe
+                    operation.";
+}
+
+bundle agent failsafe_cfe_internal_checkkeys
+{
+  classes:
+      "have_ppkeys"
+        expression => fileexists("$(sys.workdir)/ppkeys/localhost.pub"),
+        handle     => "failsafe_cfe_internal_bootstrap_checkkeys_classes_have_ppkeys";
+
+  reports:
+    !have_ppkeys::
+      "No public/private key pair is loaded, please create one by running \"cf-key\""
+        classes => failsafe_results("namespace", "no_ppkeys_ABORT");
+}
+
+################################################################################
+
+bundle agent failsafe_cfe_internal_update
+{
+  vars:
+
+      # A policy server cannot use the shortcut feature to resolve
+      # masterfiles since cf-serverd is potentially not yet up and
+      # running.
+
+      # The unqualified path is used for non policy servers so that
+      # the policy server can use a shortcut to decide on behalf of
+      # the client which policy to serve by default. This is useful
+      # when running binaires from mixed sources (for example CFEngine
+      # produced binaries vs packages from the debian repository).
+
+      "masterfiles_dir_remote"
+        string => ifelse( "policy_server", $(sys.masterdir),
+                          "masterfiles" );
+
+  files:
+
+      "$(sys.inputdir)"
+        handle => "failsafe_cfe_internal_bootstrap_update_files_sys_workdir_inputs_shortcut",
+        copy_from => failsafe_scp("$(masterfiles_dir_remote)"),
+        depth_search => failsafe_recurse("inf"),
+        file_select => failsafe_exclude_vcs_files,
+        classes => failsafe_results("namespace", "inputdir_update");
+
+    !policy_server::
+
+      "$(sys.workdir)/modules"
+        handle => "failsafe_cfe_internal_bootstrap_update_files_sys_workdir_modules_shortcut",
+        copy_from => failsafe_scp("modules"),
+        depth_search => failsafe_recurse("inf"),
+        file_select => failsafe_exclude_vcs_files,
+        classes => failsafe_results("namespace", "modulesdir_update");
+
+    !windows.inputdir_update_error::
+
+      # When running on a *nix platform with homogeneous packages
+      # $(sys.masterdir) is a good guess. This is never the case for
+      # windows, and might be a poor guess if mixing packages from
+      # different sources (for example debian repositories and
+      # CFEngine produced packages).
+      "$(sys.inputdir)"
+        handle => "failsafe_cfe_internal_bootstrap_update_files_sys_workdir_inputs_not_windows",
+        copy_from => failsafe_scp("$(sys.masterdir)"),
+        depth_search => failsafe_recurse("inf"),
+        file_select => failsafe_exclude_vcs_files,
+        classes => failsafe_results("namespace", "inputdir_update"),
+        comment => "If we failed to fetch policy we try again using
+                    the legacy default in case we are fetching policy
+                    from a hub that is not serving mastefiles via a
+                    shortcut.";
+
+    windows.inputdir_update_error::
+
+      # Note: Windows can't use $(sys.masterdir) because no one runs a
+      # hub on windows and the copy_from needs the remote path.
+      "$(sys.inputdir)"
+        handle => "failsafe_cfe_internal_bootstrap_update_files_sys_workdir_inputs_windows",
+        copy_from => failsafe_scp("/var/cfengine/masterfiles"),
+        depth_search => failsafe_recurse("inf"),
+        file_select => failsafe_exclude_vcs_files,
+        classes => failsafe_results("namespace", "inputdir_update"),
+        comment => "If we failed to fetch policy we try again using
+                    the legacy default in case we are fetching policy
+                    from a hub that is not serving mastefiles via a
+                    shortcut.";
+
+    windows::
+
+      # TODO: Remove the use of bin-twin ref: Redmine #7364
+      "$(sys.workdir)\\bin-twin\\."
+        handle => "failsafe_cfe_internal_bootstrap_update_files_sys_workdir_bin_twin_windows",
+        copy_from => failsafe_cp("$(sys.workdir)\\bin\\."),
+        depth_search => failsafe_recurse("1"),
+        file_select => failsafe_exclude_vcs_files,
+        comment => "Make sure we maintain a clone of the binaries and
+                    libraries for updating";
+
+
+  processes:
+
+      # TODO: Decide if this class guard is appropriate. Should we
+      # guard checking of cf-execd process running to when inputs are
+      # repaired
+    !windows.inputdir_update_repaired::
+
+      # We need to know when cf-execd is not running so that we can
+      # start it when necessary. Windows and systemd hosts uses the service
+      # manager instead of keying on individual processes.
+
+      "cf-execd" restart_class => "cf_execd_not_running",
+        handle => "failsafe_cfe_internal_bootstrap_update_processes_start_cf_execd";
+
+    any::
+
+      # We need to know if cf-serverd isn't running so that we can
+      # start it when necessary.
+
+      "cf-serverd" restart_class => "cf_serverd_not_running",
+        handle => "failsafe_cfe_internal_bootstrap_update_processes_start_cf_serverd";
+
+  commands:
+
+    cf_execd_not_running.!(windows|systemd)::
+
+      # Windows and systemd do not launch cf-execd directly and are
+      # handeled separately.
+
+      "$(sys.cf_execd)"
+        handle => "failsafe_cfe_internal_bootstrap_update_commands_check_sys_cf_execd_start",
+        classes => failsafe_results("namespace", "cf_execd_running");
+
+    cf_serverd_not_running.!(windows|systemd)::
+
+      # cf-serverd is not launched directly on Windows and systemd and is
+      # handled separately.
+
+      "$(sys.cf_serverd)"
+        handle => "failsafe_cfe_internal_bootstrap_update_commands_check_sys_cf_serverd_start",
+        action => failsafe_ifwin_bg,
+        classes => failsafe_results("namespace", "cf_serverd_running"),
+        comment => "cf-serverd is needed on policy hubs or remote
+                    clients will not be able to get policy. Clients do
+                    not have a strong dependency on cf-serverd and if
+                    the component is necessay it is expected to be
+                    started by a separate policy.";
+
+    cf_execd_not_running.systemd::
+
+      # We explicitly use "restart", because it is possible that cf-serverd
+      # is running, even if cf-execd isn't, for example. Here we want to be
+      # sure we relaunch everything.
+
+      "/bin/systemctl restart cfengine3" -> { "CFE-1459" }
+        handle => "failsafe_cfe_internal_bootstrap_update_commands_systemd_cfe_start",
+        contain => bootstrap_command_silent,
+        classes => failsafe_results("namespace", "systemctl_restart_cfengine3");
+
+  services:
+
+      # TODO: Is this restriction to only promise the service running
+      # when inputs are repaired appropriate? Perhaps it should always
+      # be checked.
+    windows.inputdir_update_repaired::
+
+      "CfengineNovaExec"
+        handle => "failsafe_cfe_internal_bootstrap_update_services_windows_executor",
+        service_policy => "start",
+        service_method => failsafe_bootstart,
+        classes => failsafe_results("namespace", "cf_execd_running");
+}
+
+################################################################################
+
+bundle agent failsafe_cfe_internal_report
+{
+  meta:
+
+      "description"
+        string => "Report the outcome of the embedded
+                   bootstrap/failsafe operation.";
+
+  classes:
+
+      # TODO: Determine if this is necessary and/or useful.  Pre-eval
+      # might resolve this before policy update occurs, and this is
+      # probably most useful after policy update has been attempted.
+
+      "have_promises_cf"
+        scope => "bundle",
+        expression => fileexists("$(sys.inputdir)/promises.cf"),
+        handle => "failsafe_cfe_internal_bootstrap_update_classes_have_promises_cf",
+        comment => "We expect to find promises.cf after policy has
+                    been successfully copied from the policy
+                    server. If promises.cf is missing, then the
+                    bootstrap or failsafe recovery has likely
+                    failed.";
+
+  reports:
+
+    !bootstrap_mode::
+
+      "Built-in failsafe policy triggered"
+        handle => "failsafe_cfe_internal_bootstrap_update_reports_failsafe_notification",
+        comment => "Be sure to inform the user that the failsafe policy has
+                    been triggered. This typically indicates that the agent has
+                    received broken policy. It may also indicate legacy
+                    configuration in body executor control.";
+
+    bootstrap_mode::
+
+      "Bootstrapping from host '$(sys.policy_hub)' via built-in policy '$(this.promise_filename)'"
+        handle => "failsafe_cfe_internal_bootstrap_update_reports_bootstrap_notification",
+        comment => "Be sure to inform the user that they have triggerd a bootstrap.";
+
+    bootstrap_mode.policy_server::
+
+      "This host assumes the role of policy server"
+      handle => "failsafe_cfe_internal_bootstrap_update_reports_assume_policy_hub";
+
+    bootstrap_mode.!policy_server::
+
+      "This autonomous node assumes the role of voluntary client"
+      handle => "failsafe_cfe_internal_bootstrap_update_reports_assume_voluntary_client";
+
+    inputdir_update_repaired::
+
+      "Updated local policy from policy server"
+      handle => "failsafe_cfe_internal_bootstrap_update_reports_inputdir_update_repaired";
+
+
+    inputdir_update_repaired.!have_promises_cf::
+
+      # We used to display this report when we have fetched new
+      # policy, but still can not find promises.cf in
+      # sys.inputdir. However if the hub being bootstrapped to is down
+      # we may never repair inputs and this may not be triggered
+      #
+      # TODO: Come up with better conditions. These seem weak.
+      #  - Potentially use returnszero() with cf-promises?
+
+      "Failed to copy policy from policy server at $(sys.policy_hub):$(sys.masterdir)
+       Please check
+       * cf-serverd is running on $(sys.policy_hub)
+       * CFEngine version on the policy hub is 3.6.0 or latest - otherwise you need to tweak the protocol_version setting
+       * network connectivity to $(sys.policy_hub) on port $(sys.policy_hub_port)
+       * masterfiles 'body server control' - in particular allowconnects, trustkeysfrom and skipverify
+       * masterfiles 'bundle server' -> access: -> masterfiles -> admit/deny
+       It is often useful to restart cf-serverd in verbose mode (cf-serverd -v) on $(sys.policy_hub) to diagnose connection issues.
+       When updating masterfiles, wait (usually 5 minutes) for files to propagate to inputs on $(sys.policy_hub) before retrying."
+      handle => "failsafe_cfe_internal_bootstrap_update_reports_did_not_get_policy";
+
+    trigger_policy_repaired::
+      "Triggered an initial run of the policy"
+        handle => "failsafe_cfe_internal_bootstrap_trigger_policy_passed";
+
+    trigger_policy_failed::
+      "Initial run of the policy failed"
+        handle => "failsafe_cfe_internal_bootstrap_trigger_policy_failed";
+
+    systemctl_restart_cfengine3_repaired::
+
+      "Restarted systemd unit cfengine3"
+        handle => "failsafe_cfe_intrnal_bootstrap_update_reports_systemd_unit_restarted";
+
+    systemctl_restart_cfengine3_error::
+
+      "Error restarting systemd unit cfengine3"
+        handle => "failsafe_cfe_intrnal_bootstrap_update_reports_systemd_unit_restarted";
+
+    cf_serverd_running_repaired::
+
+      "Started the server"
+      handle => "failsafe_cfe_internal_bootstrap_update_reports_started_serverd";
+
+    cf_serverd_running_failed::
+
+      "Failed to start the server"
+      handle => "failsafe_cfe_internal_bootstrap_update_reports_failed_to_start_serverd";
+
+    cf_execd_running_repaired::
+
+      "Started the scheduler"
+      handle => "failsafe_cfe_internal_bootstrap_update_reports_started_execd";
+
+    cf_execd_running_failed::
+
+      "Failed to start the scheduler"
+      handle => "failsafe_cfe_internal_bootstrap_update_reports_failed_to_start_execd";
+}
+
+################################################################################
+
+bundle agent failsafe_cfe_internal_call_update
+{
+  vars:
+
+    "mode" string => ifelse("bootstrap_mode", "bootstrap_mode", "failsafe_mode");
+
+  commands:
+
+    # On Windows we need cf-execd to call update.cf, otherwise the daemons will
+    # not run under the SYSTEM account.
+    !windows::
+      "$(sys.cf_agent) -f $(sys.update_policy_path) --define $(mode)"
+        handle => "failsafe_cfe_internal_call_update_commands_call_update_cf",
+        if => fileexists( $(sys.update_policy_path) ),
+        comment => "We run update.cf in order to prepare system information for
+                    collection into CFEngine Enterprise more quickly.";
+}
+
+################################################################################
+
+bundle agent failsafe_cfe_internal_trigger_policy
+{
+  commands:
+
+    bootstrap_mode.!skip_policy_on_bootstrap::
+      "$(sys.cf_agent) --define bootstrap_mode"
+        handle => "failsafe_cfe_internal_trigger_policy_commands_call_promises_cf",
+        if => fileexists( $(sys.default_policy_path) ),
+        classes => failsafe_results("namespace", "trigger_policy"),
+        comment => "We run promises.cf in order to prepare system information for
+                    collection into CFEngine Enterprise more quickly.";
+}
+
+############################################
+body copy_from failsafe_scp(from)
+{
+      source      => "$(from)";
+      compare     => "digest";
+    # This class is always set when bootstrapping. You can deactivate
+    # this class with --trust-server=no when bootstrapping
+    trust_server::
+      trustkey    => "true";
+    !policy_server::
+      servers => { "$(sys.policy_hub)" };
+      portnumber => "$(sys.policy_hub_port)";
+}
+############################################
+body depth_search failsafe_recurse(d)
+{
+      depth => "$(d)";
+      exclude_dirs => { "\.svn", "\.git" };
+}
+############################################
+body file_select failsafe_exclude_vcs_files
+{
+      leaf_name => { "\.git.*", "\.mailmap" };
+      file_result => "!leaf_name";
+}
+############################################
+body service_method failsafe_bootstart
+{
+      service_autostart_policy => "boot_time";
+}
+############################################
+body action failsafe_ifwin_bg
+{
+    windows::
+      background => "true";
+}
+############################################
+body copy_from failsafe_cp(from)
+{
+      source          => "$(from)";
+      compare         => "digest";
+      copy_backup     => "false";
+}
+
+############################################
+body classes failsafe_results(scope, class_prefix)
+# @brief Define classes prefixed with `class_prefix` and suffixed with
+# appropriate outcomes: _kept, _repaired, _not_kept, _error, _failed,
+# _denied, _timeout, _reached
+#
+# @param scope The scope in which the class should be defined (`bundle` or `namespace`)
+# @param class_prefix The prefix for the classes defined
+{
+  scope => "$(scope)";
+
+  promise_kept => { "$(class_prefix)_reached",
+                    "$(class_prefix)_kept" };
+
+  promise_repaired => { "$(class_prefix)_reached",
+                        "$(class_prefix)_repaired" };
+
+  repair_failed => { "$(class_prefix)_reached",
+                     "$(class_prefix)_error",
+                     "$(class_prefix)_not_kept",
+                     "$(class_prefix)_failed" };
+
+  repair_denied => { "$(class_prefix)_reached",
+                     "$(class_prefix)_error",
+                     "$(class_prefix)_not_kept",
+                     "$(class_prefix)_denied" };
+
+  repair_timeout => { "$(class_prefix)_reached",
+                      "$(class_prefix)_error",
+                      "$(class_prefix)_not_kept",
+                      "$(class_prefix)_timeout" };
+}
+
+body contain bootstrap_command_silent
+# @brief Suppress command output
+{
+      no_output => "true";
+}

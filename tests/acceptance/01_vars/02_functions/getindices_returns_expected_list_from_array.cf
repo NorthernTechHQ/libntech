@@ -1,0 +1,58 @@
+#######################################################
+#
+# Test that getindices() returns the expected list from
+# an array
+#
+#######################################################
+
+body common control
+{
+      inputs => { "../../default.cf.sub" };
+      bundlesequence  => { default("$(this.promise_filename)") };
+      version => "1.0";
+}
+
+#######################################################
+
+bundle agent init
+{
+  vars:
+    "data[foo]" slist => { "alpha", "bravo" };
+    "data[bar]" string => "zulu";
+    "data[bar][one]" string => "1";
+    "data[bar][two]" string => "2";
+
+    "data[zebra][gazelle]" slist => { "alpha", "bravo" };
+    "data[zebra][lion]" string => "zulu";
+    "data[zebra][lion][first]" string => "1st";
+    "data[zebra][lion][second]" string => "2nd";
+
+    "data[one][two][zero]" slist => { "alpha", "bravo" };
+    "data[one][two][three]" string => "zulu";
+    "data[one][two][three][a]" string => "c";
+    "data[one][two][three][b]" string => "d";
+}
+
+#######################################################
+
+bundle agent test
+{
+  meta:
+      "test_soft_fail" string => "!any",
+        meta => { "redmine7116" };
+
+  vars:
+    "values_data_1" slist => getindices("init.data[bar]");
+    "values_data_2" slist => getindices("init.data[zebra][lion]");
+    "values_data_3" slist => getindices("init.data[one][two][three]");
+}
+
+#######################################################
+
+bundle agent check
+{
+  methods:
+      "any" usebundle => dcs_check_state(test,
+                                         "$(this.promise_filename).expected.json",
+                                         $(this.promise_filename));
+}

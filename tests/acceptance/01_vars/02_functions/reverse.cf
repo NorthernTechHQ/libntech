@@ -1,0 +1,42 @@
+#######################################################
+#
+# Test reverse()
+#
+#######################################################
+
+body common control
+{
+      inputs => { "../../default.cf.sub" };
+      bundlesequence  => { default("$(this.promise_filename)") };
+      version => "1.0";
+}
+
+#######################################################
+
+bundle agent init
+{
+  vars:
+      "a" slist => { "c", "b", "a" };
+      "b" slist => { };
+}
+
+#######################################################
+
+bundle agent test
+{
+  vars:
+      "sa" slist => reverse("init.a");
+      "sb" slist => reverse("init.b");
+
+      "inline" slist => reverse('[ "q", "p", "r" ]');
+}
+
+#######################################################
+
+bundle agent check
+{
+  methods:
+      "check"  usebundle => dcs_check_state(test,
+                                           "$(this.promise_filename).expected.json",
+                                           $(this.promise_filename));
+}

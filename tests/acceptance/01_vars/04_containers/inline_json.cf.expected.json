@@ -1,0 +1,24 @@
+{
+  "included": "( included text )",
+  "options1": {
+    "headers": [
+      "Foo: bar"
+    ],
+    "max_content": 512,
+    "verbose": 0
+  },
+  "options3": {
+    "headers": [
+      "Foo: bar"
+    ],
+    "max_content": 512,
+    "verbose": "( included text )"
+  },
+  "options4": {
+    "headers": [
+      "Foo: bar"
+    ],
+    "max_content": 512,
+    "verbose": "( included text )"
+  }
+}

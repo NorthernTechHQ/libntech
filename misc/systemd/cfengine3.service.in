@@ -1,0 +1,35 @@
+[Unit]
+Description=CFEngine 3 umbrella service
+Documentation=https://docs.cfengine.com/ https://tracker.mender.io
+After=syslog.target
+
+# Try to start all the sub-services. 'Wants' is fault-tolerant so if some are
+# missing or impossible to start, no big deal.
+Wants=cf-serverd.service
+Wants=cf-execd.service
+Wants=cf-monitord.service
+Wants=cf-postgres.service
+Wants=cf-apache.service
+Wants=cf-runalerts.service
+Wants=cf-hub.service
+
+# Ensure synchronous stop behavior
+Before=cf-serverd.service
+Before=cf-execd.service
+Before=cf-monitord.service
+Before=cf-postgres.service
+Before=cf-apache.service
+Before=cf-runalerts.service
+Before=cf-hub.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# Nothing to do here, we just need to make sure the specific services to be
+# started/stopped.
+ExecStart=/bin/true
+ExecStop=/bin/true

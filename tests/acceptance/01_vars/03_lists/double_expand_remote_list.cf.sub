@@ -1,0 +1,31 @@
+# Redmine#6866
+# Test that nested expansion of arrays works
+
+body common control
+{
+      bundlesequence => { "init", "test", "report" };
+      version => "1.0";
+}
+
+bundle agent init
+{
+  vars:
+    "list" slist  => { "1", "2", "3" };
+    "list2" slist => { "a", "b", "c" };
+}
+
+bundle agent test
+{
+  vars:
+    "other_list" string => "init.list";
+    "list_of_lists" slist => { "init.list", "init.list2" };
+}
+
+bundle agent report
+{
+  reports:
+    "Direct: $(init.list)";
+    "Indirect: $($(test.other_list))";
+#TODO     "Indirect lists: $($(test.list_of_lists))";
+# Expected different lines of: 1 2 3 a b c
+}

@@ -1,0 +1,36 @@
+# Test that the storejson() function will convert a data container back to JSON
+
+body common control
+{
+      inputs => { "../../default.cf.sub" };
+      bundlesequence => { default("$(this.promise_filename)") };
+      version => "1.0";
+}
+
+bundle agent test
+{
+  vars:
+      "mylist" slist => { "x", "y" };
+      "data" data => parsejson('{
+  "x": [
+    1,
+    2,
+    3
+  ]
+}');
+
+      "datas" string => storejson(data);
+
+      "data_from_slist" string => storejson(mylist);
+      "data_from_inline" string => storejson('{ "a": "b" }');
+}
+
+#######################################################
+
+bundle agent check
+{
+  methods:
+      "check"  usebundle => dcs_check_state(test,
+                                           "$(this.promise_filename).expected.json",
+                                           $(this.promise_filename));
+}
