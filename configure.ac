@@ -31,9 +31,7 @@ dnl ##########################################################################
 
 AC_PREREQ(2.63)
 
-libntech_version=0.1.0
-
-AC_INIT(libntech, $libntech_version)
+AC_INIT(libntech, 0.1.0)
 AC_CANONICAL_TARGET
 
 dnl
@@ -1511,7 +1509,7 @@ dnl ######################################################################
 AC_MSG_RESULT( )
 
 AC_MSG_RESULT(Summary:)
-AC_MSG_RESULT(> Version: $libntech_version)
+AC_MSG_RESULT(> Version: AC_PACKAGE_VERSION)
 
 AC_MSG_RESULT([> Required libraries])
 
