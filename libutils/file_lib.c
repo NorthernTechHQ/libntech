@@ -497,7 +497,7 @@ int safe_open(const char *pathname, int flags)
  * the current process. All components are checked, even symlinks encountered in
  * earlier parts of the path name.
  *
- * It should always be used when opening a file or directory that is not 
+ * It should always be used when opening a file or directory that is not
  * guaranteed to be owned by root.
  *
  * safe_open and safe_fopen both default to secure (0600) file creation perms.

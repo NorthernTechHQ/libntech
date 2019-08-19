@@ -14,7 +14,7 @@ pthread_mutex_t shared_var_mutex = PTHREAD_MUTEX_INITIALIZER;
 void test_init_destroy(void)
 {
     pthread_mutex_t mutex_dynamic;
- 
+
     int res_init = pthread_mutex_init(&mutex_dynamic, NULL);
     assert_int_equal(res_init, 0);
 
@@ -27,7 +27,7 @@ void test_trylock_impl(pthread_mutex_t *mutex)
 {
     int res_trylock_unlocked = pthread_mutex_trylock(mutex);
     assert_int_equal(res_trylock_unlocked, 0);
-    
+
     int res_trylock_locked = pthread_mutex_trylock(mutex);
 
     if (res_trylock_locked != EBUSY && res_trylock_locked != EDEADLK)
@@ -47,7 +47,7 @@ void test_trylock_dynamic(void)
 
     int res_init = pthread_mutex_init(&mutex_dynamic, NULL);
     assert_int_equal(res_init, 0);
-    
+
     test_trylock_impl(&mutex_dynamic);
 
     int res_destroy = pthread_mutex_destroy(&mutex_dynamic);
@@ -58,7 +58,7 @@ void test_trylock_dynamic(void)
 void test_trylock_static(void)
 {
     pthread_mutex_t mutex_static = PTHREAD_MUTEX_INITIALIZER;
-    
+
     test_trylock_impl(&mutex_static);
 }
 
@@ -91,7 +91,7 @@ void test_create(void)
 static void increment_shared_var(void)
 {
 #define THREAD_ITERATIONS 1000
-    
+
     int res_lock = pthread_mutex_lock(&shared_var_mutex);
     assert_int_equal(res_lock, 0);
 
@@ -100,7 +100,7 @@ static void increment_shared_var(void)
         SHARED_VAR++;
         SHARED_VAR--;
     }
-    
+
     SHARED_VAR++;
 
     int res_unlock = pthread_mutex_unlock(&shared_var_mutex);
@@ -111,12 +111,12 @@ static void increment_shared_var(void)
 void test_lock(void)
 {
     SHARED_VAR = 0;
-    
+
     pthread_t tids[NUM_THREADS];
-    
+
     create_children(tids);
     join_children(tids);
-    
+
     assert_int_equal(SHARED_VAR, NUM_THREADS);
 }
 

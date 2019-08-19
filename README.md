@@ -22,7 +22,7 @@ Please see the [CONTRIBUTING.md](https://github.com/cfengine/core/blob/master/CO
 
 # Authors
 
-CFEngine was originally created by Mark Burgess with many contributions from around the world. 
+CFEngine was originally created by Mark Burgess with many contributions from around the world.
 Thanks [everyone](https://github.com/cfengine/core/blob/master/AUTHORS)!
 
 [CFEngine](https://cfengine.com) is sponsored by [Northern.tech AS](https://northern.tech)
