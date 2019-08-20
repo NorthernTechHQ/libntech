@@ -85,10 +85,10 @@ libutils_la_SOURCES = \
 	xml_writer.c xml_writer.h
 
 if !NT
-  libutils_la_SOURCES += unix_dir.c
+libutils_la_SOURCES += unix_dir.c
 endif
 if CYGWIN
-  libutils_la_SOURCES += unix_dir.c
+libutils_la_SOURCES += unix_dir.c
 endif
 
 CLEANFILES = *.gcno *.gcda

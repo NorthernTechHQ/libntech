@@ -346,19 +346,19 @@ int ListRemove(List *list, void *payload)
      * since the list has not changed, it might have been copied but
      * it is still the same as before.
      */
-    for (node = list->list; node; node = node->next) 
+    for (node = list->list; node; node = node->next)
 	{
-        if (list->compare) 
+        if (list->compare)
 		{
-            if (!list->compare(node->payload, payload)) 
+            if (!list->compare(node->payload, payload))
 			{
                 found = 1;
                 break;
             }
-        } 
-		else 
+        }
+		else
 		{
-            if (node->payload == payload) 
+            if (node->payload == payload)
 			{
                 found = 1;
                 break;
@@ -376,7 +376,7 @@ int ListRemove(List *list, void *payload)
      */
     if (list->iterator)
     {
-        if (list->iterator->current == node) 
+        if (list->iterator->current == node)
         {
             /*
              * So lucky, it is the same node!
@@ -403,7 +403,7 @@ int ListRemove(List *list, void *payload)
     /*
      * Now, remove the node from the list and delete it.
      */
-    if (node->next && node->previous) 
+    if (node->next && node->previous)
     {
         // Middle of the list
         node->next->previous = node->previous;
@@ -429,7 +429,7 @@ int ListRemove(List *list, void *payload)
         list->first = NULL;
         list->last = NULL;
     }
-    if (list->destroy && node->payload) 
+    if (list->destroy && node->payload)
     {
         list->destroy(node->payload);
     }

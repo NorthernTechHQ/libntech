@@ -59,8 +59,8 @@ DISTCLEANFILES =
 # "configure; make; make install"
 #
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.guess config.sub \
-        configure install-sh missing mkinstalldirs depcomp ylwrap \
-        ltmain.sh mdate-sh
+	configure install-sh missing mkinstalldirs depcomp ylwrap \
+	ltmain.sh mdate-sh
 
 #
 # Pass proper flags to aclocal to pick up Libtool macros
@@ -83,11 +83,12 @@ tar-package:
 	pkgdir=`mktemp -d`  &&  export pkgdir  &&  \
 	origdir=`pwd`       &&  export origdir &&  \
 	$(MAKE) DESTDIR=$$pkgdir install  &&  \
-	(   cd $$pkgdir  &&  \
-            find . -name '*.cf*' | xargs -n1 chmod go-w  &&  \
-	    tardir=.  &&  $(am__tar) |  \
-	        GZIP=$(GZIP_ENV) gzip -c  \
-	        > "$$origdir"/$(PACKAGE)-$(VERSION).pkg.tar.gz  \
+	( \
+		cd $$pkgdir  &&  \
+		find . -name '*.cf*' | xargs -n1 chmod go-w  &&  \
+		tardir=.  && \
+		$(am__tar) | GZIP=$(GZIP_ENV) gzip -c  \
+			> "$$origdir"/$(PACKAGE)-$(VERSION).pkg.tar.gz  \
 	)  ;  \
 	[ x$$pkgdir != x ]  &&  rm -rf $$pkgdir
 

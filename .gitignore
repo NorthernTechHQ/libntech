@@ -9,7 +9,6 @@
 *.o
 .deps
 .libs
-Makefile
 Makefile.in
 stamp-h1
 .dirstamp
@@ -29,6 +28,14 @@ stamp-h1
 /config.sub
 /configure
 /depcomp
+
+# Makefiles are listed explicitly, because deps in 3rdparty use normal make:
+/Makefile
+/libcompat/Makefile
+/libutils/Makefile
+/tests/Makefile
+/tests/unit/Makefile
+/ext/Makefile
 
 /install-sh
 /libtool
