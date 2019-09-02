@@ -1534,7 +1534,7 @@ static void JsonArrayWriteCompact(Writer *writer, const JsonElement *array)
     WriterWriteChar(writer, ']');
 }
 
-void JsonObjectWriteCompact(Writer *writer, const JsonElement *object)
+static void JsonObjectWriteCompact(Writer *writer, const JsonElement *object)
 {
     assert(object->type == JSON_ELEMENT_TYPE_CONTAINER);
     assert(object->container.type == JSON_CONTAINER_TYPE_OBJECT);
