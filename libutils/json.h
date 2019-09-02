@@ -423,10 +423,10 @@ const char *JsonPrimitiveTypeToString(JsonPrimitiveType type);
 
 JsonIterator JsonIteratorInit(const JsonElement *container);
 const char *JsonIteratorNextKey(JsonIterator *iter);
-const JsonElement *JsonIteratorNextValue(JsonIterator *iter);
-const JsonElement *JsonIteratorNextValueByType(JsonIterator *iter, JsonElementType type, bool skip_null);
+JsonElement *JsonIteratorNextValue(JsonIterator *iter);
+JsonElement *JsonIteratorNextValueByType(JsonIterator *iter, JsonElementType type, bool skip_null);
 const char *JsonIteratorCurrentKey(const JsonIterator *iter);
-const JsonElement *JsonIteratorCurrentValue(const JsonIterator *iter);
+JsonElement *JsonIteratorCurrentValue(const JsonIterator *iter);
 JsonElementType JsonIteratorCurrentElementType(const JsonIterator *iter);
 JsonContainerType JsonIteratorCurrentContainerType(const JsonIterator *iter);
 JsonPrimitiveType JsonIteratorCurrentPrimitiveType(const JsonIterator *iter);

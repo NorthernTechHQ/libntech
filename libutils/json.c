@@ -521,7 +521,7 @@ const char *JsonIteratorNextKey(JsonIterator *iter)
     return child ? child->propertyName : NULL;
 }
 
-const JsonElement *JsonIteratorNextValue(JsonIterator *iter)
+JsonElement *JsonIteratorNextValue(JsonIterator *iter)
 {
     assert(iter);
     assert(iter->container->type == JSON_ELEMENT_TYPE_CONTAINER);
@@ -534,9 +534,9 @@ const JsonElement *JsonIteratorNextValue(JsonIterator *iter)
     return iter->container->container.children->data[iter->index++];
 }
 
-const JsonElement *JsonIteratorNextValueByType(JsonIterator *iter, JsonElementType type, bool skip_null)
+JsonElement *JsonIteratorNextValueByType(JsonIterator *iter, JsonElementType type, bool skip_null)
 {
-    const JsonElement *e = NULL;
+    JsonElement *e = NULL;
     while ((e = JsonIteratorNextValue(iter)))
     {
         if (skip_null
@@ -555,7 +555,7 @@ const JsonElement *JsonIteratorNextValueByType(JsonIterator *iter, JsonElementTy
     return NULL;
 }
 
-const JsonElement *JsonIteratorCurrentValue(const JsonIterator *iter)
+JsonElement *JsonIteratorCurrentValue(const JsonIterator *iter)
 {
     assert(iter);
     assert(iter->container->type == JSON_ELEMENT_TYPE_CONTAINER);
