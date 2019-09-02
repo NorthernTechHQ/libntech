@@ -77,6 +77,7 @@ check_PROGRAMS = \
 	file_writer_test \
 	xml_writer_test \
 	sequence_test \
+	json_test \
 	misc_lib_test \
 	string_lib_test \
 	thread_test \
