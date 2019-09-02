@@ -97,9 +97,7 @@ check_PROGRAMS = \
 	ring_buffer_test \
 	libcompat_test
 
-EXTRA_DIST   += $(check_SCRIPTS)
-
-TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
+TESTS = $(check_PROGRAMS)
 
 #
 # OS X uses real system calls instead of our stubs unless this option is used
