@@ -46,7 +46,13 @@ static const char *const JSON_NULL = "null";
 struct JsonElement_
 {
     JsonElementType type;
-    char *propertyName; // to avoid having a struct JsonProperty
+
+    // We don't have a separate struct for the key-value pairs in a JSON
+    // Object. Instead, a JSON Object has a JsonElement Seq, where each element
+    // has a propertyName (the key). A JSON Object key-value pair is sometimes
+    // called a JSON Object property.
+    char *propertyName;
+
     union
     {
         struct JsonContainer
