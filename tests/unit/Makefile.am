@@ -77,6 +77,7 @@ check_PROGRAMS = \
 	file_writer_test \
 	xml_writer_test \
 	sequence_test \
+	json_test \
 	misc_lib_test \
 	string_lib_test \
 	thread_test \
@@ -97,9 +98,7 @@ check_PROGRAMS = \
 	ring_buffer_test \
 	libcompat_test
 
-EXTRA_DIST   += $(check_SCRIPTS)
-
-TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
+TESTS = $(check_PROGRAMS)
 
 #
 # OS X uses real system calls instead of our stubs unless this option is used
