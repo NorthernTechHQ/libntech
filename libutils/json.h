@@ -434,7 +434,7 @@ typedef int JsonComparator(
     const JsonElement *, const JsonElement *, void *user_data);
 
 void JsonSort(
-    JsonElement *container, JsonComparator *Compare, void *user_data);
+    const JsonElement *container, JsonComparator *Compare, void *user_data);
 JsonElement *JsonAt(const JsonElement *container, size_t index);
 JsonElement *JsonSelect(
     JsonElement *element, size_t num_indices, char **indices);
