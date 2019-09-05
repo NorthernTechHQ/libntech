@@ -2,32 +2,70 @@
 
 #include <json.h>
 #include <file_lib.h>
-#include <misc_lib.h>                                          /* xsnprintf */
+#include <misc_lib.h> /* xsnprintf */
 
 #include <float.h>
 
 
-static const char *OBJECT_ARRAY = "{\n" "  \"first\": [\n" "    \"one\",\n" "    \"two\"\n" "  ]\n" "}";
+static const char *OBJECT_ARRAY =
+    "{\n"
+    "  \"first\": [\n"
+    "    \"one\",\n"
+    "    \"two\"\n"
+    "  ]\n"
+    "}";
 
-static const char *OBJECT_COMPOUND = "{\n"
+static const char *OBJECT_COMPOUND =
+    "{\n"
     "  \"first\": \"one\",\n"
-    "  \"fourth\": {\n" "    \"fifth\": \"five\"\n" "  },\n"
+    "  \"fourth\": {\n"
+    "    \"fifth\": \"five\"\n"
+    "  },\n"
     "  \"second\": {\n"
-    "    \"third\": \"three\"\n" "  }\n" "}";
+    "    \"third\": \"three\"\n"
+    "  }\n"
+    "}";
 
-static const char *OBJECT_SIMPLE = "{\n" "  \"first\": \"one\",\n" "  \"second\": \"two\"\n" "}";
+static const char *OBJECT_SIMPLE =
+    "{\n"
+    "  \"first\": \"one\",\n"
+    "  \"second\": \"two\"\n"
+    "}";
 
-static const char *OBJECT_NUMERIC = "{\n" "  \"int\": -1234567890,\n" "  \"real\": 1234.5678\n" "}";
+static const char *OBJECT_NUMERIC =
+    "{\n"
+    "  \"int\": -1234567890,\n"
+    "  \"real\": 1234.5678\n"
+    "}";
 
-static const char *OBJECT_BOOLEAN = "{\n" "  \"bool_value\": true\n" "}";
+static const char *OBJECT_BOOLEAN =
+    "{\n"
+    "  \"bool_value\": true\n"
+    "}";
 
-static const char *OBJECT_ESCAPED = "{\n" "  \"escaped\": \"quote\\\"stuff \\t \\n\\n\"\n" "}";
+static const char *OBJECT_ESCAPED =
+    "{\n"
+    "  \"escaped\": \"quote\\\"stuff \\t \\n\\n\"\n"
+    "}";
 
-static const char *ARRAY_SIMPLE = "[\n" "  \"one\",\n" "  \"two\"\n" "]";
+static const char *ARRAY_SIMPLE =
+    "[\n"
+    "  \"one\",\n"
+    "  \"two\"\n"
+    "]";
 
-static const char *ARRAY_NUMERIC = "[\n" "  123,\n" "  123.1234\n" "]";
+static const char *ARRAY_NUMERIC =
+    "[\n"
+    "  123,\n"
+    "  123.1234\n"
+    "]";
 
-static const char *ARRAY_OBJECT = "[\n" "  {\n" "    \"first\": \"one\"\n" "  }\n" "]";
+static const char *ARRAY_OBJECT =
+    "[\n"
+    "  {\n"
+    "    \"first\": \"one\"\n"
+    "  }\n"
+    "]";
 
 static JsonElement *LoadTestFile(const char *filename)
 {
@@ -212,7 +250,9 @@ static void test_show_object_compound_compact(void)
     JsonWriteCompact(writer, json);
     char *output = StringWriterClose(writer);
 
-    assert_string_equal("{\"first\":\"one\",\"fourth\":{\"fifth\":\"five\"},\"second\":{\"third\":\"three\"}}", output);
+    assert_string_equal(
+        "{\"first\":\"one\",\"fourth\":{\"fifth\":\"five\"},\"second\":{\"third\":\"three\"}}",
+        output);
 
     JsonDestroy(json);
     free(output);
@@ -288,7 +328,12 @@ static void test_show_array_boolean(void)
     JsonWrite(writer, array, 0);
     char *output = StringWriterClose(writer);
 
-    assert_string_equal("[\n" "  true,\n" "  false\n" "]", output);
+    assert_string_equal(
+        "[\n"
+        "  true,\n"
+        "  false\n"
+        "]",
+        output);
 
     JsonDestroy(array);
     free(output);
@@ -364,7 +409,7 @@ static void test_show_array_nan(void)
 }
 
 #ifndef INFINITY
-  #define INFINITY (1.0/0.0)
+#define INFINITY (1.0 / 0.0)
 #endif
 
 static void test_show_array_infinity(void)
@@ -443,9 +488,12 @@ static void test_object_iterator(void)
         JsonIterator it = JsonIteratorInit(obj);
 
         assert_true(JsonIteratorHasMore(&it));
-        assert_string_equal("one", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
-        assert_string_equal("two", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
-        assert_int_equal(3, JsonPrimitiveGetAsInteger(JsonIteratorNextValue(&it)));
+        assert_string_equal(
+            "one", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
+        assert_string_equal(
+            "two", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
+        assert_int_equal(
+            3, JsonPrimitiveGetAsInteger(JsonIteratorNextValue(&it)));
         assert_true(JsonPrimitiveGetAsBool(JsonIteratorNextValue(&it)));
         assert_true(JsonIteratorHasMore(&it));
         assert_false(JsonPrimitiveGetAsBool(JsonIteratorNextValue(&it)));
@@ -480,9 +528,11 @@ static void test_array_iterator(void)
         JsonIterator it = JsonIteratorInit(arr);
 
         assert_true(JsonIteratorHasMore(&it));
-        assert_string_equal("first", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
+        assert_string_equal(
+            "first", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
         assert_true(JsonIteratorHasMore(&it));
-        assert_string_equal("second", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
+        assert_string_equal(
+            "second", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
         assert_false(JsonIteratorHasMore(&it));
         assert_false(JsonIteratorNextValue(&it));
     }
@@ -513,33 +563,37 @@ static void test_select(void)
     assert_true(obj == JsonSelect(obj, 0, NULL));
 
     {
-        char *indices[] = { "first" };
-        assert_int_equal(JSON_CONTAINER_TYPE_ARRAY, JsonGetContainerType(JsonSelect(obj, 1, indices)));
+        char *indices[] = {"first"};
+        assert_int_equal(
+            JSON_CONTAINER_TYPE_ARRAY,
+            JsonGetContainerType(JsonSelect(obj, 1, indices)));
     }
     {
-        char *indices[] = { "first", "0" };
-        assert_string_equal("one", JsonPrimitiveGetAsString(JsonSelect(obj, 2, indices)));
+        char *indices[] = {"first", "0"};
+        assert_string_equal(
+            "one", JsonPrimitiveGetAsString(JsonSelect(obj, 2, indices)));
     }
     {
-        char *indices[] = { "first", "1" };
-        assert_string_equal("two", JsonPrimitiveGetAsString(JsonSelect(obj, 2, indices)));
+        char *indices[] = {"first", "1"};
+        assert_string_equal(
+            "two", JsonPrimitiveGetAsString(JsonSelect(obj, 2, indices)));
     }
     {
-        char *indices[] = { "first", "2" };
+        char *indices[] = {"first", "2"};
         assert_true(JsonSelect(obj, 2, indices) == NULL);
     }
     {
-        char *indices[] = { "first", "x" };
+        char *indices[] = {"first", "x"};
         assert_true(JsonSelect(obj, 2, indices) == NULL);
     }
 
     {
-        char *indices[] = { "first", "0", "x" };
+        char *indices[] = {"first", "0", "x"};
         assert_true(JsonSelect(obj, 3, indices) == NULL);
     }
 
     {
-        char *indices[] = { "second" };
+        char *indices[] = {"second"};
         assert_true(JsonSelect(obj, 1, indices) == NULL);
     }
 
@@ -605,7 +659,8 @@ static void test_parse_empty_containers(void)
         assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &obj));
         assert_true(obj != NULL);
         assert_int_equal(JSON_ELEMENT_TYPE_CONTAINER, JsonGetElementType(obj));
-        assert_int_equal(JSON_CONTAINER_TYPE_OBJECT, JsonGetContainerType(obj));
+        assert_int_equal(
+            JSON_CONTAINER_TYPE_OBJECT, JsonGetContainerType(obj));
         assert_int_equal(0, JsonLength(obj));
         JsonDestroy(obj);
     }
@@ -639,7 +694,8 @@ static void test_parse_object_escaped(void)
 {
     const char *decoded = "\"/var/cfenigne/bin/cf-know\" ";
 
-    const char *json_string =  "{\n  \"key\": \"\\\"/var/cfenigne/bin/cf-know\\\" \"\n}";
+    const char *json_string =
+        "{\n  \"key\": \"\\\"/var/cfenigne/bin/cf-know\\\" \"\n}";
 
     JsonElement *obj = NULL;
     const char *data = json_string;
@@ -662,11 +718,15 @@ static void test_parse_object_escaped(void)
 
 static void test_parse_tzz_evil_key(void)
 {
-    const char *data = "{ \"third key! can? be$ anything&\": [ \"a\", \"b\", \"c\" ]}";
+    const char *data =
+        "{ \"third key! can? be$ anything&\": [ \"a\", \"b\", \"c\" ]}";
     JsonElement *obj = NULL;
     assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &obj));
 
-    assert_string_equal("b", JsonArrayGetAsString(JsonObjectGetAsArray(obj, "third key! can? be$ anything&"), 1));
+    assert_string_equal(
+        "b",
+        JsonArrayGetAsString(
+            JsonObjectGetAsArray(obj, "third key! can? be$ anything&"), 1));
 
     JsonDestroy(obj);
 }
@@ -730,7 +790,8 @@ static void test_parse_object_compound(void)
 static void test_parse_object_diverse(void)
 {
     {
-        const char *data = "{ \"a\": 1, \"b\": \"snookie\", \"c\": 1.0, \"d\": {}, \"e\": [], \"f\": true, \"g\": false, \"h\": null }";
+        const char *data =
+            "{ \"a\": 1, \"b\": \"snookie\", \"c\": 1.0, \"d\": {}, \"e\": [], \"f\": true, \"g\": false, \"h\": null }";
         JsonElement *json = NULL;
         assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
         assert_true(json);
@@ -738,7 +799,8 @@ static void test_parse_object_diverse(void)
     }
 
     {
-        const char *data = "{\"a\":1,\"b\":\"snookie\",\"c\":1.0,\"d\":{},\"e\":[],\"f\":true,\"g\":false,\"h\":null}";
+        const char *data =
+            "{\"a\":1,\"b\":\"snookie\",\"c\":1.0,\"d\":{},\"e\":[],\"f\":true,\"g\":false,\"h\":null}";
         JsonElement *json = NULL;
         assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
         assert_true(json);
@@ -771,10 +833,12 @@ static void test_iterator_current(void)
     JsonIterator it = JsonIteratorInit(json);
     while (JsonIteratorNextValue(&it) != NULL)
     {
-        assert_int_equal((int)JsonIteratorCurrentElementType(&it),
-                         (int)JSON_ELEMENT_TYPE_CONTAINER);
-        assert_int_equal((int)JsonIteratorCurrentContainerType(&it),
-                         (int)JSON_CONTAINER_TYPE_ARRAY);
+        assert_int_equal(
+            (int) JsonIteratorCurrentElementType(&it),
+            (int) JSON_ELEMENT_TYPE_CONTAINER);
+        assert_int_equal(
+            (int) JsonIteratorCurrentContainerType(&it),
+            (int) JSON_CONTAINER_TYPE_ARRAY);
         assert_string_equal(JsonIteratorCurrentKey(&it), "array");
     }
 
@@ -1382,8 +1446,7 @@ static void test_parse_object_double_and_trailing_comma(void)
 int main()
 {
     PRINT_TEST_BANNER();
-    const UnitTest tests[] =
-    {
+    const UnitTest tests[] = {
         unit_test(test_new_delete),
         unit_test(test_object_duplicate_key),
         unit_test(test_show_string),
