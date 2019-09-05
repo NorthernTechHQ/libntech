@@ -1469,6 +1469,55 @@ static void test_string_escape(void)
         "Hello, world!\\n'Blah', \\\"blah\\\".");
 }
 
+#define assert_json5_data_eq(_size, unescaped, escaped)           \
+    {                                                             \
+        Slice data = {.data = (void *) unescaped, .size = _size}; \
+                                                                  \
+        char *const esc = Json5EscapeData(data);                  \
+                                                                  \
+        assert_string_equal(esc, escaped);                        \
+        free(esc);                                                \
+    }
+
+#define assert_json5_strings(unescaped, escaped)                     \
+    {                                                                \
+        assert_json5_data_eq(strlen(unescaped), unescaped, escaped); \
+    }
+
+static void test_string_escape_json5(void)
+{
+    // NUL-terminated strings, check backwards compatibility:
+    assert_json5_strings("", "");
+    assert_json5_strings(" ", " ");
+    assert_json5_strings("\t", "\\t");
+    assert_json5_strings("\n", "\\n");
+    assert_json5_strings("\b", "\\b");
+    assert_json5_strings("\f", "\\f");
+    assert_json5_strings("\r", "\\r");
+    assert_json5_strings("abc", "abc");
+    assert_json5_strings("\"", "\\\"");
+    assert_json5_strings(
+        "Hello, world!\n'Blah', \"blah\".",
+        "Hello, world!\\n'Blah', \\\"blah\\\".");
+
+    // Encoding NUL bytes and strings without NUL-bytes:
+    const char *const hello = "Hello";
+    assert_json5_data_eq(strlen(hello) + 1, hello, "Hello\\0");
+
+    char tab = '\t';
+    char nul = '\0';
+    assert_json5_data_eq(1, "", "\\0");
+    assert_json5_data_eq(1, &tab, "\\t");
+    assert_json5_data_eq(1, &nul, "\\0");
+
+    assert_json5_data_eq(2, " ", " \\0");
+    assert_json5_data_eq(4, "\0\0\0", "\\0\\0\\0\\0");
+
+    // Non-printable byte encoding:
+    const char arr[] = {1, 2, 3, 4, 0x10, 0xF0, 0xFF};
+    assert_json5_data_eq(7, arr, "\\x01\\x02\\x03\\x04\\x10\\xF0\\xFF");
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -1531,6 +1580,7 @@ int main()
         unit_test(test_show_object_simple),
         unit_test(test_show_string),
         unit_test(test_string_escape),
+        unit_test(test_string_escape_json5),
     };
 
     return run_tests(tests);

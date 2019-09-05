@@ -123,6 +123,21 @@ typedef struct
 char *JsonDecodeString(const char *escaped_string);
 char *JsonEncodeString(const char *const unescaped_string);
 
+typedef struct _Slice
+{
+    // Slice is used to represent a section of memory which may or may not
+    // contain NUL bytes. This is useful for storing the unescaped versions of
+    // JSON(5) strings (which may have NUL bytes).
+
+    void *data;  // Binary data here, not just ascii plain text
+    size_t size; // Allocated size in bytes (or shorter if you shrink later)
+} Slice;
+
+char *Json5EscapeData(Slice unescaped_data);
+
+// Not implemented yet:
+// Slice Json5UnescapeString(const char *escaped_string);
+
 //////////////////////////////////////////////////////////////////////////////
 // Generic JSONElement functions
 //////////////////////////////////////////////////////////////////////////////
