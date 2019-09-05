@@ -1443,6 +1443,32 @@ static void test_parse_object_double_and_trailing_comma(void)
     }
 }
 
+#define assert_json_strings_eq(unescaped, escaped)     \
+    {                                                  \
+        char *const esc = JsonEncodeString(unescaped); \
+        char *const unesc = JsonDecodeString(escaped); \
+        assert_string_equal(esc, escaped);             \
+        assert_string_equal(unesc, unescaped);         \
+        free(esc);                                     \
+        free(unesc);                                   \
+    }
+
+static void test_string_escape(void)
+{
+    assert_json_strings_eq("", "");
+    assert_json_strings_eq(" ", " ");
+    assert_json_strings_eq("\t", "\\t");
+    assert_json_strings_eq("\n", "\\n");
+    assert_json_strings_eq("\b", "\\b");
+    assert_json_strings_eq("\f", "\\f");
+    assert_json_strings_eq("\r", "\\r");
+    assert_json_strings_eq("abc", "abc");
+    assert_json_strings_eq("\"", "\\\"");
+    assert_json_strings_eq(
+        "Hello, world!\n'Blah', \"blah\".",
+        "Hello, world!\\n'Blah', \\\"blah\\\".");
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -1504,6 +1530,7 @@ int main()
         unit_test(test_show_object_numeric),
         unit_test(test_show_object_simple),
         unit_test(test_show_string),
+        unit_test(test_string_escape),
     };
 
     return run_tests(tests);
