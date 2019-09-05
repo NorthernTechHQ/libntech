@@ -843,11 +843,10 @@ JsonElement *JsonObjectCreate(const size_t initialCapacity)
         JSON_CONTAINER_TYPE_OBJECT, NULL, initialCapacity);
 }
 
-static char *JsonEncodeString(const char *const unescaped_string)
+static void JsonEncodeStringWriter(
+    const char *const unescaped_string, Writer *const writer)
 {
     assert(unescaped_string != NULL);
-
-    Writer *writer = StringWriter();
 
     for (const char *c = unescaped_string; *c != '\0'; c++)
     {
@@ -882,15 +881,21 @@ static char *JsonEncodeString(const char *const unescaped_string)
             WriterWriteChar(writer, *c);
         }
     }
+}
+
+static char *JsonEncodeString(const char *const unescaped_string)
+{
+    Writer *writer = StringWriter();
+
+    JsonEncodeStringWriter(unescaped_string, writer);
 
     return StringWriterClose(writer);
 }
 
-char *JsonDecodeString(const char *const encoded_string)
+static void JsonDecodeStringWriter(
+    const char *const encoded_string, Writer *const w)
 {
     assert(encoded_string != NULL);
-
-    Writer *w = StringWriter();
 
     for (const char *c = encoded_string; *c != '\0'; c++)
     {
@@ -934,8 +939,15 @@ char *JsonDecodeString(const char *const encoded_string)
             break;
         }
     }
+}
 
-    return StringWriterClose(w);
+char *JsonDecodeString(const char *const encoded_string)
+{
+    Writer *writer = StringWriter();
+
+    JsonDecodeStringWriter(encoded_string, writer);
+
+    return StringWriterClose(writer);
 }
 
 void JsonObjectAppendString(
