@@ -120,7 +120,8 @@ typedef struct
 // String encoding (escaping)
 //////////////////////////////////////////////////////////////////////////////
 
-char *JsonDecodeString(const char *encoded_string);
+char *JsonDecodeString(const char *escaped_string);
+char *JsonEncodeString(const char *const unescaped_string);
 
 //////////////////////////////////////////////////////////////////////////////
 // Generic JSONElement functions

@@ -883,7 +883,7 @@ static void JsonEncodeStringWriter(
     }
 }
 
-static char *JsonEncodeString(const char *const unescaped_string)
+char *JsonEncodeString(const char *const unescaped_string)
 {
     Writer *writer = StringWriter();
 
@@ -893,11 +893,11 @@ static char *JsonEncodeString(const char *const unescaped_string)
 }
 
 static void JsonDecodeStringWriter(
-    const char *const encoded_string, Writer *const w)
+    const char *const escaped_string, Writer *const w)
 {
-    assert(encoded_string != NULL);
+    assert(escaped_string != NULL);
 
-    for (const char *c = encoded_string; *c != '\0'; c++)
+    for (const char *c = escaped_string; *c != '\0'; c++)
     {
         switch (*c)
         {
@@ -941,11 +941,11 @@ static void JsonDecodeStringWriter(
     }
 }
 
-char *JsonDecodeString(const char *const encoded_string)
+char *JsonDecodeString(const char *const escaped_string)
 {
     Writer *writer = StringWriter();
 
-    JsonDecodeStringWriter(encoded_string, writer);
+    JsonDecodeStringWriter(escaped_string, writer);
 
     return StringWriterClose(writer);
 }
