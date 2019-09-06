@@ -1607,7 +1607,6 @@ AC_CONFIG_FILES([Makefile
     libcompat/Makefile
     libutils/Makefile
     config.post.h
-    ext/Makefile
     tests/Makefile
     tests/unit/Makefile])
 

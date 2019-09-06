@@ -29,7 +29,6 @@ LCOV_FLAGS = $(if $(filter-out 0,$(V)),,-q)
 
 SUBDIRS = libcompat \
 	libutils \
-	ext \
 	tests
 
 
