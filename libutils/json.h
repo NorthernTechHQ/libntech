@@ -30,10 +30,13 @@
 /**
   @brief JSON data-structure.
 
-  This is a JSON Document Object Model (DOM). Clients deal only with the opaque JsonElement, which may be either a container or
-  a primitive (client should probably not deal much with primitive elements). A JSON container may be either an object or an array.
-  The JSON DOM currently supports copy semantics for primitive values, but not for container types. In practice, this means that
-  clients always just free the parent element, but an element should just have a single parent, or none.
+  This is a JSON Document Object Model (DOM). Clients deal only with the opaque
+  JsonElement, which may be either a container or a primitive (client should
+  probably not deal much with primitive elements). A JSON container may be
+  either an object or an array. The JSON DOM currently supports copy semantics
+  for primitive values, but not for container types. In practice, this means
+  that clients always just free the parent element, but an element should just
+  have a single parent, or none.
 
   JSON primitives as JsonElement are currently not well supported.
 
@@ -154,38 +157,44 @@ void JsonDestroy(JsonElement *element);
 /**
   @brief Destroy a JSON element if needed
   @param element [in] The JSON element to destroy.
-  @param allocated [in] Whether the element was allocated and needs to be destroyed.
+  @param allocated [in] Whether the element was allocated and needs to be
+                        destroyed.
   */
 void JsonDestroyMaybe(JsonElement *element, bool allocated);
 
 /**
-  @brief Get the length of a JsonElement. This is the number of elements or fields in an array or object respectively.
+  @brief Get the length of a JsonElement. This is the number of elements or
+  fields in an array or object respectively.
   @param element [in] The JSON element.
   */
 size_t JsonLength(const JsonElement *element);
 
 JsonElementType JsonGetElementType(const JsonElement *element);
-const char* JsonElementGetPropertyName(const JsonElement *element);
+const char *JsonElementGetPropertyName(const JsonElement *element);
 
 JsonContainerType JsonGetContainerType(const JsonElement *container);
 
 JsonPrimitiveType JsonGetPrimitiveType(const JsonElement *primitive);
 const char *JsonPrimitiveGetAsString(const JsonElement *primitive);
-char* JsonPrimitiveToString(const JsonElement *primitive);
+char *JsonPrimitiveToString(const JsonElement *primitive);
 bool JsonPrimitiveGetAsBool(const JsonElement *primitive);
 long JsonPrimitiveGetAsInteger(const JsonElement *primitive);
 double JsonPrimitiveGetAsReal(const JsonElement *primitive);
 const char *JsonGetPropertyAsString(const JsonElement *element);
 
 /**
-  @brief Pretty-print a JsonElement recursively into a Writer.  If it's a JsonObject, its children will be sorted to produce canonical JSON output, but the object's contents are not modified so it's still a const.
+  @brief Pretty-print a JsonElement recursively into a Writer.  If it's a
+  JsonObject, its children will be sorted to produce canonical JSON output, but
+  the object's contents are not modified so it's still a const.
   @see Writer
   @param writer [in] The Writer object to use as a buffer.
   @param element [in] The JSON element to print.
-  @param indent_level [in] The nesting level with which the printing should be done. This is mainly to allow the
-  function to be called recursively. Clients will normally want to set this to 0.
+  @param indent_level [in] The nesting level with which the printing should be
+  done. This is mainly to allow the function to be called recursively. Clients
+  will normally want to set this to 0.
   */
-void JsonWrite(Writer *writer, const JsonElement *element, size_t indent_level);
+void JsonWrite(
+    Writer *writer, const JsonElement *element, size_t indent_level);
 
 void JsonWriteCompact(Writer *w, const JsonElement *element);
 
@@ -195,7 +204,8 @@ void JsonWriteCompact(Writer *w, const JsonElement *element);
   @param key [in] the key of the field.
   @param value [in] The value of the field.
   */
-void JsonObjectAppendString(JsonElement *object, const char *key, const char *value);
+void JsonObjectAppendString(
+    JsonElement *object, const char *key, const char *value);
 
 /**
   @brief Append an integer field to an object.
@@ -233,7 +243,8 @@ void JsonObjectAppendNull(JsonElement *object, const char *key);
   @param key [in] the key of the field.
   @param value [in] The value of the field.
   */
-void JsonObjectAppendArray(JsonElement *object, const char *key, JsonElement *array);
+void JsonObjectAppendArray(
+    JsonElement *object, const char *key, JsonElement *array);
 
 /**
   @brief Append an object field to an object.
@@ -241,7 +252,8 @@ void JsonObjectAppendArray(JsonElement *object, const char *key, JsonElement *ar
   @param key [in] the key of the field.
   @param value [in] The value of the field.
   */
-void JsonObjectAppendObject(JsonElement *object, const char *key, JsonElement *childObject);
+void JsonObjectAppendObject(
+    JsonElement *object, const char *key, JsonElement *childObject);
 
 /**
   @brief Append any JSON element to an object.
@@ -249,7 +261,8 @@ void JsonObjectAppendObject(JsonElement *object, const char *key, JsonElement *c
   @param key [in] the key of the field.
   @param element [in] The element to append
 */
-void JsonObjectAppendElement(JsonElement *object, const char *key, JsonElement *element);
+void JsonObjectAppendElement(
+    JsonElement *object, const char *key, JsonElement *element);
 
 /**
   @brief Get the value of a field in an object, as a string.
@@ -384,7 +397,11 @@ JsonParseError JsonParse(const char **data, JsonElement **json_out);
   The lookup_context type is void so we don't have to include
   eval_context.h from libpromises into libutil
   */
-JsonParseError JsonParseWithLookup(void *lookup_data, JsonLookup *lookup_function, const char **data, JsonElement **json_out);
+JsonParseError JsonParseWithLookup(
+    void *lookup_data,
+    JsonLookup *lookup_function,
+    const char **data,
+    JsonElement **json_out);
 
 /**
  * @brief Convenience function to parse JSON from a file
@@ -393,9 +410,10 @@ JsonParseError JsonParseWithLookup(void *lookup_data, JsonLookup *lookup_functio
  * @param json_out Resulting JSON object
  * @return See JsonParseError and JsonParseErrorToString
  */
-JsonParseError JsonParseFile(const char *path, size_t size_max, JsonElement **json_out);
+JsonParseError JsonParseFile(
+    const char *path, size_t size_max, JsonElement **json_out);
 
-const char* JsonParseErrorToString(JsonParseError error);
+const char *JsonParseErrorToString(JsonParseError error);
 
 /**
   @brief Remove key from the object
@@ -412,11 +430,14 @@ bool JsonObjectRemoveKey(JsonElement *object, const char *key);
   */
 JsonElement *JsonObjectDetachKey(JsonElement *object, const char *key);
 
-typedef int JsonComparator(const JsonElement *, const JsonElement *, void *user_data);
+typedef int JsonComparator(
+    const JsonElement *, const JsonElement *, void *user_data);
 
-void JsonSort(JsonElement *container, JsonComparator *Compare, void *user_data);
+void JsonSort(
+    JsonElement *container, JsonComparator *Compare, void *user_data);
 JsonElement *JsonAt(const JsonElement *container, size_t index);
-JsonElement *JsonSelect(JsonElement *element, size_t num_indices, char **indices);
+JsonElement *JsonSelect(
+    JsonElement *element, size_t num_indices, char **indices);
 
 const char *JsonPrimitiveTypeToString(JsonPrimitiveType type);
 
@@ -424,7 +445,8 @@ const char *JsonPrimitiveTypeToString(JsonPrimitiveType type);
 JsonIterator JsonIteratorInit(const JsonElement *container);
 const char *JsonIteratorNextKey(JsonIterator *iter);
 JsonElement *JsonIteratorNextValue(JsonIterator *iter);
-JsonElement *JsonIteratorNextValueByType(JsonIterator *iter, JsonElementType type, bool skip_null);
+JsonElement *JsonIteratorNextValueByType(
+    JsonIterator *iter, JsonElementType type, bool skip_null);
 const char *JsonIteratorCurrentKey(const JsonIterator *iter);
 JsonElement *JsonIteratorCurrentValue(const JsonIterator *iter);
 JsonElementType JsonIteratorCurrentElementType(const JsonIterator *iter);
@@ -432,7 +454,8 @@ JsonContainerType JsonIteratorCurrentContainerType(const JsonIterator *iter);
 JsonPrimitiveType JsonIteratorCurrentPrimitiveType(const JsonIterator *iter);
 bool JsonIteratorHasMore(const JsonIterator *iter);
 
-JsonElement* StringCaptureData(pcre *pattern, const char* regex, const char* data);
+JsonElement *StringCaptureData(
+    pcre *pattern, const char *regex, const char *data);
 char *JsonDecodeString(const char *encoded_string);
 
 #endif
