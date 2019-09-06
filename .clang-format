@@ -26,6 +26,14 @@ IndentCaseLabels: false
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeElse: true
+  SplitEmptyFunction: true
 BreakBeforeBinaryOperators: NonAssignment
 ---
