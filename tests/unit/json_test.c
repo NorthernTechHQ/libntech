@@ -2,32 +2,70 @@
 
 #include <json.h>
 #include <file_lib.h>
-#include <misc_lib.h>                                          /* xsnprintf */
+#include <misc_lib.h> /* xsnprintf */
 
 #include <float.h>
 
 
-static const char *OBJECT_ARRAY = "{\n" "  \"first\": [\n" "    \"one\",\n" "    \"two\"\n" "  ]\n" "}";
+static const char *OBJECT_ARRAY =
+    "{\n"
+    "  \"first\": [\n"
+    "    \"one\",\n"
+    "    \"two\"\n"
+    "  ]\n"
+    "}";
 
-static const char *OBJECT_COMPOUND = "{\n"
+static const char *OBJECT_COMPOUND =
+    "{\n"
     "  \"first\": \"one\",\n"
-    "  \"fourth\": {\n" "    \"fifth\": \"five\"\n" "  },\n"
+    "  \"fourth\": {\n"
+    "    \"fifth\": \"five\"\n"
+    "  },\n"
     "  \"second\": {\n"
-    "    \"third\": \"three\"\n" "  }\n" "}";
+    "    \"third\": \"three\"\n"
+    "  }\n"
+    "}";
 
-static const char *OBJECT_SIMPLE = "{\n" "  \"first\": \"one\",\n" "  \"second\": \"two\"\n" "}";
+static const char *OBJECT_SIMPLE =
+    "{\n"
+    "  \"first\": \"one\",\n"
+    "  \"second\": \"two\"\n"
+    "}";
 
-static const char *OBJECT_NUMERIC = "{\n" "  \"int\": -1234567890,\n" "  \"real\": 1234.5678\n" "}";
+static const char *OBJECT_NUMERIC =
+    "{\n"
+    "  \"int\": -1234567890,\n"
+    "  \"real\": 1234.5678\n"
+    "}";
 
-static const char *OBJECT_BOOLEAN = "{\n" "  \"bool_value\": true\n" "}";
+static const char *OBJECT_BOOLEAN =
+    "{\n"
+    "  \"bool_value\": true\n"
+    "}";
 
-static const char *OBJECT_ESCAPED = "{\n" "  \"escaped\": \"quote\\\"stuff \\t \\n\\n\"\n" "}";
+static const char *OBJECT_ESCAPED =
+    "{\n"
+    "  \"escaped\": \"quote\\\"stuff \\t \\n\\n\"\n"
+    "}";
 
-static const char *ARRAY_SIMPLE = "[\n" "  \"one\",\n" "  \"two\"\n" "]";
+static const char *ARRAY_SIMPLE =
+    "[\n"
+    "  \"one\",\n"
+    "  \"two\"\n"
+    "]";
 
-static const char *ARRAY_NUMERIC = "[\n" "  123,\n" "  123.1234\n" "]";
+static const char *ARRAY_NUMERIC =
+    "[\n"
+    "  123,\n"
+    "  123.1234\n"
+    "]";
 
-static const char *ARRAY_OBJECT = "[\n" "  {\n" "    \"first\": \"one\"\n" "  }\n" "]";
+static const char *ARRAY_OBJECT =
+    "[\n"
+    "  {\n"
+    "    \"first\": \"one\"\n"
+    "  }\n"
+    "]";
 
 static JsonElement *LoadTestFile(const char *filename)
 {
@@ -212,7 +250,9 @@ static void test_show_object_compound_compact(void)
     JsonWriteCompact(writer, json);
     char *output = StringWriterClose(writer);
 
-    assert_string_equal("{\"first\":\"one\",\"fourth\":{\"fifth\":\"five\"},\"second\":{\"third\":\"three\"}}", output);
+    assert_string_equal(
+        "{\"first\":\"one\",\"fourth\":{\"fifth\":\"five\"},\"second\":{\"third\":\"three\"}}",
+        output);
 
     JsonDestroy(json);
     free(output);
@@ -288,7 +328,12 @@ static void test_show_array_boolean(void)
     JsonWrite(writer, array, 0);
     char *output = StringWriterClose(writer);
 
-    assert_string_equal("[\n" "  true,\n" "  false\n" "]", output);
+    assert_string_equal(
+        "[\n"
+        "  true,\n"
+        "  false\n"
+        "]",
+        output);
 
     JsonDestroy(array);
     free(output);
@@ -364,7 +409,7 @@ static void test_show_array_nan(void)
 }
 
 #ifndef INFINITY
-  #define INFINITY (1.0/0.0)
+#define INFINITY (1.0 / 0.0)
 #endif
 
 static void test_show_array_infinity(void)
@@ -443,9 +488,12 @@ static void test_object_iterator(void)
         JsonIterator it = JsonIteratorInit(obj);
 
         assert_true(JsonIteratorHasMore(&it));
-        assert_string_equal("one", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
-        assert_string_equal("two", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
-        assert_int_equal(3, JsonPrimitiveGetAsInteger(JsonIteratorNextValue(&it)));
+        assert_string_equal(
+            "one", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
+        assert_string_equal(
+            "two", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
+        assert_int_equal(
+            3, JsonPrimitiveGetAsInteger(JsonIteratorNextValue(&it)));
         assert_true(JsonPrimitiveGetAsBool(JsonIteratorNextValue(&it)));
         assert_true(JsonIteratorHasMore(&it));
         assert_false(JsonPrimitiveGetAsBool(JsonIteratorNextValue(&it)));
@@ -480,9 +528,11 @@ static void test_array_iterator(void)
         JsonIterator it = JsonIteratorInit(arr);
 
         assert_true(JsonIteratorHasMore(&it));
-        assert_string_equal("first", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
+        assert_string_equal(
+            "first", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
         assert_true(JsonIteratorHasMore(&it));
-        assert_string_equal("second", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
+        assert_string_equal(
+            "second", JsonPrimitiveGetAsString(JsonIteratorNextValue(&it)));
         assert_false(JsonIteratorHasMore(&it));
         assert_false(JsonIteratorNextValue(&it));
     }
@@ -513,33 +563,37 @@ static void test_select(void)
     assert_true(obj == JsonSelect(obj, 0, NULL));
 
     {
-        char *indices[] = { "first" };
-        assert_int_equal(JSON_CONTAINER_TYPE_ARRAY, JsonGetContainerType(JsonSelect(obj, 1, indices)));
+        char *indices[] = {"first"};
+        assert_int_equal(
+            JSON_CONTAINER_TYPE_ARRAY,
+            JsonGetContainerType(JsonSelect(obj, 1, indices)));
     }
     {
-        char *indices[] = { "first", "0" };
-        assert_string_equal("one", JsonPrimitiveGetAsString(JsonSelect(obj, 2, indices)));
+        char *indices[] = {"first", "0"};
+        assert_string_equal(
+            "one", JsonPrimitiveGetAsString(JsonSelect(obj, 2, indices)));
     }
     {
-        char *indices[] = { "first", "1" };
-        assert_string_equal("two", JsonPrimitiveGetAsString(JsonSelect(obj, 2, indices)));
+        char *indices[] = {"first", "1"};
+        assert_string_equal(
+            "two", JsonPrimitiveGetAsString(JsonSelect(obj, 2, indices)));
     }
     {
-        char *indices[] = { "first", "2" };
+        char *indices[] = {"first", "2"};
         assert_true(JsonSelect(obj, 2, indices) == NULL);
     }
     {
-        char *indices[] = { "first", "x" };
+        char *indices[] = {"first", "x"};
         assert_true(JsonSelect(obj, 2, indices) == NULL);
     }
 
     {
-        char *indices[] = { "first", "0", "x" };
+        char *indices[] = {"first", "0", "x"};
         assert_true(JsonSelect(obj, 3, indices) == NULL);
     }
 
     {
-        char *indices[] = { "second" };
+        char *indices[] = {"second"};
         assert_true(JsonSelect(obj, 1, indices) == NULL);
     }
 
@@ -605,7 +659,8 @@ static void test_parse_empty_containers(void)
         assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &obj));
         assert_true(obj != NULL);
         assert_int_equal(JSON_ELEMENT_TYPE_CONTAINER, JsonGetElementType(obj));
-        assert_int_equal(JSON_CONTAINER_TYPE_OBJECT, JsonGetContainerType(obj));
+        assert_int_equal(
+            JSON_CONTAINER_TYPE_OBJECT, JsonGetContainerType(obj));
         assert_int_equal(0, JsonLength(obj));
         JsonDestroy(obj);
     }
@@ -639,7 +694,8 @@ static void test_parse_object_escaped(void)
 {
     const char *decoded = "\"/var/cfenigne/bin/cf-know\" ";
 
-    const char *json_string =  "{\n  \"key\": \"\\\"/var/cfenigne/bin/cf-know\\\" \"\n}";
+    const char *json_string =
+        "{\n  \"key\": \"\\\"/var/cfenigne/bin/cf-know\\\" \"\n}";
 
     JsonElement *obj = NULL;
     const char *data = json_string;
@@ -662,11 +718,15 @@ static void test_parse_object_escaped(void)
 
 static void test_parse_tzz_evil_key(void)
 {
-    const char *data = "{ \"third key! can? be$ anything&\": [ \"a\", \"b\", \"c\" ]}";
+    const char *data =
+        "{ \"third key! can? be$ anything&\": [ \"a\", \"b\", \"c\" ]}";
     JsonElement *obj = NULL;
     assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &obj));
 
-    assert_string_equal("b", JsonArrayGetAsString(JsonObjectGetAsArray(obj, "third key! can? be$ anything&"), 1));
+    assert_string_equal(
+        "b",
+        JsonArrayGetAsString(
+            JsonObjectGetAsArray(obj, "third key! can? be$ anything&"), 1));
 
     JsonDestroy(obj);
 }
@@ -730,7 +790,8 @@ static void test_parse_object_compound(void)
 static void test_parse_object_diverse(void)
 {
     {
-        const char *data = "{ \"a\": 1, \"b\": \"snookie\", \"c\": 1.0, \"d\": {}, \"e\": [], \"f\": true, \"g\": false, \"h\": null }";
+        const char *data =
+            "{ \"a\": 1, \"b\": \"snookie\", \"c\": 1.0, \"d\": {}, \"e\": [], \"f\": true, \"g\": false, \"h\": null }";
         JsonElement *json = NULL;
         assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
         assert_true(json);
@@ -738,7 +799,8 @@ static void test_parse_object_diverse(void)
     }
 
     {
-        const char *data = "{\"a\":1,\"b\":\"snookie\",\"c\":1.0,\"d\":{},\"e\":[],\"f\":true,\"g\":false,\"h\":null}";
+        const char *data =
+            "{\"a\":1,\"b\":\"snookie\",\"c\":1.0,\"d\":{},\"e\":[],\"f\":true,\"g\":false,\"h\":null}";
         JsonElement *json = NULL;
         assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
         assert_true(json);
@@ -771,10 +833,12 @@ static void test_iterator_current(void)
     JsonIterator it = JsonIteratorInit(json);
     while (JsonIteratorNextValue(&it) != NULL)
     {
-        assert_int_equal((int)JsonIteratorCurrentElementType(&it),
-                         (int)JSON_ELEMENT_TYPE_CONTAINER);
-        assert_int_equal((int)JsonIteratorCurrentContainerType(&it),
-                         (int)JSON_CONTAINER_TYPE_ARRAY);
+        assert_int_equal(
+            (int) JsonIteratorCurrentElementType(&it),
+            (int) JSON_ELEMENT_TYPE_CONTAINER);
+        assert_int_equal(
+            (int) JsonIteratorCurrentContainerType(&it),
+            (int) JSON_CONTAINER_TYPE_ARRAY);
         assert_string_equal(JsonIteratorCurrentKey(&it), "array");
     }
 
@@ -1379,68 +1443,144 @@ static void test_parse_object_double_and_trailing_comma(void)
     }
 }
 
+#define assert_json_strings_eq(unescaped, escaped)     \
+    {                                                  \
+        char *const esc = JsonEncodeString(unescaped); \
+        char *const unesc = JsonDecodeString(escaped); \
+        assert_string_equal(esc, escaped);             \
+        assert_string_equal(unesc, unescaped);         \
+        free(esc);                                     \
+        free(unesc);                                   \
+    }
+
+static void test_string_escape(void)
+{
+    assert_json_strings_eq("", "");
+    assert_json_strings_eq(" ", " ");
+    assert_json_strings_eq("\t", "\\t");
+    assert_json_strings_eq("\n", "\\n");
+    assert_json_strings_eq("\b", "\\b");
+    assert_json_strings_eq("\f", "\\f");
+    assert_json_strings_eq("\r", "\\r");
+    assert_json_strings_eq("abc", "abc");
+    assert_json_strings_eq("\"", "\\\"");
+    assert_json_strings_eq(
+        "Hello, world!\n'Blah', \"blah\".",
+        "Hello, world!\\n'Blah', \\\"blah\\\".");
+}
+
+#define assert_json5_data_eq(_size, unescaped, escaped)           \
+    {                                                             \
+        Slice data = {.data = (void *) unescaped, .size = _size}; \
+                                                                  \
+        char *const esc = Json5EscapeData(data);                  \
+                                                                  \
+        assert_string_equal(esc, escaped);                        \
+        free(esc);                                                \
+    }
+
+#define assert_json5_strings(unescaped, escaped)                     \
+    {                                                                \
+        assert_json5_data_eq(strlen(unescaped), unescaped, escaped); \
+    }
+
+static void test_string_escape_json5(void)
+{
+    // NUL-terminated strings, check backwards compatibility:
+    assert_json5_strings("", "");
+    assert_json5_strings(" ", " ");
+    assert_json5_strings("\t", "\\t");
+    assert_json5_strings("\n", "\\n");
+    assert_json5_strings("\b", "\\b");
+    assert_json5_strings("\f", "\\f");
+    assert_json5_strings("\r", "\\r");
+    assert_json5_strings("abc", "abc");
+    assert_json5_strings("\"", "\\\"");
+    assert_json5_strings(
+        "Hello, world!\n'Blah', \"blah\".",
+        "Hello, world!\\n'Blah', \\\"blah\\\".");
+
+    // Encoding NUL bytes and strings without NUL-bytes:
+    const char *const hello = "Hello";
+    assert_json5_data_eq(strlen(hello) + 1, hello, "Hello\\0");
+
+    char tab = '\t';
+    char nul = '\0';
+    assert_json5_data_eq(1, "", "\\0");
+    assert_json5_data_eq(1, &tab, "\\t");
+    assert_json5_data_eq(1, &nul, "\\0");
+
+    assert_json5_data_eq(2, " ", " \\0");
+    assert_json5_data_eq(4, "\0\0\0", "\\0\\0\\0\\0");
+
+    // Non-printable byte encoding:
+    const char arr[] = {1, 2, 3, 4, 0x10, 0xF0, 0xFF};
+    assert_json5_data_eq(7, arr, "\\x01\\x02\\x03\\x04\\x10\\xF0\\xFF");
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
-    const UnitTest tests[] =
-    {
+    const UnitTest tests[] = {
+        unit_test(test_array_get_string),
+        unit_test(test_array_iterator),
+        unit_test(test_array_remove_range),
+        unit_test(test_copy_compare),
+        unit_test(test_detach_key_from_object),
+        unit_test(test_iterator_current),
+        unit_test(test_merge_array),
+        unit_test(test_merge_object),
         unit_test(test_new_delete),
         unit_test(test_object_duplicate_key),
-        unit_test(test_show_string),
-        unit_test(test_show_object_simple),
-        unit_test(test_show_object_escaped),
-        unit_test(test_show_object_numeric),
+        unit_test(test_object_get_array),
+        unit_test(test_object_get_string),
+        unit_test(test_object_iterator),
+        unit_test(test_parse_array_bad_nested_elems),
+        unit_test(test_parse_array_comma_after_brace),
+        unit_test(test_parse_array_diverse),
+        unit_test(test_parse_array_double_and_trailing_commas),
+        unit_test(test_parse_array_extra_closing),
+        unit_test(test_parse_array_garbage),
+        unit_test(test_parse_array_nested_garbage),
+        unit_test(test_parse_array_object),
+        unit_test(test_parse_array_simple),
+        unit_test(test_parse_bad_apple2),
+        unit_test(test_parse_bad_numbers),
+        unit_test(test_parse_empty_containers),
+        unit_test(test_parse_empty_string),
+        unit_test(test_parse_escaped_string),
+        unit_test(test_parse_good_numbers),
+        unit_test(test_parse_object_compound),
+        unit_test(test_parse_object_diverse),
+        unit_test(test_parse_object_double_and_trailing_comma),
+        unit_test(test_parse_object_double_colon),
+        unit_test(test_parse_object_escaped),
+        unit_test(test_parse_object_garbage),
+        unit_test(test_parse_object_nested_garbage),
+        unit_test(test_parse_object_simple),
+        unit_test(test_parse_primitives),
+        unit_test(test_parse_trim),
+        unit_test(test_parse_tzz_evil_key),
+        unit_test(test_remove_key_from_object),
+        unit_test(test_select),
+        unit_test(test_show_array),
+        unit_test(test_show_array_boolean),
+        unit_test(test_show_array_compact),
+        unit_test(test_show_array_empty),
+        unit_test(test_show_array_infinity),
+        unit_test(test_show_array_nan),
+        unit_test(test_show_array_numeric),
+        unit_test(test_show_array_object),
+        unit_test(test_show_object_array),
         unit_test(test_show_object_boolean),
         unit_test(test_show_object_compound),
         unit_test(test_show_object_compound_compact),
-        unit_test(test_show_object_array),
-        unit_test(test_show_array),
-        unit_test(test_show_array_compact),
-        unit_test(test_show_array_boolean),
-        unit_test(test_show_array_numeric),
-        unit_test(test_show_array_object),
-        unit_test(test_show_array_empty),
-        unit_test(test_show_array_nan),
-        unit_test(test_show_array_infinity),
-        unit_test(test_object_get_string),
-        unit_test(test_object_get_array),
-        unit_test(test_object_iterator),
-        unit_test(test_iterator_current),
-        unit_test(test_array_get_string),
-        unit_test(test_array_iterator),
-        unit_test(test_copy_compare),
-        unit_test(test_select),
-        unit_test(test_merge_array),
-        unit_test(test_merge_object),
-        unit_test(test_parse_empty_string),
-        unit_test(test_parse_escaped_string),
-        unit_test(test_parse_empty_containers),
-        unit_test(test_parse_object_simple),
-        unit_test(test_parse_array_simple),
-        unit_test(test_parse_object_compound),
-        unit_test(test_parse_object_diverse),
-        unit_test(test_parse_array_object),
-        unit_test(test_parse_good_numbers),
-        unit_test(test_parse_bad_numbers),
-        unit_test(test_parse_trim),
-        unit_test(test_parse_array_extra_closing),
-        unit_test(test_parse_array_diverse),
-        unit_test(test_parse_bad_apple2),
-        unit_test(test_parse_object_garbage),
-        unit_test(test_parse_object_nested_garbage),
-        unit_test(test_parse_array_garbage),
-        unit_test(test_parse_array_nested_garbage),
-        unit_test(test_parse_object_escaped),
-        unit_test(test_parse_tzz_evil_key),
-        unit_test(test_parse_primitives),
-        unit_test(test_array_remove_range),
-        unit_test(test_remove_key_from_object),
-        unit_test(test_detach_key_from_object),
-        unit_test(test_parse_array_double_and_trailing_commas),
-        unit_test(test_parse_array_comma_after_brace),
-        unit_test(test_parse_array_bad_nested_elems),
-        unit_test(test_parse_object_double_colon),
-        unit_test(test_parse_object_double_and_trailing_comma),
+        unit_test(test_show_object_escaped),
+        unit_test(test_show_object_numeric),
+        unit_test(test_show_object_simple),
+        unit_test(test_show_string),
+        unit_test(test_string_escape),
+        unit_test(test_string_escape_json5),
     };
 
     return run_tests(tests);
