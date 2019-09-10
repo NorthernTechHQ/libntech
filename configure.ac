@@ -1212,6 +1212,22 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <sys/types.h>
                   [AC_MSG_RESULT([yes])],
                   [AC_MSG_RESULT([no])])
 
+dnl #######################################################################
+dnl Check for "fancy"(new) C compiler options
+dnl #######################################################################
+
+saved_CFLAGS="$CFLAGS"
+CFLAGS="-Werror -Wno-tautological-constant-out-of-range-compare"
+AC_MSG_CHECKING([whether compiler supports -Wno-tautological-constant-out-of-range-compare])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+    [AC_MSG_RESULT([yes])]
+    [NO_TAUTOLOGICAL_CC_OPTION="-Wno-tautological-constant-out-of-range-compare"],
+    [AC_MSG_RESULT([no])]
+    [NO_TAUTOLOGICAL_CC_OPTION=""]
+)
+CFLAGS="$saved_CFLAGS"
+AC_SUBST([NO_TAUTOLOGICAL_CC_OPTION])
+
 dnl ######################################################################
 dnl Give the chance to enable SELINUX
 dnl ######################################################################
@@ -1607,7 +1623,6 @@ AC_CONFIG_FILES([Makefile
     libcompat/Makefile
     libutils/Makefile
     config.post.h
-    ext/Makefile
     tests/Makefile
     tests/unit/Makefile])
 

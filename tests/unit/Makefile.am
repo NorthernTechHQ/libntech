@@ -171,7 +171,7 @@ libcompat_test_SOURCES = libcompat_test.c
 # Silence some warnings about generated comparisions always being false:
 # (The test generates some comparisons which compare an int to something
 # bigger than INT_MAX)
-misc_lib_test_CFLAGS = $(AM_CFLAGS) -Wno-tautological-constant-out-of-range-compare
+misc_lib_test_CFLAGS = $(AM_CFLAGS) $(NO_TAUTOLOGICAL_CC_OPTION)
 
 queue_test_SOURCES = queue_test.c
 
