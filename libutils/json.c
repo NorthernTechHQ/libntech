@@ -989,7 +989,11 @@ void Json5EscapeDataWriter(const Slice unescaped_data, Writer *const writer)
             break;
         default:
         {
-            if (isprint(byte))
+            // Important to cast to unsigned here, because of implicit casts.
+            // Both isprint and WriterWriteF implicitly cast the char to int.
+            // Since char and int are signed, this would extend the MSB
+            // so that 0xF0 -> 0XFFFFF0 (for example).
+            if (isprint((unsigned char) byte))
             {
                 WriterWriteChar(writer, byte);
             }
