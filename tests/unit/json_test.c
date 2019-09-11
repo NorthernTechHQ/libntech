@@ -1,6 +1,7 @@
 #include <test.h>
 
 #include <json.h>
+#include <string_lib.h>
 #include <file_lib.h>
 #include <misc_lib.h> /* xsnprintf */
 
@@ -1515,6 +1516,13 @@ static void test_string_escape_json5(void)
 
     // Non-printable byte encoding:
     const char arr[] = {1, 2, 3, 4, 0x10, 0xF0, 0xFF};
+    assert_false(CharIsPrintableAscii(1));
+    assert_false(CharIsPrintableAscii(2));
+    assert_false(CharIsPrintableAscii(3));
+    assert_false(CharIsPrintableAscii(4));
+    assert_false(CharIsPrintableAscii(0x10));
+    assert_false(CharIsPrintableAscii(0xF0));
+    assert_false(CharIsPrintableAscii(0xFF));
     assert_json5_data_eq(7, arr, "\\x01\\x02\\x03\\x04\\x10\\xF0\\xFF");
 }
 
