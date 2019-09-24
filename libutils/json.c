@@ -1885,6 +1885,8 @@ const char *JsonParseErrorToString(const JsonParseError error)
             "Unable to parse json data as number, started with 0 before dot or exponent, duplicate 0 seen",
         [JSON_PARSE_ERROR_NUMBER_NO_DIGIT] =
             "Unable to parse json data as number, dot not preceded by digit",
+        [JSON_PARSE_ERROR_NUMBER_MULTIPLE_DOTS] =
+            "Unable to parse json data as number, two or more dots (decimal points)",
         [JSON_PARSE_ERROR_NUMBER_EXPONENT_DUPLICATE] =
             "Unable to parse json data as number, duplicate exponent",
         [JSON_PARSE_ERROR_NUMBER_EXPONENT_DIGIT] =
@@ -2059,6 +2061,12 @@ JsonParseError JsonParseAsNumber(
             break;
 
         case '.':
+            if (seen_dot)
+            {
+                *json_out = NULL;
+                WriterClose(writer);
+                return JSON_PARSE_ERROR_NUMBER_MULTIPLE_DOTS;
+            }
             if (prev_char != '0' && !IsDigit(prev_char))
             {
                 *json_out = NULL;
