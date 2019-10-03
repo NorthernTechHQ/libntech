@@ -213,6 +213,24 @@ static void test_HashCopy(void)
     assert_true(hash == NULL);
 }
 
+static void test_HashesMatch(void)
+{
+    unsigned char digest_a[EVP_MAX_MD_SIZE + 1] = { 0 };
+    unsigned char digest_b[EVP_MAX_MD_SIZE + 1] = { 0 };
+    unsigned char digest_c[EVP_MAX_MD_SIZE + 1] = { 0 };
+    unsigned char digest_d[EVP_MAX_MD_SIZE + 1] = { 0 };
+
+    HashString("abc", 4, digest_a, HASH_METHOD_MD5);
+    HashString("abc", 4, digest_b, HASH_METHOD_MD5);
+    HashString("abc", 3, digest_c, HASH_METHOD_MD5);
+    HashString("abd", 4, digest_d, HASH_METHOD_MD5);
+
+    assert_true(HashesMatch(digest_a, digest_b, HASH_METHOD_MD5));
+    assert_false(HashesMatch(digest_b, digest_c, HASH_METHOD_MD5));
+    assert_false(HashesMatch(digest_c, digest_d, HASH_METHOD_MD5));
+    assert_false(HashesMatch(digest_a, digest_d, HASH_METHOD_MD5));
+}
+
 static void test_StringCopyTruncateAndHashIfNecessary(void)
 {
     char buf[40];
@@ -257,6 +275,7 @@ int main()
         unit_test(test_HashDescriptor),
         unit_test(test_HashKey),
         unit_test(test_HashCopy),
+        unit_test(test_HashesMatch),
         unit_test(test_StringCopyTruncateAndHashIfNecessary),
     };
     int result = run_tests(tests);
