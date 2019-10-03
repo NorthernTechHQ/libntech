@@ -483,6 +483,7 @@ void HashString(
 {
     assert(buffer != NULL);
     assert(digest != NULL);
+    assert(type != HASH_METHOD_CRYPT);
 
     memset(digest, 0, EVP_MAX_MD_SIZE + 1);
 
@@ -512,9 +513,7 @@ void HashString(
     if (EVP_DigestInit(context, md) == 1)
     {
         EVP_DigestUpdate(context, buffer, len);
-
-        unsigned int digest_length;
-        EVP_DigestFinal(context, digest, &digest_length);
+        EVP_DigestFinal(context, digest, NULL);
     }
     else
     {
@@ -534,6 +533,7 @@ void HashPubKey(
     const HashMethod type)
 {
     assert(key != NULL);
+    assert(type != HASH_METHOD_CRYPT);
 
     memset(digest, 0, EVP_MAX_MD_SIZE + 1);
 
@@ -602,15 +602,7 @@ bool HashesMatch(
         return false;
     }
 
-    for (int i = 0; i < size; i++)
-    {
-        if (digest1[i] != digest2[i])
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return memcmp(digest1, digest2, size);
 }
 
 /* TODO rewrite this ugliness, currently it's not safe, it truncates! */
