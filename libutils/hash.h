@@ -161,4 +161,32 @@ char *HashPrintSafe(char *dst, size_t dst_size, const unsigned char *digest,
 char *SkipHashType(char *hash);
 void HashPubKey(const RSA *key, unsigned char digest[EVP_MAX_MD_SIZE + 1], HashMethod type);
 
+/**
+ * @brief Copy a string from src to dst, if src is too big, truncate and hash.
+ *
+ * If the src string (including NUL terminator) does not fit in dst
+ * (according to dst_size), the last part of dst is a hash of the full src
+ * string, before truncation.
+ *
+ * This function is primarily intended to limit the length of keys in a
+ * key-value store, like LMDB, while still keeping the strings readable AND
+ * unique.
+ *
+ * Examples:
+ * "short_string" -> "short_string"
+ * "string_which_is_too_long_for_size" -> "string_which_is#MD5="
+ *
+ * If this function returns dst_size, the string was truncated and hashed,
+ * the destination string is exactly dst_size - 1 bytes long in this case.
+ *
+ * @param src[in] String to copy from, must be '\0'-terminated
+ * @param dst[out] Destination to copy to, will always be '\0'-terminated
+ * @param dst_size[in] Size of destination buffer (including '\0'-terminator)
+ * @return dst_size if string was truncated, string length (src/dst) otherwise
+ * @note dst must always be of size dst_size or bigger, regardless of src
+ * @see StringCopy()
+ */
+size_t StringCopyTruncateAndHashIfNecessary(
+    const char *src, char *dst, size_t dst_size);
+
 #endif // CFENGINE_HASH_H

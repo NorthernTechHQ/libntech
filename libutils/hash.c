@@ -674,3 +674,56 @@ char *SkipHashType(char *hash)
 
     return str;
 }
+
+size_t StringCopyTruncateAndHashIfNecessary(
+    const char *const src, char *const dst, size_t dst_size)
+{
+    assert(src != NULL);
+    assert(dst != NULL);
+    assert(dst_size > (32 + 5)); // Must be big enough for MD5 hex and prefix
+
+    const size_t length = StringCopy(src, dst, dst_size);
+    if (length < dst_size)
+    {
+        // String length smaller than destination buffer size
+        // safe to return, no truncation/hashing necessary
+        return length;
+    }
+    assert(length == dst_size);
+
+    const char md5_prefix[] = "#MD5=";
+    const size_t md5_prefix_length = sizeof(md5_prefix) - 1;
+    const size_t md5_hex_length = 32;
+    const size_t md5_string_length = md5_hex_length + md5_prefix_length;
+    assert(dst_size > md5_string_length);
+    assert(md5_prefix_length == strlen(md5_prefix));
+
+    // Hash the original string using MD5:
+    unsigned char digest[EVP_MAX_MD_SIZE + 1];
+    HashString(src, strlen(src), digest, HASH_METHOD_MD5);
+
+    // Calculate where the hash should start:
+    char *const terminator = dst + dst_size - 1;
+    assert(*terminator == '\0');
+    char *const hash_prefix_start = terminator - md5_string_length;
+    assert(hash_prefix_start >= dst);
+    char *const hash_start = hash_prefix_start + sizeof(md5_prefix) - 1;
+    assert(hash_start > hash_prefix_start);
+
+    // Insert the "#MD5=" part into dst;
+    memcpy(hash_prefix_start, md5_prefix, md5_prefix_length);
+
+    // Produce the hex string representation of MD5 hash:
+    // (Overwrite the last part of dst)
+    const char lookup[]="0123456789abcdef";
+    assert((md5_hex_length % 2) == 0);
+    for (int i = 0; i < md5_hex_length / 2; i++)
+    {
+        hash_start[i * 2]     = lookup[digest[i] >> 4];
+        hash_start[i * 2 + 1] = lookup[digest[i] & 0xf];
+    }
+    assert(hash_start[md5_hex_length] == '\0');
+    assert(hash_start + md5_hex_length == terminator);
+
+    return dst_size;
+}
