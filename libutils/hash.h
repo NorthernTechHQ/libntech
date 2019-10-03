@@ -30,6 +30,7 @@
   */
 
 #include <openssl/rsa.h>
+#include <openssl/evp.h>
 
 #include <hash_method.h>                            /* HashMethod, HashSize */
 
@@ -144,5 +145,20 @@ const EVP_MD *HashDigestFromId(HashMethod type);
   @return Returns the size of the hash or 0 in case of error.
   */
 HashSize HashSizeFromId(HashMethod hash_id);
+
+/* Enough room for "SHA=asdfasdfasdf". */
+#define CF_HOSTKEY_STRING_SIZE (4 + 2 * EVP_MAX_MD_SIZE + 1)
+
+
+void HashFile(const char *filename, unsigned char digest[EVP_MAX_MD_SIZE + 1], HashMethod type, bool text_mode);
+void HashString(const char *buffer, int len, unsigned char digest[EVP_MAX_MD_SIZE + 1], HashMethod type);
+bool HashesMatch(
+    const unsigned char digest1[EVP_MAX_MD_SIZE + 1],
+    const unsigned char digest2[EVP_MAX_MD_SIZE + 1],
+    HashMethod type);
+char *HashPrintSafe(char *dst, size_t dst_size, const unsigned char *digest,
+                    HashMethod type, bool use_prefix);
+char *SkipHashType(char *hash);
+void HashPubKey(const RSA *key, unsigned char digest[EVP_MAX_MD_SIZE + 1], HashMethod type);
 
 #endif // CFENGINE_HASH_H
