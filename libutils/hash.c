@@ -602,7 +602,7 @@ bool HashesMatch(
         return false;
     }
 
-    return memcmp(digest1, digest2, size);
+    return (memcmp(digest1, digest2, size) == 0);
 }
 
 /* TODO rewrite this ugliness, currently it's not safe, it truncates! */
