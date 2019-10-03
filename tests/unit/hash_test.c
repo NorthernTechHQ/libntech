@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <string_lib.h>
 #include <hash.h>
 #include <openssl/rsa.h>
 #include <openssl/evp.h>
@@ -212,6 +213,36 @@ static void test_HashCopy(void)
     assert_true(hash == NULL);
 }
 
+static void test_StringCopyTruncateAndHashIfNecessary(void)
+{
+    char buf[40];
+    int ret;
+
+    const char *thirty_nine = "123456789_123456789_123456789_123456789";
+    ret = StringCopyTruncateAndHashIfNecessary(thirty_nine, buf, 40);
+    assert_string_equal(thirty_nine, buf);
+    assert_int_equal(ret, 39);
+
+    StringCopyTruncateAndHashIfNecessary("abc", buf, 40);
+    assert_string_equal("abc", buf);
+
+    const char *too_long = "The quick brown fox jumps over the lazy dog";
+    ret = StringCopyTruncateAndHashIfNecessary(too_long, buf, 40);
+    assert_int_equal(ret, 40);
+    assert_false(StringSafeEqual(too_long, buf));
+    assert_true(strlen(too_long) != strlen(buf));
+    assert_int_equal(strlen(buf), 39);
+    assert_true(StringSafeEqual(buf, "Th#MD5=9e107d9d372bb6826bd81d3542a419d6"));
+
+    ret = StringCopyTruncateAndHashIfNecessary(too_long, buf, 39);
+    assert_int_equal(ret, 39);
+    assert_true(StringSafeEqual(buf, "T#MD5=9e107d9d372bb6826bd81d3542a419d6"));
+
+    ret = StringCopyTruncateAndHashIfNecessary(too_long, buf, 38);
+    assert_int_equal(ret, 38);
+    assert_true(StringSafeEqual(buf, "#MD5=9e107d9d372bb6826bd81d3542a419d6"));
+}
+
 /*
  * Main routine
  * Notice the calls to both setup and teardown.
@@ -225,10 +256,10 @@ int main()
         unit_test(test_HashString),
         unit_test(test_HashDescriptor),
         unit_test(test_HashKey),
-        unit_test(test_HashCopy)
+        unit_test(test_HashCopy),
+        unit_test(test_StringCopyTruncateAndHashIfNecessary),
     };
     int result = run_tests(tests);
     tests_teardown();
     return result;
 }
-
