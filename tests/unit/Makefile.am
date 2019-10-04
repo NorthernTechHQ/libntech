@@ -92,9 +92,10 @@ check_PROGRAMS = \
 	rb-tree-test \
 	hash_test \
 	queue_test \
+	stack_test \
 	threaded_queue_test \
 	threaded_deque_test \
-	stack_test \
+	threaded_stack_test \
 	ring_buffer_test \
 	libcompat_test
 
@@ -175,8 +176,10 @@ misc_lib_test_CFLAGS = $(AM_CFLAGS) $(NO_TAUTOLOGICAL_CC_OPTION)
 
 queue_test_SOURCES = queue_test.c
 
+stack_test_SOURCES = stack_test.c
+
 threaded_queue_test_SOURCES = threaded_queue_test.c
 
 threaded_deque_test_SOURCES = threaded_deque_test.c
 
-stack_test_SOURCES = stack_test.c
+threaded_stack_test_SOURCES = threaded_stack_test.c
