@@ -58,6 +58,14 @@ void StackSoftDestroy(Stack *stack);
 void *StackPop(Stack *stack);
 
 /**
+  @brief Returns the last element added to the stack, without removing it.
+  @note Will return NULL if stack is empty.
+  @param [in] stack The stack to pop from.
+  @return A pointer to the last data added.
+  */
+void *StackTop(Stack *stack);
+
+/**
   @brief Adds a new item on top of the stack.
   @param [in] stack The stack to push to.
   @param [in] item The item to push.

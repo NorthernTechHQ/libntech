@@ -3,17 +3,28 @@
 #include <alloc.h>
 #include <stack.h>
 
-static void test_push_pop(void)
+static void test_push_pop_top(void)
 {
     Stack *stack = StackNew(0, free);
 
     StackPush(stack, xstrdup("1"));
+    assert_string_equal("1", StackTop(stack));
+
     StackPush(stack, xstrdup("2"));
+    assert_string_equal("2", StackTop(stack));
+
     StackPush(stack, xstrdup("3"));
+    assert_string_equal("3", StackTop(stack));
 
     char *str1 = StackPop(stack);
+    assert_string_equal("2", StackTop(stack));
+
     char *str2 = StackPop(stack);
+    assert_string_equal("1", StackTop(stack));
+
     char *str3 = StackPop(stack);
+    assert_int_equal(NULL, StackTop(stack));
+
     assert_int_equal(strcmp(str1, "3"), 0);
     assert_int_equal(strcmp(str2, "2"), 0);
     assert_int_equal(strcmp(str3, "1"), 0);
@@ -140,7 +151,7 @@ int main()
     PRINT_TEST_BANNER();
     const UnitTest tests[] =
     {
-        unit_test(test_push_pop),
+        unit_test(test_push_pop_top),
         unit_test(test_pop_empty_and_push_null),
         unit_test(test_copy),
         unit_test(test_push_report_count),

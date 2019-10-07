@@ -104,6 +104,20 @@ void *StackPop(Stack *stack)
     return item;
 }
 
+void *StackTop(Stack *stack)
+{
+    assert(stack != NULL);
+
+    size_t size = stack->size;
+
+    if (size > 0)
+    {
+        return stack->data[size-1];
+    }
+
+    return NULL;
+}
+
 void StackPush(Stack *stack, void *item)
 {
     assert(stack != NULL);
