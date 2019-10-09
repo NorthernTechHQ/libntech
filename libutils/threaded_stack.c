@@ -26,11 +26,9 @@
 #include <logging.h>
 #include <mutex.h>
 #include <pthread.h>
+
 #include <threaded_stack.h>
-
-
-#define EXPAND_FACTOR     2
-#define DEFAULT_CAPACITY 16
+#include <stack_base.c>
 
 /** @struct ThreadedStack_
   @brief A simple thread-safe stack data structure.
@@ -43,24 +41,13 @@
   to destroy the lock, before freeing the data array and the stack itself.
   */
 struct ThreadedStack_ {
+    Stack base;
     pthread_mutex_t *lock;            /**< Thread lock for accessing data. */
-    void (*ItemDestroy) (void *item); /**< Data-specific destroy function. */
-    void **data;                      /**< Internal array of elements.     */
-    size_t size;                      /**< Amount of elements in stack.    */
-    size_t capacity;                  /**< Current memory allocated.       */
 };
-
-static void DestroyRange(ThreadedStack *stack, size_t start, size_t end);
-static void ExpandIfNecessary(ThreadedStack *stack);
 
 ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (ItemDestroy) (void *item))
 {
     ThreadedStack *stack = xmalloc(sizeof(ThreadedStack));
-
-    if (initial_capacity == 0)
-    {
-        initial_capacity = DEFAULT_CAPACITY;
-    }
 
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
@@ -88,10 +75,7 @@ ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (ItemDestroy) (voi
 
     pthread_mutexattr_destroy(&attr);
 
-    stack->capacity = initial_capacity;
-    stack->size = 0;
-    stack->data = xcalloc(initial_capacity, sizeof(void *));
-    stack->ItemDestroy = ItemDestroy;
+    StackInit(&(stack->base), initial_capacity, ItemDestroy);
 
     return stack;
 }
@@ -101,7 +85,7 @@ void ThreadedStackDestroy(ThreadedStack *stack)
     if (stack != NULL)
     {
         ThreadLock(stack->lock);
-        DestroyRange(stack, 0, stack->size);
+        DestroyRange(&(stack->base), 0, stack->base.size);
         ThreadUnlock(stack->lock);
 
         ThreadedStackSoftDestroy(stack);
@@ -117,8 +101,7 @@ void ThreadedStackSoftDestroy(ThreadedStack *stack)
             pthread_mutex_destroy(stack->lock);
             free(stack->lock);
         }
-
-        free(stack->data);
+        free(stack->base.data);
         free(stack);
     }
 }
@@ -128,19 +111,7 @@ void *ThreadedStackPop(ThreadedStack *stack)
     assert(stack != NULL);
 
     ThreadLock(stack->lock);
-
-    size_t size = stack->size;
-    void *item = NULL;
-
-    if (size > 0)
-    {
-        size--;
-        item = stack->data[size];
-
-        stack->data[size] = NULL;
-        stack->size = size;
-    }
-
+    void *item = StackPop(&(stack->base));
     ThreadUnlock(stack->lock);
 
     return item;
@@ -151,10 +122,7 @@ void ThreadedStackPush(ThreadedStack *stack, void *item)
     assert(stack != NULL);
 
     ThreadLock(stack->lock);
-
-    ExpandIfNecessary(stack);
-    stack->data[stack->size++] = item;
-
+    StackPush(&(stack->base), item);
     ThreadUnlock(stack->lock);
 }
 
@@ -163,11 +131,7 @@ size_t ThreadedStackPushReportCount(ThreadedStack *stack, void *item)
     assert(stack != NULL);
 
     ThreadLock(stack->lock);
-
-    ExpandIfNecessary(stack);
-    stack->data[stack->size++] = item;
-    size_t size = stack->size;
-
+    const size_t size = StackPushReportCount(&(stack->base), item);
     ThreadUnlock(stack->lock);
 
     return size;
@@ -178,7 +142,7 @@ size_t ThreadedStackCount(ThreadedStack const *stack)
     assert(stack != NULL);
 
     ThreadLock(stack->lock);
-    size_t count = stack->size;
+    size_t count = StackCount(&(stack->base));
     ThreadUnlock(stack->lock);
 
     return count;
@@ -189,7 +153,7 @@ size_t ThreadedStackCapacity(ThreadedStack const *stack)
     assert(stack != NULL);
 
     ThreadLock(stack->lock);
-    size_t capacity = stack->capacity;
+    size_t capacity = StackCapacity(&(stack->base));
     ThreadUnlock(stack->lock);
 
     return capacity;
@@ -200,7 +164,7 @@ bool ThreadedStackIsEmpty(ThreadedStack const *stack)
     assert(stack != NULL);
 
     ThreadLock(stack->lock);
-    bool const empty = (stack->size == 0);
+    bool const empty = StackIsEmpty(&(stack->base));
     ThreadUnlock(stack->lock);
 
     return empty;
@@ -213,8 +177,8 @@ ThreadedStack *ThreadedStackCopy(ThreadedStack const *stack)
     ThreadLock(stack->lock);
 
     ThreadedStack *new_stack = xmemdup(stack, sizeof(ThreadedStack));
-    new_stack->data = xmalloc(sizeof(void *) * stack->capacity);
-    memcpy(new_stack->data, stack->data, sizeof(void *) * stack->size);
+    new_stack->base.data = xmalloc(sizeof(void *) * stack->base.capacity);
+    memcpy(new_stack->base.data, stack->base.data, sizeof(void *) * stack->base.size);
 
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
@@ -244,45 +208,4 @@ ThreadedStack *ThreadedStackCopy(ThreadedStack const *stack)
     ThreadUnlock(stack->lock);
 
     return new_stack;
-}
-
-/**
-  @brief Destroys data in range.
-  @note Assumes that locks are acquired.
-  @param [in] stack Pointer to struct.
-  @param [in] start Start position to destroy from.
-  @param [in] end Where to stop.
-  */
-static void DestroyRange(ThreadedStack *stack, size_t start, size_t end)
-{
-    assert(stack != NULL);
-    if (start > stack->capacity || end > stack->capacity)
-    {
-        return;
-    }
-
-    if (stack->ItemDestroy)
-    {
-        for (size_t i = start; i < end; i++)
-        {
-            stack->ItemDestroy(stack->data[i]);
-        }
-    }
-}
-
-/**
-  @brief Expands capacity of stack.
-  @note Assumes that locks are acquired.
-  @param [in] stack Pointer to struct.
-  */
-static void ExpandIfNecessary(ThreadedStack *stack)
-{
-    assert(stack != NULL);
-    assert(stack->size <= stack->capacity);
-
-    if (stack->size == stack->capacity)
-    {
-        stack->capacity *= EXPAND_FACTOR;
-        stack->data = xrealloc(stack->data, sizeof(void *) * stack->capacity);
-    }
 }

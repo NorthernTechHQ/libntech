@@ -24,44 +24,13 @@
 
 #include <alloc.h>
 #include <logging.h>
-#include <stack.h>
-
-#define EXPAND_FACTOR     2
-#define DEFAULT_CAPACITY 16
-
-/** @struct Stack_
-  @brief A simple stack data structure.
-
-  Can push, pop, and copy. Also has functions for showing current stack size
-  and capacity, and if a stack is empty. If the amount of pushed elements
-  exceed the capacity, it will be multiplied by EXPAND_FACTOR and reallocated
-  with the new capacity. When destroying the stack, destroys each element with
-  the ItemDestroy function specified before freeing the data array and the
-  stack itself.
-  */
-struct Stack_ {
-    void (*ItemDestroy) (void *item); /**< Data-specific destroy function. */
-    void **data;                      /**< Internal array of elements.     */
-    size_t size;                      /**< Amount of elements in stack.    */
-    size_t capacity;                  /**< Current memory allocated.       */
-};
-
-static void DestroyRange(Stack *stack, size_t start, size_t end);
-static void ExpandIfNecessary(Stack *stack);
+#include <stack_base.c>
 
 Stack *StackNew(size_t initial_capacity, void (ItemDestroy) (void *item))
 {
     Stack *stack = xmalloc(sizeof(Stack));
 
-    if (initial_capacity == 0)
-    {
-        initial_capacity = DEFAULT_CAPACITY;
-    }
-
-    stack->capacity = initial_capacity;
-    stack->size = 0;
-    stack->data = xcalloc(initial_capacity, sizeof(void *));
-    stack->ItemDestroy = ItemDestroy;
+    StackInit(stack, initial_capacity, ItemDestroy);
 
     return stack;
 }
@@ -116,6 +85,23 @@ void *StackTop(Stack *stack)
     }
 
     return NULL;
+}
+
+/**
+  @brief Expands capacity of stack.
+  @note Assumes that locks are acquired.
+  @param [in] stack Pointer to struct.
+  */
+static void ExpandIfNecessary(Stack *stack)
+{
+    assert(stack != NULL);
+    assert(stack->size <= stack->capacity);
+
+    if (stack->size == stack->capacity)
+    {
+        stack->capacity *= EXPAND_FACTOR;
+        stack->data = xrealloc(stack->data, sizeof(void *) * stack->capacity);
+    }
 }
 
 void StackPush(Stack *stack, void *item)
@@ -173,43 +159,4 @@ Stack *StackCopy(Stack const *stack)
     memcpy(new_stack->data, stack->data, sizeof(void *) * stack->size);
 
     return new_stack;
-}
-
-/**
-  @brief Destroys data in range.
-  @param [in] stack Pointer to struct.
-  @param [in] start Start position to destroy from.
-  @param [in] end Where to stop.
-  */
-static void DestroyRange(Stack *stack, size_t start, size_t end)
-{
-    assert(stack != NULL);
-    if (start > stack->capacity || end > stack->capacity)
-    {
-        return;
-    }
-
-    if (stack->ItemDestroy)
-    {
-        for (size_t i = start; i < end; i++)
-        {
-            stack->ItemDestroy(stack->data[i]);
-        }
-    }
-}
-
-/**
-  @brief Expands capacity of stack.
-  @param [in] stack Pointer to struct.
-  */
-static void ExpandIfNecessary(Stack *stack)
-{
-    assert(stack != NULL);
-    assert(stack->size <= stack->capacity);
-
-    if (stack->size == stack->capacity)
-    {
-        stack->capacity *= EXPAND_FACTOR;
-        stack->data = xrealloc(stack->data, sizeof(void *) * stack->capacity);
-    }
 }
