@@ -76,6 +76,7 @@ libutils_la_SOURCES = \
 	string_sequence.c string_sequence.h \
 	set.c set.h \
 	stack.c stack.h \
+	threaded_stack.c threaded_stack.h \
 	statistics.c statistics.h \
 	string_lib.c string_lib.h \
 	threaded_deque.c threaded_deque.h \

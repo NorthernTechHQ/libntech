@@ -22,32 +22,32 @@
   included file COSL.txt.
 */
 
-#ifndef CFENGINE_STACK_H
-#define CFENGINE_STACK_H
+#ifndef CFENGINE_THREADED_STACK_H
+#define CFENGINE_THREADED_STACK_H
 
 #include <platform.h>
 
-typedef struct Stack_ Stack;
+typedef struct ThreadedStack_ ThreadedStack;
 
 /**
   @brief Creates a new stack with specified capacity.
   @param [in] initial_capacity Initial capacity, defaults to 1.
   @param [in] ItemDestroy Function used to destroy data elements.
   */
-Stack *StackNew(size_t initial_capacity, void (*ItemDestroy) ());
+ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (*ItemDestroy) ());
 
 /**
   @brief Destroys the stack and frees the memory it occupies.
   @param [in] stack The stack to destroy.
-  @warning Stack should only be destroyed if all threads are joined
+  @warning ThreadedStack should only be destroyed if all threads are joined
   */
-void StackDestroy(Stack *stack);
+void ThreadedStackDestroy(ThreadedStack *stack);
 
 /**
   @brief Frees the memory allocated for the data pointer and the struct itself.
   @param [in] stack The stack to free.
   */
-void StackSoftDestroy(Stack *stack);
+void ThreadedStackSoftDestroy(ThreadedStack *stack);
 
 /**
   @brief Returns and removes the last element added to the stack.
@@ -55,22 +55,14 @@ void StackSoftDestroy(Stack *stack);
   @param [in] stack The stack to pop from.
   @return A pointer to the last data added.
   */
-void *StackPop(Stack *stack);
-
-/**
-  @brief Returns the last element added to the stack, without removing it.
-  @note Will return NULL if stack is empty.
-  @param [in] stack The stack to pop from.
-  @return A pointer to the last data added.
-  */
-void *StackTop(Stack *stack);
+void *ThreadedStackPop(ThreadedStack *stack);
 
 /**
   @brief Adds a new item on top of the stack.
   @param [in] stack The stack to push to.
   @param [in] item The item to push.
   */
-void StackPush(Stack *stack, void *item);
+void ThreadedStackPush(ThreadedStack *stack, void *item);
 
 /**
   @brief Adds a new item on top of the stack and returns the current size.
@@ -78,7 +70,7 @@ void StackPush(Stack *stack, void *item);
   @param [in] item The item to push.
   @return The amount of elements in the stack.
   */
-size_t StackPushReportCount(Stack *stack, void *item);
+size_t ThreadedStackPushReportCount(ThreadedStack *stack, void *item);
 
 /**
   @brief Get current number of items in stack.
@@ -86,7 +78,7 @@ size_t StackPushReportCount(Stack *stack, void *item);
   @param [in] stack The stack.
   @return The amount of elements in the stack.
   */
-size_t StackCount(Stack const *stack);
+size_t ThreadedStackCount(ThreadedStack const *stack);
 
 /**
   @brief Get current capacity of stack.
@@ -94,7 +86,7 @@ size_t StackCount(Stack const *stack);
   @param [in] stack The stack.
   @return The current capacity of the stack.
   */
-size_t StackCapacity(Stack const *stack);
+size_t ThreadedStackCapacity(ThreadedStack const *stack);
 
 /**
   @brief Create a shallow copy of a given stack.
@@ -102,13 +94,13 @@ size_t StackCapacity(Stack const *stack);
   @param [in] stack The stack.
   @return A new stack pointing to the same data.
   */
-Stack *StackCopy(Stack const *stack);
+ThreadedStack *ThreadedStackCopy(ThreadedStack const *stack);
 
 /**
   @brief Checks if a stack is empty.
   @param [in] stack The stack.
   @return Returns true if stack is empty, false otherwise.
   */
-bool StackIsEmpty(Stack const *stack);
+bool ThreadedStackIsEmpty(ThreadedStack const *stack);
 
 #endif
