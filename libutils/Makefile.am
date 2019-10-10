@@ -85,6 +85,8 @@ libutils_la_SOURCES = \
 	writer.c writer.h \
 	xml_writer.c xml_writer.h
 
+EXTRA_DIST = stack_base.c
+
 if !NT
 libutils_la_SOURCES += unix_dir.c
 endif
