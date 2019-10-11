@@ -25,7 +25,8 @@
 #ifndef CFENGINE_FILE_LIB_H
 #define CFENGINE_FILE_LIB_H
 
-#include <platform.h>
+#include <stdbool.h> // bool
+#include <sys/types.h> // uid_t
 #include <writer.h>
 #include <set.h>
 

@@ -25,8 +25,8 @@
 #ifndef CFENGINE_BUFFER_H
 #define CFENGINE_BUFFER_H
 
-#include <platform.h>
 #include <compiler.h>
+#include <stdarg.h> // va_list
 
 /**
   @brief Buffer implementation

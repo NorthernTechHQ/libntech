@@ -22,7 +22,9 @@
   included file COSL.txt.
 */
 
+#include <platform.h>
 #include <set.h>
+#include <string.h> // strlen()
 
 #include <alloc.h>
 #include <string_lib.h>

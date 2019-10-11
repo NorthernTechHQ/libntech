@@ -1,3 +1,4 @@
+#include <platform.h>
 #include <string_sequence.h>
 #include <string_lib.h> // SafeStringLength()
 #include <alloc.h>  // xstrdup()
