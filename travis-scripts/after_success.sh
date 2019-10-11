@@ -5,4 +5,7 @@
 sudo chown -R $USER  .  ||  true
 
 # Code coverage by codecov.io
-curl -s https://codecov.io/bash | bash
+if [ "x$COVERAGE" != xno ]
+then
+    curl -s https://codecov.io/bash | bash
+fi
