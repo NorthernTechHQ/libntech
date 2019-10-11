@@ -29,6 +29,7 @@
   @brief Hash implementations
   */
 
+#include <stdbool.h>
 #include <openssl/rsa.h>
 #include <openssl/evp.h>
 
