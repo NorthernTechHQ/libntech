@@ -22,12 +22,12 @@
   included file COSL.txt.
 */
 
+#include <platform.h>
+#include <threaded_stack.h>
 #include <alloc.h>
 #include <logging.h>
 #include <mutex.h>
 #include <pthread.h>
-
-#include <threaded_stack.h>
 #include <stack_base.c>
 
 /** @struct ThreadedStack_
