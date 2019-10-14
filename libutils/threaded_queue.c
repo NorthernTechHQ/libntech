@@ -22,11 +22,12 @@
   included file COSL.txt.
 */
 
+#include <platform.h>
+#include <threaded_queue.h>
 #include <alloc.h>
 #include <logging.h>
 #include <mutex.h>
 #include <pthread.h>
-#include <threaded_queue.h>
 
 
 #define EXPAND_FACTOR     2
