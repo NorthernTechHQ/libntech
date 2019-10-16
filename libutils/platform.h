@@ -150,7 +150,7 @@ struct utsname
 # define WTERMSIG(s) ((s) & 0)
 #endif
 
-#include <bool.h>
+#include <stdbool.h>
 
 #include <errno.h>
 

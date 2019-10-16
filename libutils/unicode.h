@@ -25,8 +25,8 @@
 #ifndef UNICODE_H
 #define UNICODE_H
 
-#include <bool.h>
-
+#include <stdbool.h>   // bool
+#include <stddef.h>    // size_t
 #include <stdint.h>
 
 /**

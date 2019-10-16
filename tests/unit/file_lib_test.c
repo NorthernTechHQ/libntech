@@ -26,7 +26,7 @@
 
 #include <definitions.h>
 #include <file_lib.h>
-#include <bool.h>
+#include <stdbool.h>
 
 #define TEMP_DIR "/tmp/file_lib_test"
 #define TEST_FILE "file_lib_test.txt"
