@@ -32,6 +32,7 @@
 #include <openssl/rsa.h>
 #include <openssl/evp.h>
 
+#include <stdbool.h>
 #include <hash_method.h>                            /* HashMethod, HashSize */
 
 

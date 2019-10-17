@@ -34,7 +34,6 @@ libutils_la_LIBS   = $(PCRE_LIBS) $(OPENSSL_LIBS)
 libutils_la_SOURCES = \
 	alloc.c alloc.h \
 	array_map.c array_map_priv.h \
-	bool.h \
 	buffer.c buffer.h \
 	cleanup.c cleanup.h \
 	compiler.h \
