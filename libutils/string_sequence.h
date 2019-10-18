@@ -2,6 +2,7 @@
 #define __STRING_SEQUENCE_H__
 
 #include <sequence.h> // Seq
+#include <stdbool.h> // bool
 
 /**
   @brief Create a new Sequence from splitting a string on a fixed delimiter
@@ -10,6 +11,11 @@
   @return A pointer to the always created Sequence
   */
 Seq *SeqStringFromString(const char *str, char delimiter);
+
+/**
+ @brief Determine if string sequence contains a string
+ */
+bool SeqStringContains(const Seq *seq, const char *str);
 
 /**
  * @brief Return the total string length of a sequence of strings
