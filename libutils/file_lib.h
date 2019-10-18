@@ -162,16 +162,67 @@ ssize_t CfReadLine(char **buff, size_t *size, FILE *fp);
  */
 const char* GetRelocatedProcdirRoot();
 
-int ExclusiveLockFile(int fd, bool wait);
-int ExclusiveUnlockFile(int fd);
-int SharedLockFile(int fd, bool wait);
-int SharedUnlockFile(int fd);
+/*********** File locking ***********/
+
+typedef struct _FileLock {
+    /* may be extended with some other fields in the future */
+
+    /**
+     * File descriptor to the file associated with the lock (if any)
+     * @note %fd == -1 is used to indicate that the lock is not associated with
+     *       any file
+     */
+    int fd;
+} FileLock;
+
+#define EMPTY_FILE_LOCK { .fd = -1 }
+
+/**
+ * Try to acquire an exclusive lock.
+ *
+ * @param lock The lock to try to acquire. lock.fd needs to be an open FD.
+ * @param wait Whether to wait for the lock (blocks) or give up immediately.
+ * @return     0 in case of success, -1 in case of failure.
+ */
+int ExclusiveFileLock(FileLock *lock, bool wait);
+
+/**
+ * Yield the previously acquired lock.
+ *
+ * @param lock     Lock to yield.
+ * @param close_fd Whether to close the FD when yielding the lock.
+ * @return         0 in case of success, -1 in case of failure.
+ */
+int ExclusiveFileUnlock(FileLock *lock, bool close_fd);
+
+/**
+ * @see ExclusiveFileLock()
+ */
+int SharedFileLock(FileLock *lock, bool wait);
+
+
+/**
+ * @see ExclusiveFileUnock()
+ */
+int SharedFileUnlock(FileLock *lock, bool close_fd);
 
 #ifdef __MINGW32__
-bool ExclusiveLockFileCheck(int fd)
+bool ExclusiveFileLockCheck(FileLock *lock)
     __attribute__ ((error("ExclusiveLockFileCheck() is not supported on Windows")));
 #else
-bool ExclusiveLockFileCheck(int fd);
+
+/**
+ * Check if an exclusive lock could be acquired.
+ *
+ * @param lock Lock to check.
+ * @return     Whether it would be possible to acquire an exclusive lock or not.
+ * @warning    There is of course a race condition when this is used to check if
+ *             a blocking call to ExclusiveFileLock() would block!
+ * @note       If the current process is already holding a lock on the file,
+ *             this function returns %true because a call to ExclusiveFileLock()
+ *             would just succeed (no-op or change the lock type).
+ */
+bool ExclusiveFileLockCheck(FileLock *lock);
 #endif  /* __MINGW32__ */
 
 #endif
