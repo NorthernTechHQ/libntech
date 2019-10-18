@@ -162,4 +162,16 @@ ssize_t CfReadLine(char **buff, size_t *size, FILE *fp);
  */
 const char* GetRelocatedProcdirRoot();
 
+int ExclusiveLockFile(int fd, bool wait);
+int ExclusiveUnlockFile(int fd);
+int SharedLockFile(int fd, bool wait);
+int SharedUnlockFile(int fd);
+
+#ifdef __MINGW32__
+bool ExclusiveLockFileCheck(int fd)
+    __attribute__ ((error("ExclusiveLockFileCheck() is not supported on Windows")));
+#else
+bool ExclusiveLockFileCheck(int fd);
+#endif  /* __MINGW32__ */
+
 #endif
