@@ -1528,6 +1528,8 @@ static int LockFD(int fd, short int lock_type, bool wait)
         {
             if (errno != EINTR)
             {
+                Log(LOG_LEVEL_DEBUG, "Failed to acquire file lock for FD %d: %s",
+                    fd, GetErrorStr());
                 return -1;
             }
         }
@@ -1535,9 +1537,14 @@ static int LockFD(int fd, short int lock_type, bool wait)
     }
     else
     {
-        int ret = fcntl(fd, F_SETLK, &lock_spec);
-        /* make sure we only return -1 or 0 like block above */
-        return ret == -1 ? -1 : 0;
+        if (fcntl(fd, F_SETLK, &lock_spec) == -1)
+        {
+            Log(LOG_LEVEL_DEBUG, "Failed to acquire file lock for FD %d: %s",
+                fd, GetErrorStr());
+            return -1;
+        }
+        /* else */
+        return 0;
     }
 }
 
@@ -1550,9 +1557,14 @@ static int UnlockFD(int fd)
         .l_len = 0    /* till EOF */
     };
 
-    int ret = fcntl(fd, F_SETLK, &lock_spec);
-    /* make sure we only return -1 or 0 like block above */
-    return ret == -1 ? -1 : 0;
+    if (fcntl(fd, F_SETLK, &lock_spec) == -1)
+    {
+        Log(LOG_LEVEL_DEBUG, "Failed to release file lock for FD %d: %s",
+            fd, GetErrorStr());
+        return -1;
+    }
+    /* else */
+    return 0;
 }
 
 int ExclusiveFileLock(FileLock *lock, bool wait)
@@ -1643,8 +1655,16 @@ int ExclusiveFileUnlock(FileLock *lock, bool close_fd)
     {
         /* also releases the lock */
         int ret = close(lock->fd);
+        if (ret != 0)
+        {
+            Log(LOG_LEVEL_ERR, "Failed to close lock file with FD %d: %s",
+                lock->fd, GetErrorStr());
+            lock->fd = -1;
+            return -1;
+        }
+        /* else*/
         lock->fd = -1;
-        return ret;
+        return 0;
     }
     else
     {
@@ -1677,6 +1697,8 @@ static int LockFD(int fd, DWORD flags, bool wait)
 
     if (!FileLockEx(fh, flags, 0, 1, 0, &ol))
     {
+        Log(LOG_LEVEL_DEBUG, "Failed to acquire file lock for FD %d: %s",
+            fd, GetErrorStr());
         return -1;
     }
 
@@ -1708,6 +1730,8 @@ static int UnlockFD(int fd)
 
     if (!FileUnlockEx(fh, 0, 1, 0, &ol))
     {
+        Log(LOG_LEVEL_DEBUG, "Failed to release file lock for FD %d: %s",
+            fd, GetErrorStr());
         return -1;
     }
 
