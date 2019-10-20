@@ -187,6 +187,18 @@ typedef struct _FileLock {
 int ExclusiveFileLock(FileLock *lock, bool wait);
 
 /**
+ * Try to acquire an exclusive lock on the file given by path.
+ *
+ * @param lock  The lock to try to acquire. lock.fd has to be -1.
+ * @param fpath Path to the file to lock.
+ * @param wait  Whether to wait for the lock (blocks) or give up immediately.
+ * @return      0 in case of success,
+ *             -1 in case of failure to lock,
+ *             -2 in case of failure to open
+ */
+int ExclusiveFileLockPath(FileLock *lock, const char *fpath, bool wait);
+
+/**
  * Yield the previously acquired lock.
  *
  * @param lock     Lock to yield.
@@ -200,6 +212,12 @@ int ExclusiveFileUnlock(FileLock *lock, bool close_fd);
  */
 int SharedFileLock(FileLock *lock, bool wait);
 
+/**
+ * @see ExclusiveFileLockPath()
+ * @note The resulting lock.fd is opened RDONLY (shared lock is semantically
+ *       a reader lock).
+ */
+int SharedFileLockPath(FileLock *lock, const char *fpath, bool wait);
 
 /**
  * @see ExclusiveFileUnock()
