@@ -36,6 +36,8 @@
 
 #ifndef __MINGW32__
 #include <glob.h>
+#else
+#include <windows.h>            /* LockFileEx and friends */
 #endif
 
 #define SYMLINK_MAX_DEPTH 32
@@ -1693,9 +1695,9 @@ static int LockFD(int fd, DWORD flags, bool wait)
         flags |= LOCKFILE_FAIL_IMMEDIATELY;
     }
 
-    HANDLE fh = (HANDLE)_get_osfhandle(lock->fd);
+    HANDLE fh = (HANDLE)_get_osfhandle(fd);
 
-    if (!FileLockEx(fh, flags, 0, 1, 0, &ol))
+    if (!LockFileEx(fh, flags, 0, 1, 0, &ol))
     {
         Log(LOG_LEVEL_DEBUG, "Failed to acquire file lock for FD %d: %s",
             fd, GetErrorStr());
@@ -1728,7 +1730,7 @@ static int UnlockFD(int fd)
 
     HANDLE fh = (HANDLE)_get_osfhandle(fd);
 
-    if (!FileUnlockEx(fh, 0, 1, 0, &ol))
+    if (!UnlockFileEx(fh, 0, 1, 0, &ol))
     {
         Log(LOG_LEVEL_DEBUG, "Failed to release file lock for FD %d: %s",
             fd, GetErrorStr());
@@ -1753,7 +1755,7 @@ int ExclusiveFileUnlock(FileLock *lock, bool close_fd)
     int ret = UnlockFD(lock->fd);
     if (close_fd)
     {
-        close(fd);
+        close(lock->fd);
         lock->fd = -1;
     }
     return ret;
