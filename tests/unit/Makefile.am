@@ -82,6 +82,7 @@ check_PROGRAMS = \
 	string_lib_test \
 	thread_test \
 	file_lib_test \
+	file_lock_test \
 	map_test \
 	path_test \
 	logging_timestamp_test \
@@ -183,3 +184,7 @@ threaded_queue_test_SOURCES = threaded_queue_test.c
 threaded_deque_test_SOURCES = threaded_deque_test.c
 
 threaded_stack_test_SOURCES = threaded_stack_test.c
+
+file_lock_test_SOURCES = file_lock_test.c
+file_lock_test_CPPFLAGS = -I$(top_srcdir)/libutils
+file_lock_test_LDADD = ../../libutils/libutils.la
