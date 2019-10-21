@@ -35,7 +35,10 @@
 
 typedef struct Writer_ Writer;
 
-#include <platform.h>
+#include <stdio.h> // FILE
+#include <stdbool.h> // bool
+#include <stdarg.h> // va_list
+#include <../libcompat/getopt.h>
 #include <compiler.h>
 
 Writer *FileWriter(FILE *);

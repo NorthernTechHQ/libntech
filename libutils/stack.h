@@ -25,7 +25,7 @@
 #ifndef CFENGINE_STACK_H
 #define CFENGINE_STACK_H
 
-#include <platform.h>
+#include <stdlib.h> // size_t
 
 typedef struct Stack_ Stack;
 

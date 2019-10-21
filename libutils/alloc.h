@@ -25,8 +25,8 @@
 #ifndef CFENGINE_ALLOC_H
 #define CFENGINE_ALLOC_H
 
-#include <stdlib.h>
-#include <stdarg.h>
+#include <stdlib.h> // size_t
+#include <stdarg.h> // va_list
 
 #include <compiler.h>
 

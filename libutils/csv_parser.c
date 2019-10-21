@@ -22,6 +22,7 @@
   included file COSL.txt.
 */
 
+#include <platform.h>
 #include <csv_parser.h>
 #include <alloc.h>
 #include <writer.h>

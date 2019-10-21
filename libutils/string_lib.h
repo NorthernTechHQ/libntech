@@ -25,7 +25,8 @@
 #ifndef CFENGINE_STRING_LIB_H
 #define CFENGINE_STRING_LIB_H
 
-#include <platform.h>
+#include <stdbool.h> // bool
+#include <stdarg.h> // va_list
 #include <compiler.h>
 #include <sequence.h>
 #include <pcre.h>

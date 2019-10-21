@@ -26,9 +26,7 @@
 #ifndef CFENGINE_REGEX_H
 #define CFENGINE_REGEX_H
 
-
-#include <platform.h>
-
+#include <stdbool.h> // bool
 #include <pcre.h>
 
 #include <sequence.h>                                           /* Seq */
