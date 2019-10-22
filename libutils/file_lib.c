@@ -154,6 +154,7 @@ bool File_CopyToDir(const char *src, const char *dst_dir)
 {
     assert(src != NULL);
     assert(dst_dir != NULL);
+    assert(StringEndsWith(dst_dir, FILE_SEPARATOR_STR));
 
     const char *filename = Path_Basename(src);
     if (filename == NULL)

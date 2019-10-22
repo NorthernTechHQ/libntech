@@ -1545,6 +1545,132 @@ static void test_safe_chmod_chown_fifos(void)
     return_to_test_dir();
 }
 
+static void test_file_can_open(void)
+{
+    setup_tempfiles();
+
+    assert_true(FileCanOpen(TEST_FILE, "r"));
+    assert_false(FileCanOpen("no_such_file", "r"));
+
+    return_to_test_dir();
+}
+
+static void test_file_copy(void)
+{
+    setup_tempfiles();
+
+    assert_true(File_Copy(TEST_FILE, "new_file"));
+
+    int fd = safe_open("new_file", O_RDONLY);
+    assert_true(fd >= 0);
+    check_contents(fd, TEST_STRING);
+    close(fd);
+
+    assert_int_equal(unlink("new_file"), 0);
+
+    return_to_test_dir();
+}
+
+static void test_file_copy_to_dir(void)
+{
+    setup_tempfiles();
+
+    assert_false(File_CopyToDir(TEST_FILE, "no/such/dir/"));
+    assert_true(File_CopyToDir(TEST_FILE, TEST_SUBDIR "/"));
+
+    const char * new_path = TEST_SUBDIR "/" TEST_FILE;
+    int fd = safe_open(new_path, O_RDONLY);
+    assert_true(fd >= 0);
+    check_contents(fd, TEST_STRING);
+    close(fd);
+
+    assert_int_equal(unlink(new_path), 0);
+
+    return_to_test_dir();
+}
+
+static void test_file_read(void)
+{
+    setup_tempfiles();
+
+    {
+        bool truncated = true;
+        Writer *w = FileRead(TEST_FILE, 1024, &truncated);
+        assert_false(truncated);
+        char *data = StringWriterClose(w);
+        assert_string_equal(TEST_STRING, data);
+        free(data);
+    }
+
+    {
+        bool truncated = false;
+        Writer *w = FileRead(TEST_FILE, 4, &truncated);
+        assert_true(truncated);
+        char *data = StringWriterClose(w);
+        assert_string_equal("BLUE", data);
+        free(data);
+    }
+
+    return_to_test_dir();
+}
+
+static void test_full_read_write(void)
+{
+    setup_tempfiles();
+
+    // Write test string to new_file, don't include NUL-byte
+    int fd = safe_open_create_perms("new_file", O_WRONLY | O_CREAT, 0777);
+    const size_t length = strlen(TEST_STRING);
+    assert_int_equal(FullWrite(fd, TEST_STRING, length), length);
+    assert_int_equal(close(fd), 0);
+
+    {
+        // Read the same length back from file:
+        fd = safe_open("new_file", O_RDONLY);
+        char buf[length];
+        assert_int_equal(FullRead(fd, buf, length), length);
+        assert_true(memcmp(buf, TEST_STRING, length) == 0);
+        assert_int_equal(close(fd), 0);
+    }
+
+    {
+        // Try to read twice as much:
+        const size_t twice = length * 2;
+        fd = safe_open("new_file", O_RDONLY);
+        char buf[length]; // ASAN should panic if we overflow
+        assert_int_equal(FullRead(fd, buf, twice), length);
+        assert_true(memcmp(buf, TEST_STRING, length) == 0);
+        assert_int_equal(close(fd), 0);
+    }
+
+    {
+        // Read about half of the file:
+        const size_t half = length / 2;
+        fd = safe_open("new_file", O_RDONLY);
+        char buf[half];
+        assert_int_equal(FullRead(fd, buf, half), half);
+        assert_true(memcmp(buf, TEST_STRING, half) == 0);
+        assert_int_equal(close(fd), 0);
+    }
+
+    assert_int_equal(unlink("new_file"), 0);
+    return_to_test_dir();
+}
+
+static void test_is_dir_real(void)
+{
+    setup_tempfiles();
+
+    assert_true(IsDirReal("/"));
+    assert_true(IsDirReal(".."));
+    assert_false(IsDirReal(TEST_FILE));
+    assert_false(IsDirReal("no/such/dir/"));
+
+    // TODO: Test that IsDirReal() returns false for symlinks
+
+    return_to_test_dir();
+}
+
 static void test_file_locking(void)
 {
     /* see file_lock_test.c for some more test cases */
@@ -1819,6 +1945,13 @@ int main(int argc, char **argv)
             unit_test(test_symlink_loop),
 
             unit_test(test_safe_chmod_chown_fifos),
+
+            unit_test(test_file_can_open),
+            unit_test(test_file_copy),
+            unit_test(test_file_copy_to_dir),
+            unit_test(test_file_read),
+            unit_test(test_full_read_write),
+            unit_test(test_is_dir_real),
 
             unit_test(test_file_locking),
             unit_test(test_file_locking_with_path),
