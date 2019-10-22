@@ -1578,55 +1578,12 @@ int ExclusiveFileLock(FileLock *lock, bool wait)
     return LockFD(lock->fd, F_WRLCK, wait);
 }
 
-int ExclusiveFileLockPath(FileLock *lock, const char *fpath, bool wait)
-{
-    assert(lock != NULL);
-    assert(lock->fd < 0);
-
-    int fd = safe_open(fpath, O_CREAT|O_RDWR);
-    if (fd < 0)
-    {
-        Log(LOG_LEVEL_ERR, "Failed to open '%s' for locking", fpath);
-        return -2;
-    }
-
-    lock->fd = fd;
-    int ret = ExclusiveFileLock(lock, wait);
-    if (ret != 0)
-    {
-        lock->fd = -1;
-    }
-    return ret;
-}
-
-
 int SharedFileLock(FileLock *lock, bool wait)
 {
     assert(lock != NULL);
     assert(lock->fd >= 0);
 
     return LockFD(lock->fd, F_RDLCK, wait);
-}
-
-int SharedFileLockPath(FileLock *lock, const char *fpath, bool wait)
-{
-    assert(lock != NULL);
-    assert(lock->fd < 0);
-
-    int fd = safe_open(fpath, O_CREAT|O_RDONLY);
-    if (fd < 0)
-    {
-        Log(LOG_LEVEL_ERR, "Failed to open '%s' for locking", fpath);
-        return -2;
-    }
-
-    lock->fd = fd;
-    int ret = SharedFileLock(lock, wait);
-    if (ret != 0)
-    {
-        lock->fd = -1;
-    }
-    return ret;
 }
 
 bool ExclusiveFileLockCheck(FileLock *lock)
@@ -1772,3 +1729,45 @@ int SharedFileUnlock(FileLock *lock, bool close_fd)
 }
 
 #endif  /* __MINGW32__ */
+
+int ExclusiveFileLockPath(FileLock *lock, const char *fpath, bool wait)
+{
+    assert(lock != NULL);
+    assert(lock->fd < 0);
+
+    int fd = safe_open(fpath, O_CREAT|O_RDWR);
+    if (fd < 0)
+    {
+        Log(LOG_LEVEL_ERR, "Failed to open '%s' for locking", fpath);
+        return -2;
+    }
+
+    lock->fd = fd;
+    int ret = ExclusiveFileLock(lock, wait);
+    if (ret != 0)
+    {
+        lock->fd = -1;
+    }
+    return ret;
+}
+
+int SharedFileLockPath(FileLock *lock, const char *fpath, bool wait)
+{
+    assert(lock != NULL);
+    assert(lock->fd < 0);
+
+    int fd = safe_open(fpath, O_CREAT|O_RDONLY);
+    if (fd < 0)
+    {
+        Log(LOG_LEVEL_ERR, "Failed to open '%s' for locking", fpath);
+        return -2;
+    }
+
+    lock->fd = fd;
+    int ret = SharedFileLock(lock, wait);
+    if (ret != 0)
+    {
+        lock->fd = -1;
+    }
+    return ret;
+}
