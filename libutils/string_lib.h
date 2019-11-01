@@ -171,6 +171,15 @@ size_t TrimCSVLineCRLF(char *data);
 size_t TrimCSVLineCRLFStrict(char *data);
 
 /**
+ * @brief Erase part of a string using memmove()
+ *
+ * String must be NUL-terminated. Indices from start, up to but not including
+ * end are erased. The number of bytes erased is end - start. If start == end,
+ * no bytes are erased. Assumes: 0 <= start <= end <= strlen(s)
+ */
+void StringCloseHole(char *s, int start, int end);
+
+/**
  * @brief Check if a string ends with the given suffix
  * @param str
  * @param suffix
