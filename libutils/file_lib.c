@@ -831,6 +831,9 @@ FILE *safe_fopen_create_perms(
         case 't':
             flags |= O_TEXT;
             break;
+        case 'x':
+            flags |= O_EXCL;
+            break;
         default:
             ProgrammingError("Invalid flag for fopen: %s", mode);
             return NULL;
