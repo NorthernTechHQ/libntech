@@ -850,6 +850,26 @@ static void test_trim_crlf(void)
     }
 }
 
+static void test_close_hole(void)
+{
+    char *test_string = xstrdup("test");
+    StringCloseHole(test_string, 0, 0);
+    assert_string_equal(test_string, "test");
+    StringCloseHole(test_string, 4, 4);
+    assert_string_equal(test_string, "test");
+
+    size_t length = strlen(test_string);
+    StringCloseHole(test_string, length - 1, length);
+    assert_string_equal(test_string, "tes");
+    StringCloseHole(test_string, 0, 1);
+    assert_string_equal(test_string, "es");
+    StringCloseHole(test_string, 1, 2);
+    assert_string_equal(test_string, "e");
+    StringCloseHole(test_string, 0, 1);
+    assert_string_equal(test_string, "");
+    free(test_string);
+}
+
 static void test_ends_with(void)
 {
     assert_true(StringEndsWith("file.json", ".json"));
@@ -1264,6 +1284,7 @@ int main()
         unit_test(test_chop_empty_two_spaces),
 
         unit_test(test_trim_crlf),
+        unit_test(test_close_hole),
 
         unit_test(test_ends_with),
 

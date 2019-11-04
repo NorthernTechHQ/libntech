@@ -1187,6 +1187,19 @@ size_t TrimCSVLineCRLFStrict(char *const data)
     return length;
 }
 
+void StringCloseHole(char *s, const int start, const int end)
+{
+    assert(s != NULL);
+    assert(0 <= start && start <= end && end <= strlen(s));
+    assert((end - start) <= strlen(s));
+
+    if (end > start)
+    {
+        memmove(s + start, s + end,
+                /* The 1+ ensures we copy the final '\0' */
+                strlen(s + end) + 1);
+    }
+}
 
 bool StringEndsWithCase(const char *str, const char *suffix, const bool case_fold)
 {
