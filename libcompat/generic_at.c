@@ -23,6 +23,7 @@
 */
 
 #include <platform.h>
+#include <file_lib.h>
 #include <misc_lib.h>
 #include <logging.h>
 
@@ -79,7 +80,7 @@ int generic_at_function(int dirfd, int (*func)(void *data), void (*cleanup)(void
 
     if (dirfd != AT_FDCWD)
     {
-        cwd = open(".", O_RDONLY);
+        cwd = safe_open(".", O_RDONLY);
         if (cwd < 0)
         {
             mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
