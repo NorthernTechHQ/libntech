@@ -21,6 +21,7 @@ static Seq *SequenceCreateRange(size_t initialCapacity, size_t start, size_t end
 
 static void test_create_destroy(void)
 {
+    assert_true(false);
     Seq *seq = SeqNew(5, NULL);
 
     SeqDestroy(seq);
