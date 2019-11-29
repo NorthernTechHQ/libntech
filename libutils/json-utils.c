@@ -179,17 +179,15 @@ static char *filtered_copy(const char *src, char *dst)
  */
 bool JsonParseEnvFile(const char *input_path, size_t size_max, JsonElement **json_out)
 {
-    assert(json_out);
-    *json_out = JsonObjectCreate(10);
+    assert(json_out != NULL);
+    assert(input_path != NULL);
+
     const char *myname = "JsonParseEnvFile";
     size_t line_size = ENV_BYTE_LIMIT;
     char *raw_line = xmalloc(line_size);
     char *key, *value;
     int linenumber = 0;
     size_t byte_count = 0;
-
-    assert(input_path);
-    assert(myname);
     FILE *fin = safe_fopen(input_path, "r");
     if (fin == NULL)
     {
@@ -197,6 +195,8 @@ bool JsonParseEnvFile(const char *input_path, size_t size_max, JsonElement **jso
             myname, input_path, GetErrorStr());
         return false;
     }
+
+    JsonElement *json = JsonObjectCreate(10);
 
     while (CfReadLine(&raw_line, &line_size, fin) != -1)
     {
@@ -213,31 +213,31 @@ bool JsonParseEnvFile(const char *input_path, size_t size_max, JsonElement **jso
         ParseEnvLine(raw_line, &key, &value, input_path, linenumber);
         if (key != NULL && value != NULL)
         {
-            JsonObjectAppendString(*json_out, key, value);
+            JsonObjectAppendString(json, key, value);
         }
     }
 
     bool reached_eof = feof(fin);
     fclose(fin);
+    free(raw_line);
 
     if (!reached_eof && byte_count <= size_max)
     {
         Log(LOG_LEVEL_ERR,
             "%s: failed to read ENV file '%s'. (fread: %s)",
             myname, input_path, GetErrorStr());
-        JsonDestroy(*json_out);
-        free(raw_line);
+        JsonDestroy(json);
         return false;
     }
 
-    free(raw_line);
+    *json_out = json;
     return true;
 }
 
 bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **json_out)
 {
-    assert(json_out);
-    *json_out = JsonArrayCreate(50);
+    assert(json_out != NULL);
+
     const char *myname = "JsonParseCsvFile";
     char *line;
     size_t byte_count = 0;
@@ -251,6 +251,8 @@ bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **jso
             myname, input_path, GetErrorStr());
         return false;
     }
+
+    JsonElement *const json = JsonArrayCreate(50);
 
     while ((line = GetCsvLineNext(fin)) != NULL)
     {
@@ -279,7 +281,7 @@ bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **jso
             }
 
             SeqDestroy(list);
-            JsonArrayAppendArray(*json_out, line_arr);
+            JsonArrayAppendArray(json, line_arr);
         }
     }
 
@@ -291,10 +293,11 @@ bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **jso
         Log(LOG_LEVEL_ERR,
             "%s: unable to read line from CSV file '%s'. (fread: %s)",
             myname, input_path, GetErrorStr());
-        JsonDestroy(*json_out);
+        JsonDestroy(json);
         return false;
     }
 
+    *json_out = json;
     return true;
 }
 
