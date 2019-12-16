@@ -69,6 +69,8 @@ int main()
     if (pid == 0)
     {
         /* child */
+        failure = false;
+
         /* FDs are inherited, fcntl() locks are not */
 
         /* the lock is held by the parent process */
@@ -80,13 +82,14 @@ int main()
         /* should not affect parent's FD */
         close(fd);
 
-        _exit(0);
+        _exit(failure ? 1 : 0);
     }
     else
     {
         /* parent */
         int status;
-        assert(waitpid(pid, &status, 0) == pid);
+        int ret = waitpid(pid, &status, 0);
+        assert_int_equal(ret, pid);
         failure = (WEXITSTATUS(status) != 0);
     }
 
@@ -111,9 +114,9 @@ int main()
     pid = fork();
     if (pid == 0)
     {
+        /* child */
         failure = false;
 
-        /* child */
         /* FDs are inherited, fcntl() locks are not */
 
         /* a shared lock is held by the parent process */
@@ -134,7 +137,8 @@ int main()
     {
         /* parent */
         int status;
-        assert(waitpid(pid, &status, 0) == pid);
+        int ret = waitpid(pid, &status, 0);
+        assert_int_equal(ret, pid);
         failure = (WEXITSTATUS(status) != 0);
     }
 
