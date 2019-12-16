@@ -88,7 +88,8 @@ int main()
     {
         /* parent */
         int status;
-        assert(waitpid(pid, &status, 0) == pid);
+        int ret = waitpid(pid, &status, 0);
+        assert_int_equal(ret, pid);
         failure = (WEXITSTATUS(status) != 0);
     }
 
@@ -136,7 +137,8 @@ int main()
     {
         /* parent */
         int status;
-        assert(waitpid(pid, &status, 0) == pid);
+        int ret = waitpid(pid, &status, 0);
+        assert_int_equal(ret, pid);
         failure = (WEXITSTATUS(status) != 0);
     }
 
