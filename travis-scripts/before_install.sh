@@ -6,14 +6,19 @@ then
     rvm get stable
     brew update
     brew install lmdb
+    brew --prefix lmdb
     brew install make
+    brew --prefix make
     brew install autoconf
+    brew --prefix autoconf
     brew install automake
+    brew --prefix automake
+    brew install openssl
+    brew --prefix openssl
     # brew install gcc@7 || brew link --overwrite gcc@7
     set -e
     # gcc-7 --version
     #brew install python
-    brew install openssl
     #brew install libxml2
     #brew install fakeroot
 else
