@@ -13,7 +13,7 @@ then
     set -e
     # gcc-7 --version
     #brew install python
-    #brew install openssl
+    brew install openssl
     #brew install libxml2
     #brew install fakeroot
 else
