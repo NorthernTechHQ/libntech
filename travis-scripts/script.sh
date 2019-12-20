@@ -6,7 +6,7 @@ cd $TRAVIS_BUILD_DIR || exit 1
 
 if [ "$TRAVIS_OS_NAME" = osx ]
 then
-    ./autogen.sh --enable-debug
+    ./autogen.sh --enable-debug --with-openssl="$(brew --prefix openssl)"
     gmake --version
     gmake CFLAGS="-Werror -Wall -Wno-pointer-sign"
     gmake --debug -C tests/unit check
