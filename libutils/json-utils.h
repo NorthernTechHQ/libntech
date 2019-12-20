@@ -27,9 +27,24 @@
 
 #include <json.h>
 
+typedef enum {
+    DATAFILETYPE_UNKNOWN = 0,
+    DATAFILETYPE_JSON,
+    DATAFILETYPE_YAML,
+    DATAFILETYPE_ENV,
+    DATAFILETYPE_CSV
+} DataFileType;
+
 void ParseEnvLine(char *raw_line, char **key_out, char **value_out, const char *filename_for_log, int linenumber);
 bool JsonParseEnvFile(const char *input_path, size_t size_max, JsonElement **json_out);
 bool JsonParseCsvFile(const char *path, size_t size_max, JsonElement **json_out);
-JsonElement *JsonReadDataFile(const char *log_identifier, const char *input_path, const char *requested_mode, size_t size_max);
+JsonElement *JsonReadDataFile(
+        const char *log_identifier,
+        const char *input_path,
+        DataFileType requested_mode,
+        size_t size_max);
+DataFileType GetDataFileTypeFromString(const char *requested_mode);
+DataFileType GetDataFileTypeFromSuffix(const char *filename);
+const char *DataFileTypeToString(DataFileType type);
 
 #endif // CFENGINE_JSON_UTILS_H

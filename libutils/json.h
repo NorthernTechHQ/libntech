@@ -478,7 +478,21 @@ JsonParseError JsonParseWithLookup(
     JsonElement **json_out);
 
 /**
- * @brief Convenience function to parse JSON from a file
+ * @brief Convenience function to parse JSON or YAML from a file
+ * @param path Path to the file
+ * @param size_max Maximum size to read in memory
+ * @param json_out Resulting JSON object
+ * @param yaml_format Whether or not the file is in yaml format
+ * @return See JsonParseError and JsonParseErrorToString
+ */
+JsonParseError JsonParseAnyFile(
+    const char *path,
+    size_t size_max,
+    JsonElement **json_out,
+    bool yaml_format);
+
+/**
+ * @brief Convenience function to parse JSON from a file.
  * @param path Path to the file
  * @param size_max Maximum size to read in memory
  * @param json_out Resulting JSON object

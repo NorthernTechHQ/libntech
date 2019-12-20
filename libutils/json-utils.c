@@ -302,13 +302,12 @@ bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **jso
 }
 
 JsonElement *JsonReadDataFile(const char *log_identifier, const char *input_path,
-                          const char *requested_mode, size_t size_max)
+                              const DataFileType requested_mode, size_t size_max)
 {
     const char *myname = log_identifier ? log_identifier : "JsonReadDataFile";
-
-    bool env_mode = (strcmp("ENV", requested_mode) == 0);
-    bool csv_mode = (strcmp("CSV", requested_mode) == 0);
-    //size_t size_max = 50 * (1024 * 1024);
+    bool env_mode = (requested_mode == DATAFILETYPE_ENV);
+    bool csv_mode = (requested_mode == DATAFILETYPE_CSV);
+    bool yaml_mode = (requested_mode == DATAFILETYPE_YAML);
 
     if (env_mode || csv_mode)
     {
@@ -329,34 +328,30 @@ JsonElement *JsonReadDataFile(const char *log_identifier, const char *input_path
         return json;
     }
 
-    bool yaml_mode = (strcmp(requested_mode, "YAML") == 0);
-    const char *data_type = requested_mode;
-
     JsonElement *json = NULL;
-    JsonParseError res;
-    if (yaml_mode)
-    {
-        res = JsonParseYamlFile(input_path, size_max, &json);
-    }
-    else
-    {
-        res = JsonParseFile(input_path, size_max, &json);
-    }
+    JsonParseError res =
+        JsonParseAnyFile(input_path, size_max, &json, yaml_mode);
 
     // the NO_DATA errors often happen when the file hasn't been created yet
     if (res == JSON_PARSE_ERROR_NO_DATA)
     {
-        Log(LOG_LEVEL_ERR, "%s: data error parsing %s file '%s': %s",
-            myname, data_type, input_path, JsonParseErrorToString(res));
+        Log(LOG_LEVEL_ERR,
+            "%s: data error parsing %s file '%s': %s",
+            myname, DataFileTypeToString(requested_mode),
+            input_path, JsonParseErrorToString(res));
     }
     else if (res != JSON_PARSE_OK)
     {
-        Log(LOG_LEVEL_ERR, "%s: error parsing %s file '%s': %s",
-            myname, data_type, input_path, JsonParseErrorToString(res));
+        Log(LOG_LEVEL_ERR,
+            "%s: error parsing %s file '%s': %s",
+            myname, DataFileTypeToString(requested_mode),
+            input_path, JsonParseErrorToString(res));
     }
     else if (JsonGetElementType(json) == JSON_ELEMENT_TYPE_PRIMITIVE)
     {
-        Log(LOG_LEVEL_ERR, "%s: non-container from parsing %s file '%s'",myname, data_type, input_path);
+        Log(LOG_LEVEL_ERR,
+            "%s: non-container from parsing %s file '%s'",
+            myname, DataFileTypeToString(requested_mode), input_path);
         JsonDestroy(json);
     }
     else
@@ -365,4 +360,65 @@ JsonElement *JsonReadDataFile(const char *log_identifier, const char *input_path
     }
 
     return NULL;
+}
+
+DataFileType GetDataFileTypeFromString(const char *const requested_mode)
+{
+    DataFileType type = DATAFILETYPE_UNKNOWN;
+    if (StringSafeEqual_IgnoreCase(requested_mode, "yaml"))
+    {
+        type = DATAFILETYPE_YAML;
+    }
+    else if (StringSafeEqual_IgnoreCase(requested_mode, "csv"))
+    {
+        type = DATAFILETYPE_CSV;
+    }
+    else if (StringSafeEqual_IgnoreCase(requested_mode, "env"))
+    {
+        type = DATAFILETYPE_ENV;
+    }
+    else if (StringSafeEqual_IgnoreCase(requested_mode, "json"))
+    {
+        type = DATAFILETYPE_JSON;
+    }
+
+    return type;
+}
+
+DataFileType GetDataFileTypeFromSuffix(const char *filename)
+{
+    if (StringEndsWithCase(filename, ".csv", true))
+    {
+        return DATAFILETYPE_CSV;
+    }
+    else if (StringEndsWithCase(filename, ".yaml", true) ||
+             StringEndsWithCase(filename, ".yml", true))
+    {
+        return DATAFILETYPE_YAML;
+    }
+    else if (StringEndsWithCase(filename, ".env", true))
+    {
+        return DATAFILETYPE_ENV;
+    }
+    else // always default to JSON
+    {
+        return DATAFILETYPE_JSON;
+    }
+}
+
+const char *DataFileTypeToString(const DataFileType type)
+{
+    switch (type)
+    {
+    case DATAFILETYPE_CSV:
+        return "CSV";
+    case DATAFILETYPE_YAML:
+        return "YAML";
+    case DATAFILETYPE_ENV:
+        return "ENV";
+    case DATAFILETYPE_JSON:
+        return "JSON";
+    default:
+        return "unknown";
+    }
 }
