@@ -73,6 +73,40 @@ Writer *FileRead(const char *filename, size_t max_size, bool *truncated)
     return w;
 }
 
+int read_and_fill_buffer(FILE *partition, size_t bytes_expected, char *buf)
+{
+    size_t bytes_read = 0;
+    size_t n = 0;
+    while (bytes_read < bytes_expected)
+    {
+        n = fread(
+            buf + bytes_read, 1, bytes_expected - bytes_read, partition);
+        if (!feof(partition) && ferror(partition))
+        {
+            fprintf(
+                stderr,
+                "Error while reading from process: %s\n",
+                strerror(errno));
+            return 1;
+        }
+        else if (n == 0)
+        {
+            break;
+        }
+        bytes_read += n;
+    }
+    if (bytes_read != bytes_expected)
+    {
+        fprintf(
+            stderr,
+            "Short read. Read: %zu bytes, expected: %zu bytes\n",
+            bytes_read,
+            bytes_expected);
+        return 1;
+    }
+    return 0;
+}
+
 bool File_Copy(const char *src, const char *dst)
 {
     assert(src != NULL);

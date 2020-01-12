@@ -42,6 +42,11 @@ typedef enum
 Writer *FileRead(const char *filename, size_t size_max, bool *truncated);
 
 /**
+ * Reads up to bytes_expected bytes from file and writes into buf
+ */
+int read_and_fill_buffer(FILE *partition, size_t bytes_expected, char *buf);
+
+/**
  * Copies a files content, without preserving metadata, times or permissions
  */
 bool File_Copy(const char *src, const char *dst);
