@@ -14,7 +14,11 @@
  * which totally confuses the unit test framework used by the other tests.
  */
 
-#define TEMP_DIR "/tmp/file_lib_test"
+#if defined(__TERMUX__)
+# define TEMP_DIR "/data/data/com.termux/files/usr/tmp"
+#else
+# define TEMP_DIR "/tmp/file_lib_test"
+#endif
 #define TEST_FILE "file_lib_test.txt"
 
 static bool failure = false;
