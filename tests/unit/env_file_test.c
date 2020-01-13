@@ -134,6 +134,7 @@ static void test_ParseEnvLine(void)
     strcpy(buf, "AB\"CD");                                  \
     char *ret = filtered_copy(buf,buf);                     \
     assert(ret == NULL);                                    \
+    UNUSED(ret);                                            \
     free(buf);                                              \
 }                                                           \
 
