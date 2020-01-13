@@ -73,21 +73,16 @@ Writer *FileRead(const char *filename, size_t max_size, bool *truncated)
     return w;
 }
 
-int read_and_fill_buffer(FILE *partition, size_t bytes_expected, char *buf)
+ssize_t ReadFileStreamToBuffer(FILE *file, size_t max_bytes, char *buf)
 {
     size_t bytes_read = 0;
     size_t n = 0;
-    while (bytes_read < bytes_expected)
+    while (bytes_read < max_bytes)
     {
-        n = fread(
-            buf + bytes_read, 1, bytes_expected - bytes_read, partition);
-        if (!feof(partition) && ferror(partition))
+        n = fread(buf + bytes_read, 1, max_bytes - bytes_read, file);
+        if (ferror(file) && !feof(file))
         {
-            fprintf(
-                stderr,
-                "Error while reading from process: %s\n",
-                strerror(errno));
-            return 1;
+            return FILE_ERROR_READ;
         }
         else if (n == 0)
         {
@@ -95,16 +90,11 @@ int read_and_fill_buffer(FILE *partition, size_t bytes_expected, char *buf)
         }
         bytes_read += n;
     }
-    if (bytes_read != bytes_expected)
+    if (ferror(file))
     {
-        fprintf(
-            stderr,
-            "Short read. Read: %zu bytes, expected: %zu bytes\n",
-            bytes_read,
-            bytes_expected);
-        return 1;
+        return FILE_ERROR_READ;
     }
-    return 0;
+    return bytes_read;
 }
 
 bool File_Copy(const char *src, const char *dst)
