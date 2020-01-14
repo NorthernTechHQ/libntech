@@ -1614,6 +1614,24 @@ static void test_file_read(void)
     return_to_test_dir();
 }
 
+static void test_read_file_stream_to_buffer(void)
+{
+    setup_tempfiles();
+
+    {
+        const size_t length = strlen(TEST_STRING);
+        char buf[1024] = {0};
+        FILE *const file = safe_fopen(TEST_FILE, "r");
+        assert_true(file != NULL);
+        const ssize_t bytes_read = ReadFileStreamToBuffer(file, length, buf);
+        fclose(file);
+        assert_int_equal(bytes_read, length);
+        assert_string_equal(TEST_STRING, buf);
+    }
+
+    return_to_test_dir();
+}
+
 static void test_full_read_write(void)
 {
     setup_tempfiles();
@@ -1950,6 +1968,7 @@ int main(int argc, char **argv)
             unit_test(test_file_copy),
             unit_test(test_file_copy_to_dir),
             unit_test(test_file_read),
+            unit_test(test_read_file_stream_to_buffer),
             unit_test(test_full_read_write),
             unit_test(test_is_dir_real),
 

@@ -73,6 +73,30 @@ Writer *FileRead(const char *filename, size_t max_size, bool *truncated)
     return w;
 }
 
+ssize_t ReadFileStreamToBuffer(FILE *file, size_t max_bytes, char *buf)
+{
+    size_t bytes_read = 0;
+    size_t n = 0;
+    while (bytes_read < max_bytes)
+    {
+        n = fread(buf + bytes_read, 1, max_bytes - bytes_read, file);
+        if (ferror(file) && !feof(file))
+        {
+            return FILE_ERROR_READ;
+        }
+        else if (n == 0)
+        {
+            break;
+        }
+        bytes_read += n;
+    }
+    if (ferror(file))
+    {
+        return FILE_ERROR_READ;
+    }
+    return bytes_read;
+}
+
 bool File_Copy(const char *src, const char *dst)
 {
     assert(src != NULL);

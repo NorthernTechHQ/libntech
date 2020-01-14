@@ -36,10 +36,18 @@ typedef enum
     NewLineMode_Native  // CRLF on Windows, LF elsewhere
 } NewLineMode;
 
+#define FILE_ERROR_READ -1
+
 /**
  * Reads up to size_max bytes from filename and returns a Writer.
  */
 Writer *FileRead(const char *filename, size_t size_max, bool *truncated);
+
+/**
+ * Reads up to max_bytes bytes from file and writes into buf.
+ * Returns negative numbers in case of errors, bytes read/written otherwise.
+ */
+ssize_t ReadFileStreamToBuffer(FILE *file, size_t max_bytes, char *buf);
 
 /**
  * Copies a files content, without preserving metadata, times or permissions
