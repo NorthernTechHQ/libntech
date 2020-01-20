@@ -459,6 +459,20 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
     return new_queue;
 }
 
+void ThreadedQueueClear(ThreadedQueue *queue)
+{
+    assert(queue != NULL);
+    ThreadLock(queue->lock);
+
+    DestroyRange(queue, queue->head, queue->tail);
+    assert(queue->size == 0);
+    queue->head = 0;
+    queue->tail = queue->head;
+
+    pthread_cond_broadcast(queue->cond_empty);
+    ThreadUnlock(queue->lock);
+}
+
 /**
   @brief Destroys data in range.
   @warning Assumes that locks are acquired.

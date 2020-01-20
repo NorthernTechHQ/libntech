@@ -138,4 +138,9 @@ bool ThreadedQueueWaitEmpty(ThreadedQueue const *queue, int timeout);
   */
 ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue);
 
+/**
+ * @brief Clear (empty) the queue.
+ */
+void ThreadedQueueClear(ThreadedQueue *queue);
+
 #endif

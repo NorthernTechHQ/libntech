@@ -276,6 +276,32 @@ static void test_popn(void)
     ThreadedQueueDestroy(queue);
 }
 
+static void test_clear(void)
+{
+    ThreadedQueue *queue = ThreadedQueueNew(0, free);
+
+    char *strs[] = {"spam1", "spam2", "spam3", "spam4", "spam5"};
+
+    for (int i = 0; i < 5; i++)
+    {
+        ThreadedQueuePush(queue, xstrdup(strs[i]));
+    }
+    size_t count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 5);
+
+    ThreadedQueueClear(queue);
+    count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 0);
+
+    ThreadedQueuePush(queue, xstrdup(strs[4]));
+    char *item;
+    ThreadedQueuePop(queue, (void **) &item, THREAD_BLOCK_INDEFINITELY);
+    assert_string_equal(item, strs[4]);
+    free(item);
+
+    ThreadedQueueDestroy(queue);
+}
+
 // Thread tests
 static ThreadedQueue *thread_queue;
 
@@ -315,6 +341,14 @@ static void *thread_wait_empty()
 {
     ThreadedQueueWaitEmpty(thread_queue, THREAD_BLOCK_INDEFINITELY);
     ThreadedQueuePush(thread_queue, xstrdup("a_test"));
+
+    return NULL;
+}
+
+/* Used in the test_threads_clear_empty */
+static void *thread_just_wait_empty()
+{
+    ThreadedQueueWaitEmpty(thread_queue, THREAD_BLOCK_INDEFINITELY);
 
     return NULL;
 }
@@ -437,6 +471,34 @@ static void test_threads_pushn()
     ThreadedQueueDestroy(thread_queue);
 }
 
+static void test_threads_clear_empty()
+{
+    thread_queue = ThreadedQueueNew(0, NULL);
+
+    char *strs[] = {"spam1", "spam2", "spam3", "spam4", "spam5"};
+
+    for (int i = 0; i < 5; i++)
+    {
+        ThreadedQueuePush(thread_queue, strs[i]);
+    }
+    size_t count = ThreadedQueueCount(thread_queue);
+    assert_int_equal(count, 5);
+
+    pthread_t wait_thread;
+    int res = pthread_create(&wait_thread, NULL,
+                             thread_just_wait_empty, NULL);
+    assert_int_equal(res, 0);
+
+    ThreadedQueueClear(thread_queue);
+    count = ThreadedQueueCount(thread_queue);
+    assert_int_equal(count, 0);
+
+    res = pthread_join(wait_thread, NULL);
+    assert_int_equal(res, 0);
+
+    ThreadedQueueDestroy(thread_queue);
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -449,9 +511,11 @@ int main()
         unit_test(test_expand),
         unit_test(test_popn),
         unit_test(test_pushn),
+        unit_test(test_clear),
         unit_test(test_threads_wait_pop),
         unit_test(test_threads_wait_empty),
         unit_test(test_threads_pushn),
+        unit_test(test_threads_clear_empty),
     };
     return run_tests(tests);
 }
