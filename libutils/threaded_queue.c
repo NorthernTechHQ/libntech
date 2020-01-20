@@ -473,6 +473,28 @@ void ThreadedQueueClear(ThreadedQueue *queue)
     ThreadUnlock(queue->lock);
 }
 
+size_t ThreadedQueueClearAndPush(ThreadedQueue *queue, void *item)
+{
+    assert(queue != NULL);
+
+    ThreadLock(queue->lock);
+
+    DestroyRange(queue, queue->head, queue->tail);
+    queue->head = 0;
+    queue->tail = queue->head;
+
+    ExpandIfNecessary(queue);
+    queue->data[queue->tail++] = item;
+    queue->size++;
+    size_t const size = queue->size;
+    assert(queue->size == 1);
+    pthread_cond_signal(queue->cond_non_empty);
+
+    ThreadUnlock(queue->lock);
+
+    return size;
+}
+
 /**
   @brief Destroys data in range.
   @warning Assumes that locks are acquired.

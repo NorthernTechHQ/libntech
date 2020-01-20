@@ -302,6 +302,31 @@ static void test_clear(void)
     ThreadedQueueDestroy(queue);
 }
 
+static void test_clear_and_push(void)
+{
+    ThreadedQueue *queue = ThreadedQueueNew(0, NULL);
+
+    char *strs[] = {"spam1", "spam2", "spam3", "spam4", "spam5"};
+
+    for (int i = 0; i < 4; i++)
+    {
+        ThreadedQueuePush(queue, strs[i]);
+    }
+    size_t count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 4);
+
+    count = ThreadedQueueClearAndPush(queue, strs[4]);
+    assert_int_equal(count, 1);
+    count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 1);
+
+    char *item;
+    ThreadedQueuePop(queue, (void **)&item, 0);
+    assert_string_equal(item, strs[4]);
+
+    ThreadedQueueDestroy(queue);
+}
+
 // Thread tests
 static ThreadedQueue *thread_queue;
 
@@ -512,6 +537,7 @@ int main()
         unit_test(test_popn),
         unit_test(test_pushn),
         unit_test(test_clear),
+        unit_test(test_clear_and_push),
         unit_test(test_threads_wait_pop),
         unit_test(test_threads_wait_empty),
         unit_test(test_threads_pushn),

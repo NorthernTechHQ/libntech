@@ -143,4 +143,12 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue);
  */
 void ThreadedQueueClear(ThreadedQueue *queue);
 
+/**
+ * @brief Clear (empty) the queue and push one item into it.
+ * @note This is an atomic version of ThreadedQueueClear(); ThreadedQueuePush()
+ *       useful for replacing contents of the queue with a new single item.
+ * @return Current amount of elements in the queue.
+ */
+size_t ThreadedQueueClearAndPush(ThreadedQueue *queue, void *item);
+
 #endif
