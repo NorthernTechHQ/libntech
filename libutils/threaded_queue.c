@@ -481,16 +481,24 @@ static void DestroyRange(ThreadedQueue *queue, size_t start, size_t end)
         return;
     }
 
-    if ((queue->ItemDestroy != NULL) && queue->size > 0)
+    if (queue->size > 0)
     {
-        queue->ItemDestroy(queue->data[start]);
+        if (queue->ItemDestroy != NULL)
+        {
+            queue->ItemDestroy(queue->data[start]);
+        }
+        queue->size--;
 
         // In case start == end, start at second element in range
         for (size_t i = start + 1; i != end; i++)
         {
             i %= queue->capacity;
 
-            queue->ItemDestroy(queue->data[i]);
+            if (queue->ItemDestroy != NULL)
+            {
+                queue->ItemDestroy(queue->data[i]);
+            }
+            queue->size--;
         }
     }
 }
