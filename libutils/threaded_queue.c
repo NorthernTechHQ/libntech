@@ -296,6 +296,28 @@ size_t ThreadedQueuePush(ThreadedQueue *queue, void *item)
     return size;
 }
 
+size_t ThreadedQueuePushN(ThreadedQueue *queue, void **items, size_t n_items)
+{
+    assert(queue != NULL);
+
+    ThreadLock(queue->lock);
+
+    for (int i = 0; i < n_items; i++)
+    {
+        /* This should be a no-op in most iterations of the loop. */
+        ExpandIfNecessary(queue);
+
+        queue->data[queue->tail++] = items[i];
+        queue->size++;
+    }
+    size_t const size = queue->size;
+    pthread_cond_signal(queue->cond_non_empty);
+
+    ThreadUnlock(queue->lock);
+
+    return size;
+}
+
 size_t ThreadedQueueCount(ThreadedQueue const *queue)
 {
     assert(queue != NULL);
