@@ -226,6 +226,28 @@ static void test_expand(void)
     ThreadedQueueDestroy(queue);
 }
 
+static void test_pushn(void)
+{
+    ThreadedQueue *queue = ThreadedQueueNew(0, NULL);
+
+    char *strs[] = {"spam1", "spam2", "spam3", "spam4", "spam5"};
+    size_t count = ThreadedQueuePushN(queue, (void**) strs, 5);
+    assert_int_equal(count, 5);
+    count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 5);
+
+    for (int i = 0; i < 5; i++)
+    {
+        char *item;
+        ThreadedQueuePop(queue, (void **)&item, 0);
+        assert_string_equal(item, strs[i]);
+    }
+    count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 0);
+
+    ThreadedQueueDestroy(queue);
+}
+
 static void test_popn(void)
 {
     ThreadedQueue *queue = ThreadedQueueNew(0, free);
@@ -254,6 +276,57 @@ static void test_popn(void)
     ThreadedQueueDestroy(queue);
 }
 
+static void test_clear(void)
+{
+    ThreadedQueue *queue = ThreadedQueueNew(0, free);
+
+    char *strs[] = {"spam1", "spam2", "spam3", "spam4", "spam5"};
+
+    for (int i = 0; i < 5; i++)
+    {
+        ThreadedQueuePush(queue, xstrdup(strs[i]));
+    }
+    size_t count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 5);
+
+    ThreadedQueueClear(queue);
+    count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 0);
+
+    ThreadedQueuePush(queue, xstrdup(strs[4]));
+    char *item;
+    ThreadedQueuePop(queue, (void **) &item, THREAD_BLOCK_INDEFINITELY);
+    assert_string_equal(item, strs[4]);
+    free(item);
+
+    ThreadedQueueDestroy(queue);
+}
+
+static void test_clear_and_push(void)
+{
+    ThreadedQueue *queue = ThreadedQueueNew(0, NULL);
+
+    char *strs[] = {"spam1", "spam2", "spam3", "spam4", "spam5"};
+
+    for (int i = 0; i < 4; i++)
+    {
+        ThreadedQueuePush(queue, strs[i]);
+    }
+    size_t count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 4);
+
+    count = ThreadedQueueClearAndPush(queue, strs[4]);
+    assert_int_equal(count, 1);
+    count = ThreadedQueueCount(queue);
+    assert_int_equal(count, 1);
+
+    char *item;
+    ThreadedQueuePop(queue, (void **)&item, 0);
+    assert_string_equal(item, strs[4]);
+
+    ThreadedQueueDestroy(queue);
+}
+
 // Thread tests
 static ThreadedQueue *thread_queue;
 
@@ -263,6 +336,20 @@ static void *thread_pop()
     ThreadedQueuePop(thread_queue, (void **)&tmp, THREAD_BLOCK_INDEFINITELY);
     assert_string_equal(tmp, "bla");
     free(tmp);
+
+    return NULL;
+}
+
+/**
+ * Used in test_threads_pushn(). Tries to pop 5 items while there should only be
+ * 3 which are all pushed at once. So the attempt should always pop 3 items.
+ */
+static void *thread_pop_5_3()
+{
+    char **items;
+    size_t n_popped = ThreadedQueuePopN(thread_queue, (void***)&items, 5, THREAD_BLOCK_INDEFINITELY);
+    assert_int_equal(n_popped, 3);
+    free(items);
 
     return NULL;
 }
@@ -279,6 +366,14 @@ static void *thread_wait_empty()
 {
     ThreadedQueueWaitEmpty(thread_queue, THREAD_BLOCK_INDEFINITELY);
     ThreadedQueuePush(thread_queue, xstrdup("a_test"));
+
+    return NULL;
+}
+
+/* Used in the test_threads_clear_empty */
+static void *thread_just_wait_empty()
+{
+    ThreadedQueueWaitEmpty(thread_queue, THREAD_BLOCK_INDEFINITELY);
 
     return NULL;
 }
@@ -376,6 +471,59 @@ static void test_threads_wait_empty(void)
     ThreadedQueueDestroy(thread_queue);
 }
 
+static void test_threads_pushn()
+{
+    thread_queue = ThreadedQueueNew(0, NULL);
+
+    pthread_t pop_thread;
+    int res = pthread_create(&pop_thread, NULL,
+                             thread_pop_5_3, NULL);
+    assert_int_equal(res, 0);
+
+    /* give the other thread time to start waiting */
+    sleep(1);
+
+    char *strs[] = {"spam1", "spam2", "spam3"};
+    size_t count = ThreadedQueuePushN(thread_queue, (void **)strs, 3);
+    assert_int_equal(count, 3);
+
+    res = pthread_join(pop_thread, NULL);
+    assert_int_equal(res, 0);
+
+    count = ThreadedQueueCount(thread_queue);
+    assert_int_equal(count, 0);
+
+    ThreadedQueueDestroy(thread_queue);
+}
+
+static void test_threads_clear_empty()
+{
+    thread_queue = ThreadedQueueNew(0, NULL);
+
+    char *strs[] = {"spam1", "spam2", "spam3", "spam4", "spam5"};
+
+    for (int i = 0; i < 5; i++)
+    {
+        ThreadedQueuePush(thread_queue, strs[i]);
+    }
+    size_t count = ThreadedQueueCount(thread_queue);
+    assert_int_equal(count, 5);
+
+    pthread_t wait_thread;
+    int res = pthread_create(&wait_thread, NULL,
+                             thread_just_wait_empty, NULL);
+    assert_int_equal(res, 0);
+
+    ThreadedQueueClear(thread_queue);
+    count = ThreadedQueueCount(thread_queue);
+    assert_int_equal(count, 0);
+
+    res = pthread_join(wait_thread, NULL);
+    assert_int_equal(res, 0);
+
+    ThreadedQueueDestroy(thread_queue);
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -387,8 +535,13 @@ int main()
         unit_test(test_push_report_count),
         unit_test(test_expand),
         unit_test(test_popn),
+        unit_test(test_pushn),
+        unit_test(test_clear),
+        unit_test(test_clear_and_push),
         unit_test(test_threads_wait_pop),
         unit_test(test_threads_wait_empty),
+        unit_test(test_threads_pushn),
+        unit_test(test_threads_clear_empty),
     };
     return run_tests(tests);
 }

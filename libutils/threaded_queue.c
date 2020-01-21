@@ -296,6 +296,28 @@ size_t ThreadedQueuePush(ThreadedQueue *queue, void *item)
     return size;
 }
 
+size_t ThreadedQueuePushN(ThreadedQueue *queue, void **items, size_t n_items)
+{
+    assert(queue != NULL);
+
+    ThreadLock(queue->lock);
+
+    for (int i = 0; i < n_items; i++)
+    {
+        /* This should be a no-op in most iterations of the loop. */
+        ExpandIfNecessary(queue);
+
+        queue->data[queue->tail++] = items[i];
+        queue->size++;
+    }
+    size_t const size = queue->size;
+    pthread_cond_signal(queue->cond_non_empty);
+
+    ThreadUnlock(queue->lock);
+
+    return size;
+}
+
 size_t ThreadedQueueCount(ThreadedQueue const *queue)
 {
     assert(queue != NULL);
@@ -437,6 +459,42 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
     return new_queue;
 }
 
+void ThreadedQueueClear(ThreadedQueue *queue)
+{
+    assert(queue != NULL);
+    ThreadLock(queue->lock);
+
+    DestroyRange(queue, queue->head, queue->tail);
+    assert(queue->size == 0);
+    queue->head = 0;
+    queue->tail = queue->head;
+
+    pthread_cond_broadcast(queue->cond_empty);
+    ThreadUnlock(queue->lock);
+}
+
+size_t ThreadedQueueClearAndPush(ThreadedQueue *queue, void *item)
+{
+    assert(queue != NULL);
+
+    ThreadLock(queue->lock);
+
+    DestroyRange(queue, queue->head, queue->tail);
+    queue->head = 0;
+    queue->tail = queue->head;
+
+    ExpandIfNecessary(queue);
+    queue->data[queue->tail++] = item;
+    queue->size++;
+    size_t const size = queue->size;
+    assert(queue->size == 1);
+    pthread_cond_signal(queue->cond_non_empty);
+
+    ThreadUnlock(queue->lock);
+
+    return size;
+}
+
 /**
   @brief Destroys data in range.
   @warning Assumes that locks are acquired.
@@ -459,16 +517,24 @@ static void DestroyRange(ThreadedQueue *queue, size_t start, size_t end)
         return;
     }
 
-    if ((queue->ItemDestroy != NULL) && queue->size > 0)
+    if (queue->size > 0)
     {
-        queue->ItemDestroy(queue->data[start]);
+        if (queue->ItemDestroy != NULL)
+        {
+            queue->ItemDestroy(queue->data[start]);
+        }
+        queue->size--;
 
         // In case start == end, start at second element in range
         for (size_t i = start + 1; i != end; i++)
         {
             i %= queue->capacity;
 
-            queue->ItemDestroy(queue->data[i]);
+            if (queue->ItemDestroy != NULL)
+            {
+                queue->ItemDestroy(queue->data[i]);
+            }
+            queue->size--;
         }
     }
 }

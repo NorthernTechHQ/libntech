@@ -87,6 +87,15 @@ size_t ThreadedQueuePopN(ThreadedQueue *queue,
 size_t ThreadedQueuePush(ThreadedQueue *queue, void *item);
 
 /**
+  @brief Pushes new items on top of the queue, returns current size.
+  @param [in] queue The queue to push to.
+  @param [in] items The items to push.
+  @param [in] n_items Number of items from #items to push.
+  @return Current amount of elements in the queue.
+  */
+size_t ThreadedQueuePushN(ThreadedQueue *queue, void **items, size_t n_items);
+
+/**
   @brief Get current number of items in queue.
   @note On NULL queue, returns 0.
   @param [in] queue The queue.
@@ -128,5 +137,18 @@ bool ThreadedQueueWaitEmpty(ThreadedQueue const *queue, int timeout);
   @return A new queue pointing to the same data.
   */
 ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue);
+
+/**
+ * @brief Clear (empty) the queue.
+ */
+void ThreadedQueueClear(ThreadedQueue *queue);
+
+/**
+ * @brief Clear (empty) the queue and push one item into it.
+ * @note This is an atomic version of ThreadedQueueClear(); ThreadedQueuePush()
+ *       useful for replacing contents of the queue with a new single item.
+ * @return Current amount of elements in the queue.
+ */
+size_t ThreadedQueueClearAndPush(ThreadedQueue *queue, void *item);
 
 #endif
