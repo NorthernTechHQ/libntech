@@ -3,6 +3,7 @@
 
 #include <sequence.h> // Seq
 #include <stdbool.h> // bool
+#include <writer.h> // Writer
 
 /**
   @brief Create a new Sequence from splitting a string on a fixed delimiter
@@ -35,6 +36,35 @@ int SeqStringLength(Seq *seq);
  * NUL terminated characters.
  */
 char *SeqStringSerialize(Seq *seq);
+
+/**
+ * @brief Serializes a sequence of strings writing them to a Writer object
+ *
+ * Similar to SeqStringSerialize, but can be used with FileWriter to write
+ * line by line to file.
+ */
+bool SeqStringWrite(Seq *seq, Writer *w);
+
+/**
+ * @brief Serializes a sequence of strings writing them to a file
+ *
+ * Similar to SeqStringWrite, but opens and closes the file(name) for you.
+ */
+bool SeqStringWriteFile(Seq *seq, const char *file);
+
+/**
+ * @brief Serializes a sequence of strings writing them to a file stream
+ *
+ * Similar to SeqStringWriteFile, but accepts an open file stream
+ */
+bool SeqStringWriteFileStream(Seq *seq, FILE *file);
+
+/**
+ * @brief Reads a file deserializing it into a Seq
+ *
+ * @return NULL on any error, empty sequence for empty file
+ */
+Seq *SeqStringReadFile(const char *file);
 
 /**
  * @brief Create a sequence of strings from the serialized format

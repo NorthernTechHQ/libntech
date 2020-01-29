@@ -4,6 +4,7 @@
 #include <alloc.h>  // xstrdup()
 #include <string.h> // strlen()
 #include <writer.h> // StringWriter()
+#include <file_lib.h> // safe_fopen()
 
 #define SEQ_PREFIX_LEN 10
 
@@ -143,21 +144,50 @@ static char *ValidDuplicate(const char *src, long n)
     return dst;
 }
 
-char *SeqStringSerialize(Seq *seq)
+bool SeqStringWrite(Seq *seq, Writer *w)
 {
-    assert(seq != NULL);
-    size_t length = SeqLength(seq);
-    Writer *w = StringWriter();
-
+    const size_t length = SeqLength(seq);
     for (int i = 0; i < length; ++i)
     {
-        const char *s = SeqAt(seq, i);
+        const char *const s = SeqAt(seq, i);
         const unsigned long str_length = strlen(s);
-        WriterWriteF(
+        const size_t bytes_written = WriterWriteF(
             w, "%-" TOSTRING(SEQ_PREFIX_LEN) "lu%s\n", str_length, s);
+        // TODO: Make WriterWriteF actually be able to propagate errors
+        //       (return negative number on short writes).
+        if (bytes_written == 0)
+        {
+            return false;
+        }
     }
+    return true;
+}
 
+char *SeqStringSerialize(Seq *seq)
+{
+    Writer *w = StringWriter();
+    SeqStringWrite(seq, w);
     return StringWriterClose(w);
+}
+
+bool SeqStringWriteFileStream(Seq *seq, FILE *file)
+{
+    Writer *w = FileWriter(file);
+    assert(w != NULL);
+
+    bool success = SeqStringWrite(seq, w);
+    WriterClose(w);
+    return success;
+}
+
+bool SeqStringWriteFile(Seq *seq, const char *file)
+{
+    FILE *f = safe_fopen(file, "w");
+    if (f == NULL)
+    {
+        return false;
+    }
+    return SeqStringWriteFileStream(seq, f);
 }
 
 Seq *SeqStringDeserialize(const char *const serialized)
@@ -196,4 +226,48 @@ Seq *SeqStringDeserialize(const char *const serialized)
     }
 
     return seq;
+}
+
+Seq *SeqStringReadFile(const char *file)
+{
+    const int fd = safe_open(file, O_RDONLY);
+    if (fd < 0)
+    {
+        return NULL;
+    }
+
+    Seq *seq = SeqNew(500, &free);
+    char prefix[SEQ_PREFIX_LEN];
+
+    while (true)
+    {
+        ssize_t bytes_read = FullRead(fd, prefix, SEQ_PREFIX_LEN);
+        if (bytes_read == 0)
+        {
+            // EOF
+            return seq;
+        }
+        if (bytes_read < 0)
+        {
+            // Error
+            SeqDestroy(seq);
+            return NULL;
+        }
+        assert(prefix[SEQ_PREFIX_LEN - 1] == ' '); // NOTE: Not NUL-terminated
+        const long length = GetLengthPrefix(prefix);
+
+        // Read data, followed by a '\n' which we replace with '\0':
+        const long size = length + 1;
+        char *const data = xmalloc(size);
+        bytes_read = FullRead(fd, data, size);
+        if (bytes_read != size || data[length] != '\n')
+        {
+            // Short read, or error, or missing newline
+            SeqDestroy(seq);
+            free(data);
+            return NULL;
+        }
+        data[length] = '\0'; // Replace newline with NUL-terminator
+        SeqAppend(seq, data);
+    }
 }
