@@ -176,7 +176,7 @@ bool SeqStringWriteFileStream(Seq *seq, FILE *file)
     assert(w != NULL);
 
     bool success = SeqStringWrite(seq, w);
-    WriterClose(w);
+    FileWriterDetach(w);
     return success;
 }
 
@@ -187,7 +187,10 @@ bool SeqStringWriteFile(Seq *seq, const char *file)
     {
         return false;
     }
-    return SeqStringWriteFileStream(seq, f);
+
+    const bool write_success = SeqStringWriteFileStream(seq, f);
+    const bool close_success = (fclose(f) == 0);
+    return (write_success && close_success);
 }
 
 Seq *SeqStringDeserialize(const char *const serialized)
