@@ -2,6 +2,7 @@
 #define __CONDITION_MACROS_H__
 
 #include <assert.h>
+#include <stdbool.h>
 
 // This file contains macros to use for error checking, assertions,
 // abort, return, etc. Each macro should have a comment about when to use it.
