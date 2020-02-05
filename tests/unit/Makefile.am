@@ -97,6 +97,7 @@ check_PROGRAMS = \
 	threaded_queue_test \
 	threaded_deque_test \
 	threaded_stack_test \
+	version_comparison_test \
 	ring_buffer_test \
 	libcompat_test
 
