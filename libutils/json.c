@@ -584,8 +584,7 @@ JsonElement *JsonIteratorNextValueByType(
     JsonElement *e = NULL;
     while ((e = JsonIteratorNextValue(iter)))
     {
-        if (skip_null && JsonGetElementType(e) == JSON_ELEMENT_TYPE_PRIMITIVE
-            && JsonGetPrimitiveType(e) == JSON_PRIMITIVE_TYPE_NULL)
+        if (skip_null && JsonGetType(e) == JSON_TYPE_NULL)
         {
             continue;
         }
@@ -668,6 +667,17 @@ JsonElementType JsonGetElementType(const JsonElement *const element)
     assert(element != NULL);
 
     return element->type;
+}
+
+JsonType JsonGetType(const JsonElement *element)
+{
+    if (JsonGetElementType(element) == JSON_ELEMENT_TYPE_CONTAINER)
+    {
+        return (JsonType) JsonGetContainerType(element);
+    }
+
+    assert(JsonGetElementType(element) == JSON_ELEMENT_TYPE_PRIMITIVE);
+    return (JsonType) JsonGetPrimitiveType(element);
 }
 
 JsonContainerType JsonGetContainerType(const JsonElement *const container)

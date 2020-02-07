@@ -49,24 +49,35 @@
 
 typedef enum
 {
-    JSON_ELEMENT_TYPE_CONTAINER,
-    JSON_ELEMENT_TYPE_PRIMITIVE
+    JSON_ELEMENT_TYPE_CONTAINER = 1,
+    JSON_ELEMENT_TYPE_PRIMITIVE = 2,
 } JsonElementType;
 
 typedef enum
 {
-    JSON_CONTAINER_TYPE_OBJECT,
-    JSON_CONTAINER_TYPE_ARRAY
+    JSON_CONTAINER_TYPE_OBJECT = 3,
+    JSON_CONTAINER_TYPE_ARRAY = 4,
 } JsonContainerType;
 
 typedef enum
 {
-    JSON_PRIMITIVE_TYPE_STRING,
-    JSON_PRIMITIVE_TYPE_INTEGER,
-    JSON_PRIMITIVE_TYPE_REAL,
-    JSON_PRIMITIVE_TYPE_BOOL,
-    JSON_PRIMITIVE_TYPE_NULL
+    JSON_PRIMITIVE_TYPE_STRING = 5,
+    JSON_PRIMITIVE_TYPE_INTEGER = 6,
+    JSON_PRIMITIVE_TYPE_REAL = 7,
+    JSON_PRIMITIVE_TYPE_BOOL = 8,
+    JSON_PRIMITIVE_TYPE_NULL = 9,
 } JsonPrimitiveType;
+
+typedef enum
+{
+    JSON_TYPE_OBJECT = JSON_CONTAINER_TYPE_OBJECT,
+    JSON_TYPE_ARRAY = JSON_CONTAINER_TYPE_ARRAY,
+    JSON_TYPE_STRING = JSON_PRIMITIVE_TYPE_STRING,
+    JSON_TYPE_INTEGER = JSON_PRIMITIVE_TYPE_INTEGER,
+    JSON_TYPE_REAL = JSON_PRIMITIVE_TYPE_REAL,
+    JSON_TYPE_BOOL = JSON_PRIMITIVE_TYPE_BOOL,
+    JSON_TYPE_NULL = JSON_PRIMITIVE_TYPE_NULL,
+} JsonType;
 
 typedef enum
 {
@@ -169,6 +180,7 @@ void JsonDestroyMaybe(JsonElement *element, bool allocated);
 size_t JsonLength(const JsonElement *element);
 
 JsonElementType JsonGetElementType(const JsonElement *element);
+JsonType JsonGetType(const JsonElement *element);
 const char *JsonElementGetPropertyName(const JsonElement *element);
 
 const char *JsonGetPropertyAsString(const JsonElement *element);
