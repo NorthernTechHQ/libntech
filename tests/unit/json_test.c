@@ -659,9 +659,7 @@ static void test_parse_empty_containers(void)
         JsonElement *obj = NULL;
         assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &obj));
         assert_true(obj != NULL);
-        assert_int_equal(JSON_ELEMENT_TYPE_CONTAINER, JsonGetElementType(obj));
-        assert_int_equal(
-            JSON_CONTAINER_TYPE_OBJECT, JsonGetContainerType(obj));
+        assert_int_equal(JSON_TYPE_OBJECT, JsonGetType(obj));
         assert_int_equal(0, JsonLength(obj));
         JsonDestroy(obj);
     }
@@ -673,6 +671,8 @@ static void test_parse_empty_containers(void)
         assert_true(arr != NULL);
         assert_int_equal(JSON_ELEMENT_TYPE_CONTAINER, JsonGetElementType(arr));
         assert_int_equal(JSON_CONTAINER_TYPE_ARRAY, JsonGetContainerType(arr));
+        assert_int_equal(JSON_TYPE_ARRAY, JsonGetType(arr));
+        assert_int_equal(JsonGetContainerType(arr), JsonGetType(arr));
         assert_int_equal(0, JsonLength(arr));
         JsonDestroy(arr);
     }
