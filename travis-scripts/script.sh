@@ -11,6 +11,12 @@ then
     gmake CFLAGS="-Werror -Wall -Wno-pointer-sign"
     gmake --debug -C tests/unit check
     exit
+elif [ "$JOB_TYPE" = compile_and_unit_test_no_pcre ]
+then
+    ./autogen.sh --enable-debug --with-pcre=no
+    make CFLAGS="-Werror -Wall -Wno-pointer-sign"
+    make check
+    exit
 else
     NO_CONFIGURE=1 ./autogen.sh
     ./configure --enable-debug --prefix=$INSTDIR \
