@@ -31,17 +31,19 @@ static void test_timestamp_regex(void)
     assert_true(pipe_read_end != NULL);
     assert_true(fgets(buf, sizeof(buf), pipe_read_end) != NULL);
 
+#ifdef WITH_PCRE
     const char *errptr;
     int erroffset;
     pcre *regex = pcre_compile(LOGGING_TIMESTAMP_REGEX, PCRE_MULTILINE, &errptr, &erroffset, NULL);
     assert_true(regex != NULL);
     assert_true(pcre_exec(regex, NULL, buf, strlen(buf), 0, 0, NULL, 0) >= 0);
+    pcre_free(regex);
+#endif // WITH_PCRE
 
     fclose(pipe_read_end);
     close(pipe_fd[0]);
     close(pipe_fd[1]);
     close(duplicate_stdout);
-    pcre_free(regex);
 }
 
 int main()

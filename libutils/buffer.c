@@ -412,6 +412,7 @@ int BufferVPrintf(Buffer *buffer, const char *format, va_list ap)
     return printed;
 }
 
+#ifdef WITH_PCRE
 // returns NULL on success, otherwise an error string
 const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern, const char *substitute, const char *options)
 {
@@ -441,6 +442,8 @@ const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern, const ch
 
     return NULL;
 }
+
+#endif // WITH_PCRE
 
 void BufferClear(Buffer *buffer)
 {
