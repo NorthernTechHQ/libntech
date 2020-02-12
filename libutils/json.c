@@ -1836,7 +1836,7 @@ static JsonElement *JsonParseAsBoolean(const char **const data)
 {
     assert(data != NULL);
 
-    if (StringMatch("^true", *data, NULL, NULL))
+    if (StringStartsWith(*data, "true"))
     {
         char next = *(*data + 4);
         if (IsSeparator(next) || next == '\0')
@@ -1845,7 +1845,7 @@ static JsonElement *JsonParseAsBoolean(const char **const data)
             return JsonBoolCreate(true);
         }
     }
-    else if (StringMatch("^false", *data, NULL, NULL))
+    else if (StringStartsWith(*data, "false"))
     {
         char next = *(*data + 5);
         if (IsSeparator(next) || next == '\0')
@@ -1862,7 +1862,7 @@ static JsonElement *JsonParseAsNull(const char **const data)
 {
     assert(data != NULL);
 
-    if (StringMatch("^null", *data, NULL, NULL))
+    if (StringStartsWith(*data, "null"))
     {
         char next = *(*data + 4);
         if (IsSeparator(next) || next == '\0')
@@ -2352,6 +2352,35 @@ static JsonParseError JsonParseAsArray(
     return JSON_PARSE_ERROR_ARRAY_END;
 }
 
+static bool wc(char c)
+{
+    // word character, \w in regex
+    return (isalnum(c) || c == '_');
+}
+
+static const char *unquoted_key_with_colon(const char *data)
+{
+    // Implements the regex: ^\w[-\w]*\s*:
+    if (!wc(data[0]))
+    {
+        return NULL;
+    }
+    int i;
+    for (i = 1; data[i] != '\0' && (data[i] == '-' || wc(data[i])); ++i)
+    {
+        // Skip past word characters (\w) and dashes
+    }
+    for (; data[i] != '\0' && IsWhitespace(data[i]); ++i)
+    {
+        // Skip past whitespace
+    }
+    if (data[i] != ':')
+    {
+        return NULL;
+    }
+    return data + i;
+}
+
 static JsonParseError JsonParseAsObject(
     void *const lookup_context,
     JsonLookup *const lookup_function,
@@ -2500,19 +2529,19 @@ static JsonParseError JsonParseAsObject(
             return JSON_PARSE_OK;
 
         default:
+        {
+            const char *colon = NULL;
             // Note the character class excludes ':'.
             // This will match the key from { foo : 2 } but not { -foo: 2 }
             if (property_name == NULL
-                && StringMatch("^\\w[-\\w]*\\s*:", *data, NULL, NULL))
+                && (colon = unquoted_key_with_colon(*data)) != NULL)
             {
-                char *colon = strchr(*data, ':');
-
                 // Step backwards until we are on the last whitespace.
 
-                // Note that this is safe because the above regex guarantees
+                // Note that this is safe because the above function guarantees
                 // we will find at least one non-whitespace character as we
                 // go backwards.
-                char *ws = colon;
+                const char *ws = colon;
                 while (IsWhitespace(*(ws - 1)))
                 {
                     ws -= 1;
@@ -2578,7 +2607,8 @@ static JsonParseError JsonParseAsObject(
             free(property_name);
             JsonDestroy(object);
             return JSON_PARSE_ERROR_OBJECT_BAD_SYMBOL;
-        }
+        } // default
+        } // switch
 
         prev_char = **data;
     }
