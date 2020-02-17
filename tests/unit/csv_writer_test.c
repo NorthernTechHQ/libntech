@@ -100,6 +100,64 @@ void test_escape(void)
     free(result_string);
 }
 
+void test_terminate(void)
+{
+    Writer *w = StringWriter();
+    CsvWriter *c = CsvWriterOpenSpecifyTerminate(w, true);
+
+    CsvWriterField(c, "test");
+
+    CsvWriterClose(c);
+    char *result_string = StringWriterClose(w);
+    assert_string_equal(result_string, "test\r\n");
+    free(result_string);
+}
+
+void test_no_terminate(void)
+{
+    {
+        Writer *w = StringWriter();
+
+        CsvWriter *c = CsvWriterOpenSpecifyTerminate(w, false);
+        CsvWriterField(c, "test");
+        CsvWriterClose(c);
+
+        char *result_string = StringWriterClose(w);
+        assert_string_equal(result_string, "test");
+        free(result_string);
+    }
+    {
+        Writer *w = StringWriter();
+
+        CsvWriter *c = CsvWriterOpenSpecifyTerminate(w, false);
+        CsvWriterField(c, "a");
+        CsvWriterField(c, "b");
+        CsvWriterField(c, "c");
+        CsvWriterClose(c);
+
+        char *result_string = StringWriterClose(w);
+        assert_string_equal(result_string, "a,b,c");
+        free(result_string);
+    }
+    {
+        Writer *w = StringWriter();
+
+        CsvWriter *c = CsvWriterOpenSpecifyTerminate(w, false);
+        CsvWriterField(c, "a");
+        CsvWriterField(c, "b");
+        CsvWriterField(c, "c");
+        CsvWriterNewRecord(c);
+        CsvWriterField(c, "d");
+        CsvWriterField(c, "e");
+        CsvWriterField(c, "f");
+        CsvWriterClose(c);
+
+        char *result_string = StringWriterClose(w);
+        assert_string_equal(result_string, "a,b,c\r\nd,e,f");
+        free(result_string);
+    }
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -112,6 +170,8 @@ int main()
         unit_test(test_empty_record),
         unit_test(test_empty_last_record),
         unit_test(test_escape),
+        unit_test(test_terminate),
+        unit_test(test_no_terminate),
     };
 
     return run_tests(tests);

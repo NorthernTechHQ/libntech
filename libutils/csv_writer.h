@@ -34,6 +34,7 @@
 
 typedef struct CsvWriter_ CsvWriter;
 
+CsvWriter *CsvWriterOpenSpecifyTerminate(Writer *w, bool terminate_last_line);
 CsvWriter *CsvWriterOpen(Writer *w);
 
 void CsvWriterField(CsvWriter *csvw, const char *str);
