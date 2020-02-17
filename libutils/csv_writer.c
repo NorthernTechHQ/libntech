@@ -30,6 +30,7 @@ struct CsvWriter_
 {
     Writer *w;
     bool beginning_of_line;
+    bool terminate_last_line;
 };
 
 /*****************************************************************************/
@@ -39,13 +40,19 @@ static void CsvWriterFieldVF(CsvWriter * csvw, const char *fmt, va_list ap) FUNC
 
 /*****************************************************************************/
 
-CsvWriter *CsvWriterOpen(Writer *w)
+CsvWriter *CsvWriterOpenSpecifyTerminate(Writer *w, bool terminate_last_line)
 {
     CsvWriter *csvw = xmalloc(sizeof(CsvWriter));
 
     csvw->w = w;
     csvw->beginning_of_line = true;
+    csvw->terminate_last_line = terminate_last_line;
     return csvw;
+}
+
+CsvWriter *CsvWriterOpen(Writer *w)
+{
+    return CsvWriterOpenSpecifyTerminate(w, true);
 }
 
 /*****************************************************************************/
@@ -94,7 +101,9 @@ void CsvWriterNewRecord(CsvWriter * csvw)
 
 void CsvWriterClose(CsvWriter * csvw)
 {
-    if (!csvw->beginning_of_line)
+    assert(csvw != NULL);
+
+    if (!csvw->beginning_of_line && csvw->terminate_last_line)
     {
         WriterWrite(csvw->w, "\r\n");
     }
