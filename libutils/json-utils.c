@@ -254,6 +254,15 @@ bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **jso
 
     JsonElement *const json = JsonArrayCreate(50);
 
+    if (feof(fin))
+    {
+        *json_out = json;
+        Log(LOG_LEVEL_VERBOSE,
+            "%s: CSV file '%s' was empty, so nothing was parsed",
+            myname, input_path);
+        return true;
+    }
+
     while ((line = GetCsvLineNext(fin)) != NULL)
     {
         ++linenumber;
@@ -286,7 +295,6 @@ bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **jso
     }
 
     bool reached_eof = feof(fin);
-    fclose(fin);
 
     if (!reached_eof && byte_count <= size_max)
     {
@@ -294,9 +302,20 @@ bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **jso
             "%s: unable to read line from CSV file '%s'. (fread: %s)",
             myname, input_path, GetErrorStr());
         JsonDestroy(json);
+        fclose(fin);
         return false;
     }
 
+    if (JsonLength(json) == 0)
+    {
+        Log(LOG_LEVEL_WARNING,
+            "%s: CSV file '%s' is not empty, but nothing was parsed",
+            myname, input_path);
+        Log(LOG_LEVEL_WARNING,
+            "Make sure the file contains DOS (CRLF) line endings");
+    }
+
+    fclose(fin);
     *json_out = json;
     return true;
 }
