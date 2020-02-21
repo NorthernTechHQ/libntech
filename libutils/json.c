@@ -2708,6 +2708,8 @@ JsonParseError JsonParseFile(
 
 /*******************************************************************/
 
+#ifdef WITH_PCRE
+
 // returns NULL on any failure
 // takes either a pre-compiled pattern OR a regex (one of the two shouldn't be
 // NULL)
@@ -2751,3 +2753,5 @@ JsonElement *StringCaptureData(
     JsonObjectRemoveKey(json, "0");
     return json;
 }
+
+#endif // WITH_PCRE

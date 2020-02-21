@@ -10,6 +10,7 @@
 
 #include <platform.h>
 
+#ifdef WITH_PCRE
 #include <pcre_wrap.h>
 
 static int pcre_wrap_parse_perl_options(const char *optstring, int *flags);
@@ -498,5 +499,5 @@ int pcre_wrap_execute(pcre_wrap_job *job, char *subject, size_t subject_length, 
     *result_length = newsize;
     free(matches);
     return matches_found;
-
 }
+#endif // WITH_PCRE
