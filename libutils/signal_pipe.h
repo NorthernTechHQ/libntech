@@ -22,15 +22,11 @@
   included file COSL.txt.
 */
 
-#ifndef CFENGINE_CLEANUP_H
-#define CFENGINE_CLEANUP_H
+#ifndef CFENGINE_SIGNAL_PIPE_H
+#define CFENGINE_SIGNAL_PIPE_H
 
-#include <compiler.h>
+void MakeSignalPipe(void);
+int GetSignalPipe(void);
+void SignalNotify(int signum);
 
-typedef void (*CleanupFn)(void);
-
-void CallCleanupFunctions(void);
-void DoCleanupAndExit(int ret) FUNC_ATTR_NORETURN;
-void RegisterCleanupFunction(CleanupFn fn);
-
-#endif
+#endif  /* CFENGINE_SIGNAL_PIPE_H */

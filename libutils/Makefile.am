@@ -72,6 +72,7 @@ libutils_la_SOURCES = \
 	regex.c regex.h \
 	ring_buffer.c ring_buffer.h \
 	sequence.c sequence.h \
+	signal_pipe.c signal_pipe.h \
 	string_sequence.c string_sequence.h \
 	set.c set.h \
 	stack.c stack.h \
