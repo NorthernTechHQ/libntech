@@ -82,6 +82,7 @@ libutils_la_SOURCES = \
 	threaded_deque.c threaded_deque.h \
 	threaded_queue.c threaded_queue.h \
 	unicode.c unicode.h \
+	user.c user.h \
 	version_comparison.c version_comparison.h \
 	writer.c writer.h \
 	xml_writer.c xml_writer.h
