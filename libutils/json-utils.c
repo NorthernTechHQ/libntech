@@ -184,7 +184,6 @@ bool JsonParseEnvFile(const char *input_path, size_t size_max, JsonElement **jso
 
     const char *myname = "JsonParseEnvFile";
     size_t line_size = ENV_BYTE_LIMIT;
-    char *raw_line = xmalloc(line_size);
     char *key, *value;
     int linenumber = 0;
     size_t byte_count = 0;
@@ -198,6 +197,7 @@ bool JsonParseEnvFile(const char *input_path, size_t size_max, JsonElement **jso
 
     JsonElement *json = JsonObjectCreate(10);
 
+    char *raw_line = xmalloc(line_size);
     while (CfReadLine(&raw_line, &line_size, fin) != -1)
     {
         ++linenumber;
