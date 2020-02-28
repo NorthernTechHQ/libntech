@@ -167,6 +167,7 @@ static void JsonParseYamlData(yaml_parser_t *parser, JsonElement *element, const
                     {
                         JsonObjectAppendElement(element, key, JsonParseYamlScalarValue(&event));
                         // clear key
+                        free(key);
                         key = NULL;
                     }
                 }
@@ -174,6 +175,7 @@ static void JsonParseYamlData(yaml_parser_t *parser, JsonElement *element, const
                 {
                     JsonArrayAppendElement(element, JsonParseYamlScalarValue(&event));
                     // clear key
+                    free(key);
                     key = NULL;
                 }
                 else
@@ -200,6 +202,7 @@ static void JsonParseYamlData(yaml_parser_t *parser, JsonElement *element, const
                         JsonObjectAppendElement(element, key, arr);
                         JsonParseYamlData(parser, arr, depth+1);
                         // clear key
+                        free(key);
                         key = NULL;
                     }
                     else
@@ -212,6 +215,7 @@ static void JsonParseYamlData(yaml_parser_t *parser, JsonElement *element, const
                     JsonArrayAppendArray(element, arr);
                     JsonParseYamlData(parser, arr, depth+1);
                     // clear key
+                    free(key);
                     key = NULL;
                 }
                 else
@@ -254,6 +258,7 @@ static void JsonParseYamlData(yaml_parser_t *parser, JsonElement *element, const
                         JsonObjectAppendElement(element, key, obj);
                         JsonParseYamlData(parser, obj, depth+1);
                         // clear key
+                        free(key);
                         key = NULL;
                     }
                     else
@@ -266,6 +271,7 @@ static void JsonParseYamlData(yaml_parser_t *parser, JsonElement *element, const
                     JsonArrayAppendObject(element, obj);
                     JsonParseYamlData(parser, obj, depth+1);
                     // clear key
+                    free(key);
                     key = NULL;
                 }
                 else
