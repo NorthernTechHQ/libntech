@@ -215,7 +215,7 @@ static Mustache NextTag(const char *input,
                         const char *delim_start, size_t delim_start_len,
                         const char *delim_end, size_t delim_end_len)
 {
-    Mustache ret;
+    Mustache ret = {0};
     ret.type = TAG_TYPE_NONE;
 
     ret.begin = strstr(input, delim_start);
@@ -669,18 +669,12 @@ static bool Render(Buffer *out, const char *start, const char *input, Seq *hash_
 
         Mustache tag = NextTag(input, delim_start, *delim_start_len, delim_end, *delim_end_len);
 
-        if (tag.end == NULL)
-        {
-            assert(tag.type == TAG_TYPE_ERR);
-            // Warning already printed in NextTag()
-            // We can't really render anything, because we don't know where it ends..
-            return false;
-        }
-
         {
             const char *line_begin = NULL;
             const char *line_end = NULL;
-            if (!IsTagTypeRenderable(tag.type) && IsTagStandalone(start, tag.begin, tag.end, &line_begin, &line_end))
+            if (!IsTagTypeRenderable(tag.type)
+                && tag.end != NULL
+                && IsTagStandalone(start, tag.begin, tag.end, &line_begin, &line_end))
             {
                 RenderContent(out, input, line_begin - input, false, skip_content);
                 input = line_end;
