@@ -215,7 +215,7 @@ static Mustache NextTag(const char *input,
                         const char *delim_start, size_t delim_start_len,
                         const char *delim_end, size_t delim_end_len)
 {
-    Mustache ret;
+    Mustache ret = {0};
     ret.type = TAG_TYPE_NONE;
 
     ret.begin = strstr(input, delim_start);
