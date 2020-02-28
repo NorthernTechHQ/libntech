@@ -63,6 +63,12 @@ static bool IsSpace(char c)
 
 static bool IsTagStandalone(const char *start, const char *tag_start, const char *tag_end, const char **line_begin, const char **line_end)
 {
+    assert(start != NULL);
+    assert(tag_start != NULL);
+    assert(tag_end != NULL);
+    assert(line_begin != NULL);
+    assert(line_end != NULL);
+
     assert(start <= tag_start);
 
     *line_begin = start;
@@ -662,6 +668,14 @@ static bool Render(Buffer *out, const char *start, const char *input, Seq *hash_
         }
 
         Mustache tag = NextTag(input, delim_start, *delim_start_len, delim_end, *delim_end_len);
+
+        if (tag.end == NULL)
+        {
+            assert(tag.type == TAG_TYPE_ERR);
+            // Warning already printed in NextTag()
+            // We can't really render anything, because we don't know where it ends..
+            return false;
+        }
 
         {
             const char *line_begin = NULL;
