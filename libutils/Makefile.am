@@ -60,6 +60,7 @@ libutils_la_SOURCES = \
 	misc_lib.c misc_lib.h \
 	mustache.c mustache.h \
 	mutex.c mutex.h \
+	os_util.c os_util.h \
 	passopenfile.c passopenfile.h \
 	path.c path.h \
 	pcre_wrap.c pcre_wrap.h \
