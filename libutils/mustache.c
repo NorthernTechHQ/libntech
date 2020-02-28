@@ -274,7 +274,7 @@ static Mustache NextTag(const char *input,
         const char *escape_end = strstr(ret.content, extra_end);
         if (!escape_end || strncmp(escape_end + 1, delim_end, delim_end_len) != 0)
         {
-            Log(LOG_LEVEL_WARNING, "Broken mustache template, couldn't find end tag for quoted begin tag at '%20s'...", input);
+            Log(LOG_LEVEL_ERR, "Broken mustache template, couldn't find end tag for quoted begin tag at '%20s'...", input);
             ret.type = TAG_TYPE_ERR;
             return ret;
         }
@@ -287,7 +287,7 @@ static Mustache NextTag(const char *input,
         ret.end = strstr(ret.content, delim_end);
         if (!ret.end)
         {
-            Log(LOG_LEVEL_WARNING, "Broken Mustache template, could not find end delimiter after reading start delimiter at '%20s'...", input);
+            Log(LOG_LEVEL_ERR, "Broken Mustache template, could not find end delimiter after reading start delimiter at '%20s'...", input);
             ret.type = TAG_TYPE_ERR;
             return ret;
         }
