@@ -47,8 +47,12 @@ libtest_la_SOURCES = cmockery.c cmockery.h schema.h test.c test.h \
 	../../libutils/known_dirs.c \
 	../../libutils/map.c \
 	../../libutils/array_map.c \
-	../../libutils/hash.c \
 	../../libutils/hash_map.c
+
+if WITH_OPENSSL
+libtest_la_SOURCES += \
+	../../libutils/hash.c
+endif
 
 libtest_la_LIBADD = ../../libcompat/libcompat.la
 
@@ -56,7 +60,6 @@ check_LTLIBRARIES += libstr.la
 libstr_la_SOURCES = \
 	../../libutils/buffer.c \
 	../../libutils/pcre_wrap.c \
-	../../libutils/encode.c \
 	../../libutils/logging.c \
 	../../libutils/misc_lib.c \
 	../../libutils/regex.c \
@@ -64,6 +67,11 @@ libstr_la_SOURCES = \
 	../../libutils/string_lib.c \
 	../../libutils/writer.c
 libstr_la_LIBADD = libtest.la
+
+if WITH_OPENSSL
+libstr_la_SOURCES += \
+	../../libutils/encode.c
+endif
 
 
 check_PROGRAMS = \
@@ -91,7 +99,6 @@ check_PROGRAMS = \
 	buffer_test \
 	ipaddress_test \
 	rb-tree-test \
-	hash_test \
 	queue_test \
 	stack_test \
 	threaded_queue_test \
@@ -100,6 +107,11 @@ check_PROGRAMS = \
 	version_comparison_test \
 	ring_buffer_test \
 	libcompat_test
+
+if WITH_OPENSSL
+check_PROGRAMS += \
+	hash_test
+endif
 
 TESTS = $(check_PROGRAMS)
 

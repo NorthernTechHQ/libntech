@@ -640,6 +640,7 @@ static void test_match_full(void)
 
 static void test_encode_base64(void)
 {
+#ifdef WITH_OPENSSL
     {
         char *res = StringEncodeBase64("", 0);
         assert_string_equal("", res);
@@ -683,6 +684,7 @@ static void test_encode_base64(void)
     }
 
     // valgrind leaks should be due to crypto one-time allocations
+#endif // WITH_OPENSSL
 }
 
 
