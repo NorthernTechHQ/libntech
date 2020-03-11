@@ -464,13 +464,22 @@ dnl PCRE
 AC_ARG_WITH([pcre], [AS_HELP_STRING([--with-pcre[[=PATH]]], [Specify PCRE path])], [], [with_pcre=yes])
 
 if test "x$with_pcre" != "xno"; then
-   CF3_WITH_LIBRARY(pcre, [
-     AC_CHECK_LIB(pcre, pcre_exec, [], [AC_MSG_ERROR(Cannot find PCRE)])
-     AC_CHECK_HEADERS([pcre.h], [],
-       [AC_CHECK_HEADERS([pcre/pcre.h], [PCRE_CPPFLAGS="-Ipcre"],
-                         AC_MSG_ERROR(Cannot find PCRE))])
-     AC_DEFINE(WITH_PCRE, 1, [Define if PCRE is being used])
-   ])
+  CF3_WITH_LIBRARY(pcre, [
+    AC_CHECK_LIB(pcre, pcre_exec, [], [AC_MSG_ERROR(Cannot find PCRE)])
+    AC_CHECK_HEADERS(
+      [pcre.h],
+      [],
+      [AC_CHECK_HEADERS(
+        [pcre/pcre.h],
+        [PCRE_CPPFLAGS="-Ipcre"],
+        AC_MSG_ERROR(Cannot find PCRE)
+      )]
+    )
+  ])
+  AC_DEFINE(WITH_PCRE, 1, [Define if PCRE is being used])
+  AM_CONDITIONAL(WITH_PCRE, true)
+else
+  AM_CONDITIONAL(WITH_PCRE, false)
 fi
 
 dnl libvirt

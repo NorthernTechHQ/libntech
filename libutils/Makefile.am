@@ -59,14 +59,12 @@ libutils_la_SOURCES = \
 	mutex.c mutex.h \
 	passopenfile.c passopenfile.h \
 	path.c path.h \
-	pcre_wrap.c pcre_wrap.h \
 	platform.h condition_macros.h \
 	printsize.h \
 	proc_keyvalue.c proc_keyvalue.h \
 	queue.c queue.h \
 	rb-tree.c rb-tree.h \
 	refcount.c refcount.h \
-	regex.c regex.h \
 	ring_buffer.c ring_buffer.h \
 	sequence.c sequence.h \
 	string_sequence.c string_sequence.h \
@@ -89,6 +87,12 @@ libutils_la_SOURCES += \
 	encode.c encode.h \
 	libcrypto-compat.c libcrypto-compat.h \
 	hash.c hash.h
+endif
+
+if WITH_PCRE
+libutils_la_SOURCES += \
+	pcre_wrap.c pcre_wrap.h \
+	regex.c regex.h
 endif
 
 if !NT
