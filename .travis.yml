@@ -31,7 +31,7 @@ matrix:
     - os: linux
       env: JOB_TYPE=compile_and_unit_test_asan
     - os: linux
-      env: JOB_TYPE=compile_and_unit_test_no_pcre COVERAGE=no
+      env: JOB_TYPE=compile_and_unit_test_no_deps COVERAGE=no
     - os: linux
       env: JOB_TYPE=compile_and_unit_test COVERAGE=no
       compiler: clang
