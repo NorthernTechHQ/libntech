@@ -408,10 +408,6 @@ AC_ARG_WITH(openssl,
     [AS_HELP_STRING([--with-openssl[[=PATH]]],
     [Specify OpenSSL path])], [], [with_openssl=yes])
 
-if test x"$with_openssl" = xno ; then
-    AC_MSG_ERROR([This release of CFEngine requires OpenSSL >= 0.9.7])
-fi
-
 if  test -d /usr/local/Cellar/openssl/ && \
     test -d /usr/local/opt/openssl/ && \
     test "x$with_openssl" = "xyes" ; then
@@ -420,57 +416,70 @@ if  test -d /usr/local/Cellar/openssl/ && \
     echo "Defaulting to: --with-openssl=$with_openssl"
 fi
 
-CF3_WITH_LIBRARY(openssl, [
-   AC_CHECK_LIB(crypto, RSA_generate_key_ex, [], [])
-   AC_CHECK_LIB(ssl, SSL_free, [], [])
-   AC_CHECK_DECLS([SSL_CTX_clear_options], [], [], [[#include <openssl/ssl.h>]])
-   AC_CHECK_HEADERS([openssl/opensslv.h], [], [AC_MSG_ERROR(Cannot find OpenSSL)])
+if test "x$with_openssl" != "xno"; then
+  CF3_WITH_LIBRARY(openssl, [
+    AC_CHECK_LIB(crypto, RSA_generate_key_ex, [], [])
+    AC_CHECK_LIB(ssl, SSL_free, [], [])
+    AC_CHECK_DECLS([SSL_CTX_clear_options], [], [], [[#include <openssl/ssl.h>]])
+    AC_CHECK_HEADERS([openssl/opensslv.h], [], [AC_MSG_ERROR(Cannot find OpenSSL)])
+    AC_MSG_CHECKING(for OpenSSL version)
+    AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
+    #include <openssl/opensslv.h>
 
-   AC_MSG_CHECKING(for OpenSSL version)
+    #if OPENSSL_VERSION_NUMBER < 0x0090602fL
+    #This OpenSSL is too old
+    #endif
+    ]])],[AC_MSG_RESULT(OK)],[AC_MSG_ERROR(This release of CFEngine requires OpenSSL >= 0.9.7)])
 
-   AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
-   #include <openssl/opensslv.h>
+    if test "x$ac_cv_lib_crypto_RSA_generate_key_ex" = "xyes" ; then
+       AC_DEFINE(OPENSSL_NO_DEPRECATED, 1, [Define if non deprecated API is available.])
+    fi
 
-   #if OPENSSL_VERSION_NUMBER < 0x0090602fL
-   #This OpenSSL is too old
-   #endif
-   ]])],[AC_MSG_RESULT(OK)],[AC_MSG_ERROR(This release of CFEngine requires OpenSSL >= 0.9.7)])
+    if test "x$ac_cv_lib_crypto_RSA_generate_key_ex" = "xno" && \
+       test "x$ac_cv_lib_crypto_RSA_generate_key" = "xno" ; then
+       AC_MSG_ERROR(Cannot find OpenSSL)
+    fi
 
-   if test "x$ac_cv_lib_crypto_RSA_generate_key_ex" = "xyes" ; then
-      AC_DEFINE(OPENSSL_NO_DEPRECATED, 1, [Define if non deprecated API is available.])
-   fi
-
-   if test "x$ac_cv_lib_crypto_RSA_generate_key_ex" = "xno" && \
-      test "x$ac_cv_lib_crypto_RSA_generate_key" = "xno" ; then
-      AC_MSG_ERROR(Cannot find OpenSSL)
-   fi
-
-   AC_CHECK_DECL([SSL_OP_NO_TLSv1_1],
-    [AC_DEFINE([HAVE_TLS_1_1], [1], [Define if TLS 1.1 is supported by OpenSSL])],
-    [], [[#include <openssl/ssl.h>]]
-    )
-   AC_CHECK_DECL([SSL_OP_NO_TLSv1_2],
-    [AC_DEFINE([HAVE_TLS_1_2], [1], [Define if TLS 1.2 is supported by OpenSSL])],
-    [], [[#include <openssl/ssl.h>]]
-    )
-   AC_CHECK_DECL([SSL_OP_NO_TLSv1_3],
-    [AC_DEFINE([HAVE_TLS_1_3], [1], [Define if TLS 1.3 is supported by OpenSSL])],
-    [], [[#include <openssl/ssl.h>]]
-    )
-])
+    AC_CHECK_DECL([SSL_OP_NO_TLSv1_1],
+     [AC_DEFINE([HAVE_TLS_1_1], [1], [Define if TLS 1.1 is supported by OpenSSL])],
+     [], [[#include <openssl/ssl.h>]]
+     )
+    AC_CHECK_DECL([SSL_OP_NO_TLSv1_2],
+     [AC_DEFINE([HAVE_TLS_1_2], [1], [Define if TLS 1.2 is supported by OpenSSL])],
+     [], [[#include <openssl/ssl.h>]]
+     )
+    AC_CHECK_DECL([SSL_OP_NO_TLSv1_3],
+     [AC_DEFINE([HAVE_TLS_1_3], [1], [Define if TLS 1.3 is supported by OpenSSL])],
+     [], [[#include <openssl/ssl.h>]]
+     )
+  ])
+  AC_DEFINE(WITH_OPENSSL, 1, [Define if OpenSSL is being used])
+  AM_CONDITIONAL(WITH_OPENSSL, true)
+else
+  AM_CONDITIONAL(WITH_OPENSSL, false)
+fi
 
 dnl PCRE
 
 AC_ARG_WITH([pcre], [AS_HELP_STRING([--with-pcre[[=PATH]]], [Specify PCRE path])], [], [with_pcre=yes])
 
 if test "x$with_pcre" != "xno"; then
-   CF3_WITH_LIBRARY(pcre, [
-     AC_CHECK_LIB(pcre, pcre_exec, [], [AC_MSG_ERROR(Cannot find PCRE)])
-     AC_CHECK_HEADERS([pcre.h], [],
-       [AC_CHECK_HEADERS([pcre/pcre.h], [PCRE_CPPFLAGS="-Ipcre"],
-                         AC_MSG_ERROR(Cannot find PCRE))])
-     AC_DEFINE(WITH_PCRE, 1, [Define if PCRE is being used])
-   ])
+  CF3_WITH_LIBRARY(pcre, [
+    AC_CHECK_LIB(pcre, pcre_exec, [], [AC_MSG_ERROR(Cannot find PCRE)])
+    AC_CHECK_HEADERS(
+      [pcre.h],
+      [],
+      [AC_CHECK_HEADERS(
+        [pcre/pcre.h],
+        [PCRE_CPPFLAGS="-Ipcre"],
+        AC_MSG_ERROR(Cannot find PCRE)
+      )]
+    )
+  ])
+  AC_DEFINE(WITH_PCRE, 1, [Define if PCRE is being used])
+  AM_CONDITIONAL(WITH_PCRE, true)
+else
+  AM_CONDITIONAL(WITH_PCRE, false)
 fi
 
 dnl libvirt

@@ -11,9 +11,9 @@ then
     gmake CFLAGS="-Werror -Wall -Wno-pointer-sign"
     gmake --debug -C tests/unit check
     exit
-elif [ "$JOB_TYPE" = compile_and_unit_test_no_pcre ]
+elif [ "$JOB_TYPE" = compile_and_unit_test_no_deps ]
 then
-    ./autogen.sh --enable-debug --with-pcre=no
+    ./autogen.sh --enable-debug --with-pcre=no --with-openssl=no
     make CFLAGS="-Werror -Wall -Wno-pointer-sign"
     make check
     exit

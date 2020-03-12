@@ -25,12 +25,17 @@ else
     sudo rm -vf /etc/apt/sources.list.d/*riak*
     sudo apt-get --quiet update
     # Needed to build
-    sudo apt-get install -y libssl-dev libpam0g-dev
+    sudo apt-get install -y libpam0g-dev
     sudo apt-get install -y liblmdb-dev
     # Needed to test
     sudo apt-get install -y fakeroot
-    # Optional
-    sudo apt-get install -y libxml2-dev libacl1-dev
+
+    if [ "$JOB_TYPE" != compile_and_unit_test_no_deps ]
+    then
+        # Optional dependencies, don't install in no_deps job
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y libxml2-dev libacl1-dev
+    fi
     # codecov.io dependency
     sudo apt-get install -y lcov
     # Ensure traditional yacc compatibility

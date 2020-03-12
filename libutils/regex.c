@@ -34,8 +34,6 @@
 
 #define STRING_MATCH_OVECCOUNT 30
 
-#ifdef WITH_PCRE
-
 pcre *CompileRegex(const char *regex)
 {
     const char *errorstr;
@@ -284,5 +282,3 @@ bool RegexPartialMatch(const pcre *rx, const char *teststring)
 
     return rc >= 0;
 }
-
-#endif // WITH_PCRE

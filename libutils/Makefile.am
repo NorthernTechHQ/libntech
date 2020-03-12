@@ -42,9 +42,7 @@ libutils_la_SOURCES = \
 	definitions.h \
 	deprecated.h \
 	dir.h dir_priv.h \
-	encode.c encode.h \
 	file_lib.c file_lib.h \
-	hash.c hash.h \
 	hash_map.c hash_map_priv.h \
 	hash_method.h \
 	ip_address.c ip_address.h \
@@ -52,7 +50,6 @@ libutils_la_SOURCES = \
 	json-utils.c json-utils.h \
 	json-yaml.c json-yaml.h \
 	known_dirs.c known_dirs.h \
-	libcrypto-compat.c libcrypto-compat.h \
 	list.c list.h \
 	logging.c logging.h logging_priv.h \
 	man.c man.h \
@@ -62,14 +59,12 @@ libutils_la_SOURCES = \
 	mutex.c mutex.h \
 	passopenfile.c passopenfile.h \
 	path.c path.h \
-	pcre_wrap.c pcre_wrap.h \
 	platform.h condition_macros.h \
 	printsize.h \
 	proc_keyvalue.c proc_keyvalue.h \
 	queue.c queue.h \
 	rb-tree.c rb-tree.h \
 	refcount.c refcount.h \
-	regex.c regex.h \
 	ring_buffer.c ring_buffer.h \
 	sequence.c sequence.h \
 	string_sequence.c string_sequence.h \
@@ -86,6 +81,19 @@ libutils_la_SOURCES = \
 	xml_writer.c xml_writer.h
 
 EXTRA_DIST = stack_base.c
+
+if WITH_OPENSSL
+libutils_la_SOURCES += \
+	encode.c encode.h \
+	libcrypto-compat.c libcrypto-compat.h \
+	hash.c hash.h
+endif
+
+if WITH_PCRE
+libutils_la_SOURCES += \
+	pcre_wrap.c pcre_wrap.h \
+	regex.c regex.h
+endif
 
 if !NT
 libutils_la_SOURCES += unix_dir.c
