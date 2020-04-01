@@ -367,6 +367,12 @@ Seq *SeqGetRange(const Seq *seq, size_t start, size_t end)
     return sub;
 }
 
+void *const *SeqGetData(const Seq *seq)
+{
+    assert(seq != NULL);
+    return seq->data;
+}
+
 void SeqRemoveNulls(Seq *s)
 {
     int length = SeqLength(s);
