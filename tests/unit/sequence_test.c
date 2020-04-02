@@ -417,6 +417,31 @@ static void test_get_range(void)
     SeqDestroy(seq);
 }
 
+static void test_get_data(void)
+{
+    Seq *seq = SeqNew(16, NULL);
+    SeqAppend(seq, "one");
+    SeqAppend(seq, "two");
+    SeqAppend(seq, "three");
+    SeqAppend(seq, NULL);
+
+    void *const *data = SeqGetData(seq);
+
+    assert_string_equal(data[0], "one");
+    assert_string_equal(data[1], "two");
+    assert_string_equal(data[2], "three");
+    assert_true(data[3] == NULL);
+
+    /* Check that accessing the remaining pointers is OK */
+    for (size_t i = 4; i < 16; i++)
+    {
+        void *item = data[i];
+    }
+
+    /* no leak here, 'data' is not a copy */
+    SeqDestroy(seq);
+}
+
 static void test_seq_string_contains(void)
 {
     Seq *strings = SeqNew(10, NULL);
@@ -761,6 +786,7 @@ int main()
         unit_test(test_reverse),
         unit_test(test_len),
         unit_test(test_get_range),
+        unit_test(test_get_data),
         unit_test(test_sscanf),
         unit_test(test_seq_string_contains),
         unit_test(test_seq_string_length),

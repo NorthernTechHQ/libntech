@@ -226,6 +226,15 @@ void SeqClear(Seq *seq);
   */
 Seq *SeqGetRange(const Seq *seq, size_t start, size_t end);
 
+/**
+ * @brief Get the data segment of the sequence
+ * @param [in] seq Sequence to get the data segment of
+ * @return An array of pointers to data stored in the sequence
+ * @warning The returned array is not guaranteed to be %NULL-terminated unless %NULL was appended to
+ *          the sequence.
+ */
+void *const *SeqGetData(const Seq *seq);
+
 void SeqRemoveNulls(Seq *s);
 
 Seq *SeqFromArgv(int argc, const char *const *argv);
