@@ -103,13 +103,21 @@ static void WriteName(Writer *out, const char *program, const char *short_descri
     WriterWriteF(out, author, program, short_description);
 }
 
-static void WriteSynopsis(Writer *out, const char *program, bool accepts_file_argument)
+static void WriteSynopsis(Writer *out, const char *program,
+                          bool command, bool command_first,
+                          bool accepts_file_argument)
 {
-    static const char *const synopsis =
-        ".SH SYNOPSIS\n"
-        ".B %s\n"
-        ".RI [ OPTION ]...\n";
-    WriterWriteF(out, synopsis, program);
+    WriterWrite(out, ".SH SYNOPSIS\n");
+    WriterWriteF(out, ".B %s\n", program);
+    if (command && command_first)
+    {
+        WriterWrite(out, ".RI COMMAND\n");
+    }
+    WriterWrite(out, ".RI [ OPTION ]...\n");
+    if (command && !command_first)
+    {
+        WriterWrite(out, ".RI COMMAND\n");
+    }
     if (accepts_file_argument)
     {
         WriterWrite(out, ".RI [ FILE ]\n");
@@ -123,6 +131,20 @@ static void WriteSynopsis(Writer *out, const char *program, bool accepts_file_ar
 static void WriteDescription(Writer *out, const char *description)
 {
     WriterWriteF(out, ".SH DESCRIPTION\n%s\n", description);
+}
+
+static void WriteCommands(Writer *out, const Description *commands)
+{
+    assert(commands != NULL);
+    WriterWrite(out, ".SH COMMANDS\n");
+
+    for (int i = 0; commands[i].name != NULL; i++)
+    {
+        WriterWriteF(out, ".IP \"%s\"\n", commands[i].name);
+        WriterWriteF(out, "%s.\n", commands[i].description);
+        WriterWrite(out, ".br\n");
+        WriterWriteF(out, "Usage: %s\n", commands[i].usage);
+    }
 }
 
 static void WriteOptions(Writer *out, const struct option options[],
@@ -203,8 +225,9 @@ static void WritePromiseTheory(Writer *out)
 
 void ManPageWrite(Writer *out, const char *program, time_t last_modified,
                   const char *short_description, const char *long_description,
-                  const struct option options[],
-                  const char *const option_hints[], bool accepts_file_argument)
+                  const struct option options[], const char *const option_hints[],
+                  const Description *commands, bool command_first,
+                  bool accepts_file_argument)
 {
     time_t overridetime;
     char *source_date_epoch = getenv("SOURCE_DATE_EPOCH");
@@ -216,8 +239,12 @@ void ManPageWrite(Writer *out, const char *program, time_t last_modified,
     WriteCopyright(out);
     WriteHeader(out, program, last_modified);
     WriteName(out, program, short_description);
-    WriteSynopsis(out, program, accepts_file_argument);
+    WriteSynopsis(out, program, (commands != NULL), command_first, accepts_file_argument);
     WriteDescription(out, long_description);
+    if (commands != NULL)
+    {
+        WriteCommands(out, commands);
+    }
     WriteOptions(out, options, option_hints);
     WriteCFEngine(out);
     WritePromiseTheory(out);
