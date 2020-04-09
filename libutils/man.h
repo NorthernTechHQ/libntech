@@ -30,7 +30,8 @@
 
 void ManPageWrite(Writer *out, const char *program, time_t last_modified,
                   const char *short_description, const char *long_description,
-                  const struct option options[],
-                  const char *const option_hints[], bool accepts_file_argument);
+                  const struct option options[], const char *const option_hints[],
+                  const Description *commands, bool command_first,
+                  bool accepts_file_argument);
 
 #endif

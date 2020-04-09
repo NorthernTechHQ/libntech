@@ -318,13 +318,19 @@ static void WriterWriteCommands(Writer *w, const Description *commands)
 
 void WriterWriteHelp(Writer *w, const char *component,
                      const struct option options[], const char *const hints[],
-                     bool accepts_file_argument, const Description *commands)
+                     const Description *commands, bool command_first,
+                     bool accepts_file_argument)
 {
-    WriterWriteF(w, "Usage: %s [OPTIONS] %s%s\n", component,
-                 commands ? "command " : "",
+    WriterWriteF(w, "Usage: %s%s [OPTIONS]%s%s\n", component,
+                 (commands && command_first) ? " COMMAND" : "",
+                 (commands && !command_first) ? " COMMAND" : "",
                  accepts_file_argument ? " [FILE]" : "");
+    if ((commands != NULL) && command_first)
+    {
+        WriterWriteCommands(w, commands);
+    }
     WriterWriteOptions(w, options, hints);
-    if (commands != NULL)
+    if ((commands != NULL) && !command_first)
     {
         WriterWriteCommands(w, commands);
     }
