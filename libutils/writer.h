@@ -64,15 +64,16 @@ FILE *FileWriterDetach(Writer *writer);
 /* Commonly used on a FileWriter(stdout), ignoring return; so don't
  * try to warn on unused result ! */
 
- typedef struct
- {
-     const char *name;
-     const char *description;
-     const char *usage;
- } Description;
+typedef struct
+{
+    const char *name;
+    const char *description;
+    const char *usage;
+} Description;
 
- void WriterWriteHelp(Writer *w, const char *comp,
-                      const struct option options[], const char *const hints[],
-                      bool accepts_file_argument, const Description *commands);
+void WriterWriteHelp(Writer *w, const char *component,
+                     const struct option options[], const char *const hints[],
+                     const Description *commands, bool command_first,
+                     bool accepts_file_argument);
 
 #endif
