@@ -307,6 +307,20 @@ const char *GetErrorStr(void)
 }
 #endif  /* !__MINGW32__ */
 
+bool WouldLog(LogLevel level)
+{
+    LoggingContext *lctx = GetCurrentThreadContext();
+
+    bool log_to_console = (level <= lctx->report_level);
+    bool log_to_syslog  = (level <= lctx->log_level &&
+                           level < LOG_LEVEL_VERBOSE);
+    bool force_hook     = (lctx->pctx &&
+                           lctx->pctx->log_hook &&
+                           lctx->pctx->force_hook_level >= level);
+
+    return (log_to_console || log_to_syslog || force_hook);
+}
+
 void VLog(LogLevel level, const char *fmt, va_list ap)
 {
     LoggingContext *lctx = GetCurrentThreadContext();
@@ -318,6 +332,7 @@ void VLog(LogLevel level, const char *fmt, va_list ap)
                             lctx->pctx->log_hook &&
                             lctx->pctx->force_hook_level >= level );
 
+    /* NEEDS TO BE IN SYNC WITH THE CONDITION IN WouldLog() ABOVE! */
     if (!log_to_console && !log_to_syslog && !force_hook)
     {
         return;                            /* early return - save resources */

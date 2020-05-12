@@ -94,6 +94,11 @@ bool LoggingFormatTimestamp(char dest[64], size_t n, struct tm *timestamp);
 LoggingContext *GetCurrentThreadContext(void);
 void LoggingFreeCurrentThreadContext(void);
 
+/**
+ * Whether a message with level #level would be logged by Log() or not.
+ */
+bool WouldLog(LogLevel level);
+
 void Log(LogLevel level, const char *fmt, ...) FUNC_ATTR_PRINTF(2, 3);
 void LogDebug(enum LogModule mod, const char *fmt, ...) FUNC_ATTR_PRINTF(2, 3);
 void LogRaw(LogLevel level, const char *prefix, const void *buf, size_t buflen);
