@@ -205,6 +205,23 @@ void SeqSoftRemove(Seq *seq, size_t index);
 void SeqReverse(Seq *seq);
 
 /**
+  @brief Split a sequence in two at a given index.
+
+  Elements before the split are kept in original sequence,
+  elements after the split are moved to a new sequence,
+  which is returned. The original, the new, and the modified sequence
+  may all be empty.
+
+  Items in sequence are not reallocated, they are moved and the new
+  sequnce has the same destroy function as the original.
+
+  @param original [in] The Sequence to split in two (will be modified)
+  @param index [in] Index of split, or how many elements to keep in original
+  @return New sequence containing the elements removed from original
+ */
+Seq *SeqSplit(Seq *original, size_t index);
+
+/**
  * @brief Shuffle the sequence by randomly switching positions of the pointers
  * @param seq
  * @param seed Seed value for the PRNG
