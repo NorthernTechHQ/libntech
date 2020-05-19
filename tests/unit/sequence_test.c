@@ -350,6 +350,94 @@ static void test_reverse(void)
     }
 }
 
+static void test_split(void)
+{
+    {
+        Seq *seq = SeqNew(0, free);
+        SeqAppend(seq, xstrdup("abc"));
+        SeqAppend(seq, xstrdup("def"));
+        assert_int_equal(SeqLength(seq), 2);
+
+        Seq *end = SeqSplit(seq, 1);
+
+        assert_int_equal(SeqLength(seq), 1);
+        assert_int_equal(SeqLength(end), 1);
+
+        assert_string_equal(SeqAt(seq, 0), "abc");
+        assert_string_equal(SeqAt(end, 0), "def");
+
+        SeqDestroy(seq);
+        SeqDestroy(end);
+    }
+
+    {
+        Seq *seq = SeqNew(0, free);
+        SeqAppend(seq, xstrdup("abc"));
+        SeqAppend(seq, xstrdup("def"));
+        SeqAppend(seq, xstrdup("ghi"));
+        SeqAppend(seq, xstrdup("jkl"));
+        assert_int_equal(SeqLength(seq), 4);
+
+        Seq *end = SeqSplit(seq, 2);
+
+        assert_int_equal(SeqLength(seq), 2);
+        assert_int_equal(SeqLength(end), 2);
+
+        assert_string_equal(SeqAt(seq, 0), "abc");
+        assert_string_equal(SeqAt(seq, 1), "def");
+        assert_string_equal(SeqAt(end, 0), "ghi");
+        assert_string_equal(SeqAt(end, 1), "jkl");
+
+        SeqDestroy(seq);
+        SeqDestroy(end);
+    }
+
+    {
+        Seq *empty_a = SeqNew(0, free);
+        assert_int_equal(SeqLength(empty_a), 0);
+
+        Seq *empty_b = SeqSplit(empty_a, 0);
+
+        assert_int_equal(SeqLength(empty_a), 0);
+        assert_int_equal(SeqLength(empty_b), 0);
+
+        SeqDestroy(empty_a);
+        SeqDestroy(empty_b);
+    }
+
+    {
+        Seq *seq = SeqNew(0, free);
+        SeqAppend(seq, xstrdup("abc"));
+        assert_int_equal(SeqLength(seq), 1);
+
+        Seq *empty = SeqSplit(seq, 1);
+
+        assert_int_equal(SeqLength(seq), 1);
+        assert_int_equal(SeqLength(empty), 0);
+
+        assert_string_equal(SeqAt(seq, 0), "abc");
+
+        SeqDestroy(seq);
+        SeqDestroy(empty);
+    }
+
+    {
+        Seq *seq = SeqNew(0, free);
+        SeqAppend(seq, xstrdup("abc"));
+        assert_int_equal(SeqLength(seq), 1);
+
+        Seq *all = SeqSplit(seq, 0);
+
+        assert_int_equal(SeqLength(seq), 0);
+        assert_int_equal(SeqLength(all), 1);
+
+        assert_string_equal(SeqAt(all, 0), "abc");
+
+        SeqDestroy(seq);
+        SeqDestroy(all);
+    }
+}
+
 static void test_len(void)
 {
     Seq *seq = SeqNew(5, NULL);
@@ -784,6 +872,7 @@ int main()
         unit_test(test_remove_range),
         unit_test(test_remove),
         unit_test(test_reverse),
+        unit_test(test_split),
         unit_test(test_len),
         unit_test(test_get_range),
         unit_test(test_get_data),

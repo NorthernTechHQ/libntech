@@ -319,6 +319,23 @@ void SeqReverse(Seq *seq)
     }
 }
 
+Seq *SeqSplit(Seq *seq, size_t index)
+{
+    size_t length = SeqLength(seq);
+    assert(index <= length); // index > length is invalid
+    if (index >= length)
+    {
+        // index == length is valid, return empty sequence
+        // anything higher is error, but we will handle it anyway
+        return SeqNew(1, seq->ItemDestroy);
+    }
+
+    Seq *ret = SeqGetRange(seq, index, length - 1);
+    assert(ret != NULL); // Our indices should be valid
+    SeqSoftRemoveRange(seq, index, length - 1);
+    return ret;
+}
+
 size_t SeqLength(const Seq *seq)
 {
     assert(seq);
