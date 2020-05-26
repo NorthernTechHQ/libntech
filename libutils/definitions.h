@@ -58,7 +58,7 @@
  *****************************************************************************/
 #ifdef __FreeBSD__
 #  define CF_SYSTEM_GROUP "wheel"
-#elif __Solaris__
+#elif defined(__Solaris__)
 #  define CF_SYSTEM_GROUP "sys"
 #else
 #  define CF_SYSTEM_GROUP "root"
