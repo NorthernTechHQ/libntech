@@ -68,14 +68,4 @@
  */
 #define UNUSED(x) (void)(x)
 
-/**
- * If you want a string literal version of a macro, useful in scanf formats:
- *
- * #define BUFSIZE 1024
- * MACRO_STRING(BUFSIZE) -> "BUFSIZE"
- * STRING(BUFSIZE) -> "1024"
- */
-#define STRING(X) MACRO_STRING(X)
-#define MACRO_STRING(X) #X
-
 #endif  /* CFENGINE_COMPILER_H */
