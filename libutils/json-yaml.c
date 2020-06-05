@@ -48,7 +48,7 @@ JsonParseError JsonParseYamlFile(const char *path, size_t size_max, JsonElement 
 
 static JsonElement* JsonParseYamlScalarValue(yaml_event_t *event)
 {
-    assert(event);
+    assert(event != NULL);
     assert(event->type == YAML_SCALAR_EVENT);
 
     const char *tag = (const char *) event->data.scalar.tag;

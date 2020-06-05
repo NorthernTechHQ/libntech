@@ -77,6 +77,8 @@ struct ListIterator {
  */
 static void ListDetach(List *list)
 {
+    assert(list != NULL);
+
     int shared = RefCountIsShared(list->ref_count);
     if (shared)
     {
@@ -179,7 +181,9 @@ int ListDestroy(List **list)
         for (node = (*list)->first; node; node = p)
         {
             if ((*list)->destroy)
+            {
                 (*list)->destroy(node->payload);
+            }
             p = node->next;
             free(node);
         }
@@ -192,8 +196,10 @@ int ListDestroy(List **list)
 
 int ListCopy(List *origin, List **destination)
 {
-    if (!origin || !destination)
+    if (origin == NULL || destination == NULL)
+    {
         return -1;
+    }
     /*
      * The first thing we check is the presence of a copy function.
      * Without that function we need to abort the operation.
@@ -224,7 +230,7 @@ int ListCopy(List *origin, List **destination)
 int ListPrepend(List *list, void *payload)
 {
     ListNode *node = NULL;
-    if (!list)
+    if (list == NULL)
     {
         return -1;
     }
@@ -253,7 +259,7 @@ int ListPrepend(List *list, void *payload)
 int ListAppend(List *list, void *payload)
 {
     ListNode *node = NULL;
-    if (!list)
+    if (list == NULL)
     {
         return -1;
     }
@@ -287,7 +293,7 @@ int ListAppend(List *list, void *payload)
  */
 static int ListFindNode(List *list, void *payload)
 {
-    if (!list)
+    if (list == NULL)
     {
         return -1;
     }
@@ -296,7 +302,9 @@ static int ListFindNode(List *list, void *payload)
     for (node = list->list; node; node = node->next)
     {
         if (!node->payload)
+        {
             continue;
+        }
         if (list->compare)
         {
             if (!list->compare(node->payload, payload))
@@ -318,14 +326,18 @@ static int ListFindNode(List *list, void *payload)
 }
 static void ListUpdateListState(List *list)
 {
+    assert(list != NULL);
     list->node_count--;
     ChangeListState(list);
 }
 
 int ListRemove(List *list, void *payload)
 {
-    if (!list || !payload)
+    if (list == NULL || payload == NULL)
+    {
         return -1;
+    }
+
     ListNode *node = NULL;
     /*
      * This is a complicated matter. We could detach the list before
@@ -336,7 +348,9 @@ int ListRemove(List *list, void *payload)
      */
     int found = ListFindNode(list, payload);
     if (!found)
+    {
         return -1;
+    }
     found = 0;
     ListDetach(list);
     node = NULL;
@@ -445,7 +459,7 @@ int ListRemove(List *list, void *payload)
 // Number of elements on the list
 int ListCount(const List *list)
 {
-    return list ? list->node_count : -1;
+    return list != NULL ? list->node_count : -1;
 }
 
 /*
@@ -453,7 +467,7 @@ int ListCount(const List *list)
  */
 ListIterator *ListIteratorGet(const List *list)
 {
-    if (!list)
+    if (list == NULL)
     {
         return NULL;
     }
@@ -485,7 +499,7 @@ int ListIteratorDestroy(ListIterator **iterator)
 
 int ListIteratorFirst(ListIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
     {
         return -1;
     }
@@ -500,7 +514,7 @@ int ListIteratorFirst(ListIterator *iterator)
 
 int ListIteratorLast(ListIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
     {
         return -1;
     }
@@ -515,7 +529,7 @@ int ListIteratorLast(ListIterator *iterator)
 
 int ListIteratorNext(ListIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
     {
         return -1;
     }
@@ -538,7 +552,7 @@ int ListIteratorNext(ListIterator *iterator)
 
 int ListIteratorPrevious(ListIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
     {
         return -1;
     }
@@ -561,7 +575,7 @@ int ListIteratorPrevious(ListIterator *iterator)
 
 void *ListIteratorData(const ListIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
     {
         return NULL;
     }
@@ -575,7 +589,7 @@ void *ListIteratorData(const ListIterator *iterator)
 
 bool ListIteratorHasNext(const ListIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
     {
         return false;
     }
@@ -593,7 +607,7 @@ bool ListIteratorHasNext(const ListIterator *iterator)
 
 bool ListIteratorHasPrevious(const ListIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
     {
         return false;
     }
@@ -614,7 +628,7 @@ bool ListIteratorHasPrevious(const ListIterator *iterator)
  */
 ListMutableIterator *ListMutableIteratorGet(List *list)
 {
-    if (!list)
+    if (list == NULL)
     {
         return NULL;
     }
@@ -649,87 +663,122 @@ int ListMutableIteratorRelease(ListMutableIterator **iterator)
 
 int ListMutableIteratorFirst(ListMutableIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
+    {
         return -1;
+    }
     if (IsMutableIteratorValid(iterator))
+    {
         return -1;
+    }
     iterator->current = iterator->origin->first;
     return 0;
 }
 
 int ListMutableIteratorLast(ListMutableIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
+    {
         return -1;
+    }
     if (IsMutableIteratorValid(iterator))
+    {
         return -1;
+    }
     iterator->current = iterator->origin->last;
     return 0;
 }
 
 int ListMutableIteratorNext(ListMutableIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
+    {
         return -1;
+    }
     if (IsMutableIteratorValid(iterator))
+    {
         return -1;
+    }
     if (!iterator->current->next)
+    {
         return -1;
+    }
     iterator->current = iterator->current->next;
     return 0;
 }
 
 int ListMutableIteratorPrevious(ListMutableIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
+    {
         return -1;
+    }
     if (IsMutableIteratorValid(iterator))
+    {
         return -1;
+    }
     if (!iterator->current->previous)
+    {
         return -1;
+    }
     iterator->current = iterator->current->previous;
     return 0;
 }
 
 void *ListMutableIteratorData(const ListMutableIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
+    {
         return NULL;
+    }
     if (IsMutableIteratorValid(iterator))
+    {
         return NULL;
+    }
     return (void *)iterator->current->payload;
 }
 
 int ListMutableIteratorRemove(ListMutableIterator *iterator)
 {
-    if (!iterator)
+    if (iterator == NULL)
+    {
         return -1;
+    }
     if (IsMutableIteratorValid(iterator))
+    {
         return -1;
+    }
     ListDetach(iterator->origin);
     /*
      * Removing an element is not as simple as it sounds. We need to inform the list
      * and make sure we move out of the way.
      */
     ListNode *node = NULL;
-    if (iterator->current->next) {
+    if (iterator->current->next)
+    {
         /*
          * We are not the last element, therefore we proceed as normal.
          */
         node = iterator->current->next;
-    } else {
+    }
+    else
+    {
         /*
          * We might be the last element or the only element on the list.
          * If we are the only element we do not destroy the element otherwise the iterator
          * would become invalid.
          */
-        if (iterator->current->previous) {
+        if (iterator->current->previous)
+        {
             /*
              * last element
              */
             node = iterator->current->previous;
-        } else
+        }
+        else
+        {
             return -1;
+        }
     }
     /*
      * Now, remove the node from the list and delete it.
@@ -769,20 +818,27 @@ int ListMutableIteratorRemove(ListMutableIterator *iterator)
 
 int ListMutableIteratorPrepend(ListMutableIterator *iterator, void *payload)
 {
-    if (!iterator)
+    if (iterator == NULL)
+    {
         return -1;
+    }
     if (IsMutableIteratorValid(iterator))
+    {
         return -1;
+    }
     ListNode *node = NULL;
     node = (ListNode *)xmalloc(sizeof(ListNode));
     ListDetach(iterator->origin);
     node->payload = payload;
-    if (iterator->current->previous) {
+    if (iterator->current->previous)
+    {
         node->previous = iterator->current->previous;
         node->next = iterator->current;
         iterator->current->previous->next = node;
         iterator->current->previous = node;
-    } else {
+    }
+    else
+    {
         // First element
         node->previous = NULL;
         node->next = iterator->current;
@@ -796,10 +852,14 @@ int ListMutableIteratorPrepend(ListMutableIterator *iterator, void *payload)
 
 int ListMutableIteratorAppend(ListMutableIterator *iterator, void *payload)
 {
-    if (!iterator)
+    if (iterator == NULL)
+    {
         return -1;
+    }
     if (IsMutableIteratorValid(iterator))
+    {
         return -1;
+    }
     ListNode *node = NULL;
     node = (ListNode *)xmalloc(sizeof(ListNode));
     ListDetach(iterator->origin);
@@ -810,7 +870,9 @@ int ListMutableIteratorAppend(ListMutableIterator *iterator, void *payload)
         node->previous = iterator->current;
         iterator->current->next->previous = node;
         iterator->current->next = node;
-    } else {
+    }
+    else
+    {
         // Last element
         node->next = NULL;
         node->previous = iterator->current;
@@ -823,10 +885,10 @@ int ListMutableIteratorAppend(ListMutableIterator *iterator, void *payload)
 
 bool ListMutableIteratorHasNext(const ListMutableIterator *iterator)
 {
-    return iterator && iterator->current->next;
+    return iterator != NULL && iterator->current->next;
 }
 
 bool ListMutableIteratorHasPrevious(const ListMutableIterator *iterator)
 {
-    return iterator && iterator->current->previous;
+    return iterator != NULL && iterator->current->previous;
 }
