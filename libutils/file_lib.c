@@ -425,7 +425,7 @@ char *MapName(char *s)
     if (strlcpy(s, ret, MAX_FILENAME) >= MAX_FILENAME)
     {
         FatalError(ctx, "Expanded path (%s) is longer than MAX_FILENAME ("
-                   TOSTRING(MAX_FILENAME) ") characters",
+                   TO_STRING(MAX_FILENAME) ") characters",
                    ret);
     }
     free(ret);

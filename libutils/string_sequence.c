@@ -152,7 +152,7 @@ bool SeqStringWrite(Seq *seq, Writer *w)
         const char *const s = SeqAt(seq, i);
         const unsigned long str_length = strlen(s);
         const size_t bytes_written = WriterWriteF(
-            w, "%-" TOSTRING(SEQ_PREFIX_LEN) "lu%s\n", str_length, s);
+            w, "%-" TO_STRING(SEQ_PREFIX_LEN) "lu%s\n", str_length, s);
         // TODO: Make WriterWriteF actually be able to propagate errors
         //       (return negative number on short writes).
         if (bytes_written == 0)
