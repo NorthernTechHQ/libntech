@@ -616,15 +616,7 @@ char *HashPrintSafe(char *dst, size_t dst_size, const unsigned char *digest,
 
     if (use_prefix)
     {
-        switch (type)
-        {
-        case HASH_METHOD_MD5:
-            prefix = "MD5=";
-            break;
-        default:
-            prefix = "SHA=";
-            break;
-        }
+        prefix = type == HASH_METHOD_MD5 ? "MD5=" : "SHA=";
     }
     else
     {

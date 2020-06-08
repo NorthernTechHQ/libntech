@@ -909,9 +909,8 @@ static void JsonDecodeStringWriter(
 
     for (const char *c = escaped_string; *c != '\0'; c++)
     {
-        switch (*c)
+        if (*c == '\\')
         {
-        case '\\':
             switch (c[1])
             {
             case '\"':
@@ -943,10 +942,10 @@ static void JsonDecodeStringWriter(
                 WriterWriteChar(w, *c);
                 break;
             }
-            break;
-        default:
+        }
+        else
+        {
             WriterWriteChar(w, *c);
-            break;
         }
     }
 }
@@ -1492,21 +1491,19 @@ static void JsonPrimitiveWrite(
 
     const char *const value = primitiveElement->primitive.value;
 
-    switch (primitiveElement->primitive.type)
+    if (primitiveElement->primitive.type == JSON_PRIMITIVE_TYPE_STRING)
     {
-    case JSON_PRIMITIVE_TYPE_STRING:
         PrintIndent(writer, indent_level);
         {
             char *encoded = JsonEncodeString(value);
             WriterWriteF(writer, "\"%s\"", encoded);
             free(encoded);
         }
-        break;
-
-    default:
+    }
+    else
+    {
         PrintIndent(writer, indent_level);
         WriterWrite(writer, value);
-        break;
     }
 }
 
@@ -2154,9 +2151,7 @@ static JsonParseError JsonParseAsPrimitive(
     assert(data != NULL);
     assert(*data != NULL);
 
-    switch (**data)
-    {
-    case '"':
+    if (**data == '"')
     {
         char *value = NULL;
         const JsonParseError err = JsonParseAsString(data, &value);
@@ -2167,10 +2162,10 @@ static JsonParseError JsonParseAsPrimitive(
         *json_out = JsonElementCreatePrimitive(
             JSON_PRIMITIVE_TYPE_STRING, JsonDecodeString(value));
         free(value);
-    }
         return JSON_PARSE_OK;
-
-    default:
+    }
+    else
+    {
         if (**data == '-' || **data == '0' || IsDigit(**data))
         {
             const JsonParseError err = JsonParseAsNumber(data, json_out);
