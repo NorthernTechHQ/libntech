@@ -53,14 +53,4 @@
 // 0644 - World readable
 #define CF_PERMS_SHARED   CF_PERMS_DEFAULT | S_IRGRP | S_IROTH
 
-/*****************************************************************************
- *                       File Ownership                                         *
- *****************************************************************************/
-#ifdef __FreeBSD__
-#  define CF_SYSTEM_GROUP "wheel"
-#elif defined(__Solaris__)
-#  define CF_SYSTEM_GROUP "sys"
-#else
-#  define CF_SYSTEM_GROUP "root"
-#endif
 #endif // CFENGINE_DEFINITIONS_H
