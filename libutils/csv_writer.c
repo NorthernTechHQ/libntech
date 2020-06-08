@@ -59,6 +59,8 @@ CsvWriter *CsvWriterOpen(Writer *w)
 
 void CsvWriterField(CsvWriter * csvw, const char *str)
 {
+    assert(csvw != NULL);
+
     if (csvw->beginning_of_line)
     {
         csvw->beginning_of_line = false;
@@ -93,6 +95,8 @@ void CsvWriterFieldF(CsvWriter * csvw, const char *fmt, ...)
 
 void CsvWriterNewRecord(CsvWriter * csvw)
 {
+    assert(csvw != NULL);
+
     WriterWrite(csvw->w, "\r\n");
     csvw->beginning_of_line = true;
 }
@@ -145,5 +149,6 @@ static void WriteCsvEscapedString(Writer *w, const char *s)
 
 Writer *CsvWriterGetWriter(CsvWriter *csvw)
 {
+    assert(csvw != NULL);
     return csvw->w;
 }

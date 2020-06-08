@@ -50,6 +50,7 @@ Buffer *BufferNew(void)
 
 static void ExpandIfNeeded(Buffer *buffer, unsigned int needed)
 {
+    assert(buffer != NULL);
     if (needed >= buffer->capacity)
     {
         size_t new_capacity = UpperPowerOfTwo(needed + 1);
@@ -68,7 +69,7 @@ Buffer* BufferNewFrom(const char *data, unsigned int length)
 
 void BufferDestroy(Buffer *buffer)
 {
-    if (buffer)
+    if (buffer != NULL)
     {
         free(buffer->buffer);
         free(buffer);
@@ -77,6 +78,7 @@ void BufferDestroy(Buffer *buffer)
 
 char *BufferClose(Buffer *buffer)
 {
+    assert(buffer != NULL);
     char *detached = buffer->buffer;
     free(buffer);
 
@@ -85,14 +87,14 @@ char *BufferClose(Buffer *buffer)
 
 Buffer *BufferCopy(const Buffer *source)
 {
-    assert(source);
+    assert(source != NULL);
     return BufferNewFrom(source->buffer, source->used);
 }
 
 int BufferCompare(const Buffer *buffer1, const Buffer *buffer2)
 {
-    assert(buffer1);
-    assert(buffer2);
+    assert(buffer1 != NULL);
+    assert(buffer2 != NULL);
 
     /*
      * Rules for comparison:
@@ -224,8 +226,8 @@ int BufferCompare(const Buffer *buffer1, const Buffer *buffer2)
 
 void BufferSet(Buffer *buffer, const char *bytes, unsigned int length)
 {
-    assert(buffer);
-    assert(bytes);
+    assert(buffer != NULL);
+    assert(bytes != NULL);
 
     BufferClear(buffer);
 
@@ -234,13 +236,15 @@ void BufferSet(Buffer *buffer, const char *bytes, unsigned int length)
 
 char *BufferGet(Buffer *buffer)
 {
-    assert(buffer);
+    assert(buffer != NULL);
     buffer->unsafe = true;
     return buffer->buffer;
 }
 
 void BufferAppendString(Buffer *buffer, const char *str)
 {
+    assert(buffer != NULL);
+
     size_t len = strlen(str);
     ExpandIfNeeded(buffer, buffer->used + len + 1);
     memcpy(buffer->buffer + buffer->used, str, len);
@@ -250,6 +254,8 @@ void BufferAppendString(Buffer *buffer, const char *str)
 
 void BufferTrimToMaxLength(Buffer *buffer, unsigned int max)
 {
+    assert(buffer != NULL);
+
     if (buffer->used > max)
     {
         buffer->used = max;
@@ -260,8 +266,8 @@ void BufferTrimToMaxLength(Buffer *buffer, unsigned int max)
 
 void BufferAppend(Buffer *buffer, const char *bytes, unsigned int length)
 {
-    assert(buffer);
-    assert(bytes);
+    assert(buffer != NULL);
+    assert(bytes != NULL);
 
     if (length == 0)
     {
@@ -290,6 +296,7 @@ void BufferAppend(Buffer *buffer, const char *bytes, unsigned int length)
 
 void BufferAppendChar(Buffer *buffer, char byte)
 {
+    assert(buffer != NULL);
     if (buffer->used < (buffer->capacity - 1))
     {
         buffer->buffer[buffer->used] = byte;
@@ -308,8 +315,8 @@ void BufferAppendChar(Buffer *buffer, char byte)
 
 void BufferAppendF(Buffer *buffer, const char *format, ...)
 {
-    assert(buffer);
-    assert(format);
+    assert(buffer != NULL);
+    assert(format != NULL);
 
     va_list ap;
     va_list aq;
@@ -338,8 +345,8 @@ void BufferAppendF(Buffer *buffer, const char *format, ...)
 
 int BufferPrintf(Buffer *buffer, const char *format, ...)
 {
-    assert(buffer);
-    assert(format);
+    assert(buffer != NULL);
+    assert(format != NULL);
     /*
      * We declare two lists, in case we need to reiterate over the list because the buffer was
      * too small.
@@ -382,8 +389,8 @@ int BufferPrintf(Buffer *buffer, const char *format, ...)
 // NB! Make sure to sanitize format if taken from user input
 int BufferVPrintf(Buffer *buffer, const char *format, va_list ap)
 {
-    assert(buffer);
-    assert(format);
+    assert(buffer != NULL);
+    assert(format != NULL);
     va_list aq;
     va_copy(aq, ap);
 
@@ -416,7 +423,7 @@ int BufferVPrintf(Buffer *buffer, const char *format, va_list ap)
 // returns NULL on success, otherwise an error string
 const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern, const char *substitute, const char *options)
 {
-    assert(buffer);
+    assert(buffer != NULL);
     assert(pattern);
     assert(substitute);
     assert(options);
@@ -447,26 +454,26 @@ const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern, const ch
 
 void BufferClear(Buffer *buffer)
 {
-    assert(buffer);
+    assert(buffer != NULL);
     buffer->used = 0;
     buffer->buffer[0] = '\0';
 }
 
 unsigned int BufferSize(const Buffer *buffer)
 {
-    assert(buffer);
-    return buffer ? buffer->used : 0;
+    assert(buffer != NULL);
+    return buffer != NULL ? buffer->used : 0;
 }
 
 const char *BufferData(const Buffer *buffer)
 {
-    assert(buffer);
-    return buffer ? buffer->buffer : NULL;
+    assert(buffer != NULL);
+    return buffer != NULL ? buffer->buffer : NULL;
 }
 
 void BufferCanonify(Buffer *buffer)
 {
-    assert(buffer);
+    assert(buffer != NULL);
     if (buffer         != NULL &&
         buffer->buffer != NULL)
     {
@@ -476,13 +483,13 @@ void BufferCanonify(Buffer *buffer)
 
 BufferBehavior BufferMode(const Buffer *buffer)
 {
-    assert(buffer);
-    return buffer ? buffer->mode : BUFFER_BEHAVIOR_BYTEARRAY;
+    assert(buffer != NULL);
+    return buffer != NULL ? buffer->mode : BUFFER_BEHAVIOR_BYTEARRAY;
 }
 
 void BufferSetMode(Buffer *buffer, BufferBehavior mode)
 {
-    assert(buffer);
+    assert(buffer != NULL);
     assert(mode == BUFFER_BEHAVIOR_CSTRING || mode == BUFFER_BEHAVIOR_BYTEARRAY);
     /*
      * If we switch from BYTEARRAY mode to CSTRING then we need to adjust the
@@ -504,7 +511,7 @@ void BufferSetMode(Buffer *buffer, BufferBehavior mode)
 
 Buffer* BufferFilter(Buffer *buffer, BufferFilterFn filter, const bool invert)
 {
-    assert(buffer);
+    assert(buffer != NULL);
 
     Buffer *filtered = BufferNew();
     for (unsigned int i = 0; i < buffer->used; ++i)
@@ -526,7 +533,7 @@ Buffer* BufferFilter(Buffer *buffer, BufferFilterFn filter, const bool invert)
 
 void BufferRewrite(Buffer *buffer, BufferFilterFn filter, const bool invert)
 {
-    assert(buffer);
+    assert(buffer != NULL);
 
     Buffer *rewrite = BufferFilter(buffer, filter, invert);
     BufferSet(buffer, BufferData(rewrite), BufferSize(rewrite));
@@ -535,6 +542,6 @@ void BufferRewrite(Buffer *buffer, BufferFilterFn filter, const bool invert)
 
 unsigned BufferCapacity(const Buffer *buffer)
 {
-    assert(buffer);
-    return buffer ? buffer->capacity : 0;
+    assert(buffer != NULL);
+    return buffer != NULL ? buffer->capacity : 0;
 }

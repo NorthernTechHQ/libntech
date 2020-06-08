@@ -47,6 +47,7 @@ Seq *SeqNew(size_t initialCapacity, void (ItemDestroy) (void *item))
 
 static void DestroyRange(Seq *seq, size_t start, size_t end)
 {
+    assert(seq != NULL);
     if (seq->ItemDestroy)
     {
         for (size_t i = start; i <= end; i++)
@@ -58,16 +59,19 @@ static void DestroyRange(Seq *seq, size_t start, size_t end)
 
 void SeqDestroy(Seq *seq)
 {
-    if (seq && seq->length > 0)
+    if (seq != NULL)
     {
-        DestroyRange(seq, 0, seq->length - 1);
+        if (seq->length > 0)
+        {
+            DestroyRange(seq, 0, seq->length - 1);
+        }
+        SeqSoftDestroy(seq);
     }
-    SeqSoftDestroy(seq);
 }
 
 void SeqSoftDestroy(Seq *seq)
 {
-    if (seq)
+    if (seq != NULL)
     {
         free(seq->data);
         free(seq);
@@ -76,6 +80,7 @@ void SeqSoftDestroy(Seq *seq)
 
 static void ExpandIfNeccessary(Seq *seq)
 {
+    assert(seq != NULL);
     assert(seq->length <= seq->capacity);
 
     if (seq->length == seq->capacity)
@@ -87,6 +92,7 @@ static void ExpandIfNeccessary(Seq *seq)
 
 void SeqSet(Seq *seq, size_t index, void *item)
 {
+    assert(seq != NULL);
     assert(index < SeqLength(seq));
     if (seq->ItemDestroy)
     {
@@ -97,6 +103,7 @@ void SeqSet(Seq *seq, size_t index, void *item)
 
 void SeqAppend(Seq *seq, void *item)
 {
+    assert(seq != NULL);
     ExpandIfNeccessary(seq);
 
     seq->data[seq->length] = item;
@@ -105,6 +112,7 @@ void SeqAppend(Seq *seq, void *item)
 
 void SeqAppendOnce(Seq *seq, void *item, SeqItemComparator Compare)
 {
+    assert(seq != NULL);
     if (SeqLookup(seq, item, Compare) == NULL)
     {
         SeqAppend(seq, item);
@@ -129,7 +137,7 @@ void SeqAppendSeq(Seq *seq, const Seq *items)
 
 void SeqRemoveRange(Seq *seq, size_t start, size_t end)
 {
-    assert(seq);
+    assert(seq != NULL);
     assert(end < seq->length);
     assert(start <= end);
 
@@ -152,6 +160,7 @@ void SeqRemove(Seq *seq, size_t index)
 
 void *SeqLookup(Seq *seq, const void *key, SeqItemComparator Compare)
 {
+    assert(seq != NULL);
     for (size_t i = 0; i < seq->length; i++)
     {
         if (Compare(key, seq->data[i], NULL) == 0)
@@ -165,6 +174,7 @@ void *SeqLookup(Seq *seq, const void *key, SeqItemComparator Compare)
 
 void *SeqBinaryLookup(Seq *seq, const void *key, SeqItemComparator Compare)
 {
+    assert(seq != NULL);
     ssize_t index = SeqBinaryIndexOf(seq, key, Compare);
     if (index == -1)
     {
@@ -178,6 +188,7 @@ void *SeqBinaryLookup(Seq *seq, const void *key, SeqItemComparator Compare)
 
 ssize_t SeqIndexOf(Seq *seq, const void *key, SeqItemComparator Compare)
 {
+    assert(seq != NULL);
     for (size_t i = 0; i < seq->length; i++)
     {
         if (Compare(key, seq->data[i], NULL) == 0)
@@ -191,6 +202,7 @@ ssize_t SeqIndexOf(Seq *seq, const void *key, SeqItemComparator Compare)
 
 ssize_t SeqBinaryIndexOf(Seq *seq, const void *key, SeqItemComparator Compare)
 {
+    assert(seq != NULL);
     if (seq->length == 0)
     {
         return -1;
@@ -284,7 +296,7 @@ Seq *SeqSoftSort(const Seq *seq, SeqItemComparator compare, void *user_data)
 
 void SeqSoftRemoveRange(Seq *seq, size_t start, size_t end)
 {
-    assert(seq);
+    assert(seq != NULL);
     assert(end < seq->length);
     assert(start <= end);
 
@@ -313,6 +325,7 @@ void SeqSoftRemove(Seq *seq, size_t index)
 
 void SeqReverse(Seq *seq)
 {
+    assert(seq != NULL);
     for (size_t i = 0; i < (seq->length / 2); i++)
     {
         Swap(&seq->data[i], &seq->data[seq->length - 1 - i]);
@@ -321,6 +334,7 @@ void SeqReverse(Seq *seq)
 
 Seq *SeqSplit(Seq *seq, size_t index)
 {
+    assert(seq != NULL);
     size_t length = SeqLength(seq);
     assert(index <= length); // index > length is invalid
     if (index >= length)
@@ -338,12 +352,13 @@ Seq *SeqSplit(Seq *seq, size_t index)
 
 size_t SeqLength(const Seq *seq)
 {
-    assert(seq);
+    assert(seq != NULL);
     return seq->length;
 }
 
 void SeqShuffle(Seq *seq, unsigned int seed)
 {
+    assert(seq != NULL);
     if (SeqLength(seq) == 0)
     {
         return;
@@ -366,7 +381,7 @@ void SeqShuffle(Seq *seq, unsigned int seed)
 
 Seq *SeqGetRange(const Seq *seq, size_t start, size_t end)
 {
-    assert (seq);
+    assert(seq != NULL);
 
     if ((start > end) || (start >= seq->length) || (end >= seq->length))
     {
@@ -390,26 +405,27 @@ void *const *SeqGetData(const Seq *seq)
     return seq->data;
 }
 
-void SeqRemoveNulls(Seq *s)
+void SeqRemoveNulls(Seq *seq)
 {
-    int length = SeqLength(s);
+    assert(seq != NULL);
+    int length = SeqLength(seq);
     int from = 0;
     int to = 0;
     while (from < length)
     {
-        if (s->data[from] == NULL)
+        if (seq->data[from] == NULL)
         {
             ++from; // Skip NULL elements
         }
         else
         {
             // Copy elements in place, DON'T use SeqSet, which will free()
-            s->data[to] = s->data[from];
+            seq->data[to] = seq->data[from];
             ++from;
             ++to;
         }
     }
-    s->length = to;
+    seq->length = to;
 }
 
 Seq *SeqFromArgv(int argc, const char *const *const argv)

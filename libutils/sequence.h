@@ -252,7 +252,7 @@ Seq *SeqGetRange(const Seq *seq, size_t start, size_t end);
  */
 void *const *SeqGetData(const Seq *seq);
 
-void SeqRemoveNulls(Seq *s);
+void SeqRemoveNulls(Seq *seq);
 
 Seq *SeqFromArgv(int argc, const char *const *argv);
 
