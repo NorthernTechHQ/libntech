@@ -468,10 +468,10 @@ int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize);
 # include <sched.h>
 #endif
 
-#ifdef HAVE_ATTR_XATTR_H
-# include <attr/xattr.h>
-#elif defined(HAVE_SYS_XATTR_H)
+#if defined(HAVE_SYS_XATTR_H)
 # include <sys/xattr.h>
+#elif defined(HAVE_ATTR_XATTR_H)
+# include <attr/xattr.h>
 #endif
 
 #ifndef MIN
