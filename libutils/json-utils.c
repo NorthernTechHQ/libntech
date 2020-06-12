@@ -384,19 +384,19 @@ JsonElement *JsonReadDataFile(const char *log_identifier, const char *input_path
 DataFileType GetDataFileTypeFromString(const char *const requested_mode)
 {
     DataFileType type = DATAFILETYPE_UNKNOWN;
-    if (StringSafeEqual_IgnoreCase(requested_mode, "yaml"))
+    if (StringEqual_IgnoreCase(requested_mode, "yaml"))
     {
         type = DATAFILETYPE_YAML;
     }
-    else if (StringSafeEqual_IgnoreCase(requested_mode, "csv"))
+    else if (StringEqual_IgnoreCase(requested_mode, "csv"))
     {
         type = DATAFILETYPE_CSV;
     }
-    else if (StringSafeEqual_IgnoreCase(requested_mode, "env"))
+    else if (StringEqual_IgnoreCase(requested_mode, "env"))
     {
         type = DATAFILETYPE_ENV;
     }
-    else if (StringSafeEqual_IgnoreCase(requested_mode, "json"))
+    else if (StringEqual_IgnoreCase(requested_mode, "json"))
     {
         type = DATAFILETYPE_JSON;
     }
