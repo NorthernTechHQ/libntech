@@ -62,7 +62,7 @@ bool SeqStringContains(const Seq *const seq, const char *const str)
     size_t length = SeqLength(seq);
     for (int i = 0; i < length; ++i)
     {
-        if (StringSafeEqual(str, SeqAt(seq, i)))
+        if (StringEqual(str, SeqAt(seq, i)))
         {
             return true;
         }

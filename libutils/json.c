@@ -742,7 +742,7 @@ bool JsonPrimitiveGetAsBool(const JsonElement *const primitive)
     assert(primitive->type == JSON_ELEMENT_TYPE_PRIMITIVE);
     assert(primitive->primitive.type == JSON_PRIMITIVE_TYPE_BOOL);
 
-    return StringSafeEqual(JSON_TRUE, primitive->primitive.value);
+    return StringEqual(JSON_TRUE, primitive->primitive.value);
 }
 
 long JsonPrimitiveGetAsInteger(const JsonElement *const primitive)
