@@ -89,8 +89,8 @@ bool IPAddressIsIPAddress(Buffer *source, IPAddress **address);
   @brief Compares two IP addresses for sorting.
   @param a IP address of the first object.
   @param b IP address of the second object.
-  @return 1 if a < b, and 0 otherwise.
+  @return true if a < b, false otherwise.
   */
-int IPAddressCompareLess(IPAddress *a, IPAddress *b);
+bool IPAddressCompareLess(IPAddress *a, IPAddress *b);
 
 #endif // CFENGINE_IP_ADDRESS_H

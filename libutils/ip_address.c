@@ -1187,79 +1187,85 @@ int IPAddressIsEqual(IPAddress *a, IPAddress *b)
 /*
  * Sorting comparison for IPV4 addresses
  */
-static int IPV4CompareLess(struct IPV4Address *a, struct IPV4Address *b)
+static bool IPV4CompareLess(struct IPV4Address *a, struct IPV4Address *b)
 {
     int i = 0;
     for (i = 0; i < 4; ++i)
     {
         if (a->octets[i] > b->octets[i])
         {
-            return 0;
+            return false;
         }
         else if (a->octets[i] < b->octets[i])
         {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
 /*
  * Sorting comparison for IPV6 addresses
  */
-static int IPV6CompareLess(struct IPV6Address *a, struct IPV6Address *b)
+static bool IPV6CompareLess(struct IPV6Address *a, struct IPV6Address *b)
 {
     int i = 0;
     for (i = 0; i < 8; ++i)
     {
         if (a->sixteen[i] > b->sixteen[i])
         {
-            return 0;
+            return false;
         }
         else if (a->sixteen[i] < b->sixteen[i])
         {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
-int IPAddressCompareLess(IPAddress *a, IPAddress *b)
+bool IPAddressCompareLess(IPAddress *a, IPAddress *b)
 {
     /*
      * We do not support IPV4 versus IPV6 comparisons.
      * This is trickier than what it seems, since even the IPV6 representation of an IPV6 address is not
      * clear yet.
      */
-     if (!a || !b)
-     {
-         return 1;
-     }
+    if (a == NULL || b == NULL)
+    {
+        return true;
+    }
 
-     // Sort IPv4 BEFORE any other types
-     if (a->type == IP_ADDRESS_TYPE_IPV4 && a->type != b->type)
-     {
-         return 1;
-     }
+    assert(a->type == IP_ADDRESS_TYPE_IPV4 || a->type == IP_ADDRESS_TYPE_IPV6);
+    assert(b->type == IP_ADDRESS_TYPE_IPV4 || b->type == IP_ADDRESS_TYPE_IPV6);
 
-     if (b->type == IP_ADDRESS_TYPE_IPV4 && a->type != b->type)
-     {
-         return 0;
-     }
+    // If not same type - Sort IPv4 BEFORE any other types:
+    if (a->type != b->type)
+    {
+        if (a->type == IP_ADDRESS_TYPE_IPV4)
+        {
+            return true;
+        }
+        else
+        {
+            assert(b->type == IP_ADDRESS_TYPE_IPV4);
+            return false;
+        }
+    }
 
-     if (a->type == IP_ADDRESS_TYPE_IPV4 && b->type == IP_ADDRESS_TYPE_IPV4)
-     {
-         return IPV4CompareLess((struct IPV4Address *)a->address, (struct IPV4Address *)b->address);
-     }
+    assert(a->type == b->type);
+    IPAddressVersion type = a->type;
 
-     if (a->type == IP_ADDRESS_TYPE_IPV6 && b->type == IP_ADDRESS_TYPE_IPV6)
-     {
-         return IPV6CompareLess((struct IPV6Address *)a->address, (struct IPV6Address *)b->address);
-     }
+    if (type == IP_ADDRESS_TYPE_IPV4)
+    {
+        return IPV4CompareLess((struct IPV4Address *)a->address, (struct IPV4Address *)b->address);
+    }
 
-     return -1;
+    assert(type == IP_ADDRESS_TYPE_IPV6);
+
+    return IPV6CompareLess((struct IPV6Address *)a->address, (struct IPV6Address *)b->address);
 }
 
 bool IPAddressIsIPAddress(Buffer *source, IPAddress **address)
