@@ -278,6 +278,7 @@ static void QuickSortRecursive(void **data, int n, SeqItemComparator Compare, vo
 
 void SeqSort(Seq *seq, SeqItemComparator Compare, void *user_data)
 {
+    assert(seq != NULL);
     QuickSortRecursive(seq->data, seq->length, Compare, user_data, 0);
 }
 
