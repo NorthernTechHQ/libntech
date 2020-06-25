@@ -79,12 +79,14 @@ Writer *StringWriter(void)
 
 static void StringWriterReallocate(Writer *writer, size_t extra_length)
 {
+    assert(writer != NULL);
     writer->string.allocated = MAX(writer->string.allocated * 2, writer->string.len + extra_length + 1);
     writer->string.data = xrealloc(writer->string.data, writer->string.allocated);
 }
 
 static size_t StringWriterWriteChar(Writer *writer, char c)
 {
+    assert(writer != NULL);
     if (writer->string.len + 2 > writer->string.allocated)
     {
         StringWriterReallocate(writer, 2);
@@ -99,6 +101,7 @@ static size_t StringWriterWriteChar(Writer *writer, char c)
 
 static size_t StringWriterWriteLen(Writer *writer, const char *str, size_t len_)
 {
+    assert(writer != NULL);
     /* NB: str[:len_] may come from read(), which hasn't '\0'-terminated */
     size_t len = strnlen(str, len_);
 
@@ -118,6 +121,7 @@ static size_t StringWriterWriteLen(Writer *writer, const char *str, size_t len_)
 
 static size_t FileWriterWriteF(Writer *writer, const char *fmt, va_list ap)
 {
+    assert(writer != NULL);
     return vfprintf(writer->file, fmt, ap);
 }
 
@@ -125,6 +129,7 @@ static size_t FileWriterWriteF(Writer *writer, const char *fmt, va_list ap)
 
 static size_t FileWriterWriteLen(Writer *writer, const char *str, size_t len_)
 {
+    assert(writer != NULL);
     size_t len = strnlen(str, len_);
 
 #ifdef CFENGINE_TEST
@@ -151,6 +156,7 @@ size_t WriterWriteF(Writer *writer, const char *fmt, ...)
 
 size_t WriterWriteVF(Writer *writer, const char *fmt, va_list ap)
 {
+    assert(writer != NULL);
     if (writer->type == WT_STRING)
     {
         char *str = NULL;
@@ -171,6 +177,7 @@ size_t WriterWriteVF(Writer *writer, const char *fmt, va_list ap)
 
 size_t WriterWriteLen(Writer *writer, const char *str, size_t len)
 {
+    assert(writer != NULL);
     if (writer->type == WT_STRING)
     {
         return StringWriterWriteLen(writer, str, len);
@@ -192,6 +199,7 @@ size_t WriterWrite(Writer *writer, const char *str)
 
 size_t WriterWriteChar(Writer *writer, char c)
 {
+    assert(writer != NULL);
     if (writer->type == WT_STRING)
     {
         return StringWriterWriteChar(writer, c);
@@ -207,6 +215,7 @@ size_t WriterWriteChar(Writer *writer, char c)
 
 size_t StringWriterLength(const Writer *writer)
 {
+    assert(writer != NULL);
     if (writer->type != WT_STRING)
     {
         ProgrammingError("Wrong writer type");
@@ -219,6 +228,7 @@ size_t StringWriterLength(const Writer *writer)
 
 const char *StringWriterData(const Writer *writer)
 {
+    assert(writer != NULL);
     if (writer->type != WT_STRING)
     {
         ProgrammingError("Wrong writer type");
@@ -231,6 +241,7 @@ const char *StringWriterData(const Writer *writer)
 
 void WriterClose(Writer *writer)
 {
+    assert(writer != NULL);
     if (writer->type == WT_STRING)
     {
         free(writer->string.data);
@@ -265,6 +276,7 @@ char *StringWriterClose(Writer *writer)
 
 FILE *FileWriterDetach(Writer *writer)
 {
+    assert(writer != NULL);
     if (writer->type != WT_FILE)
     {
         ProgrammingError("Wrong writer type");

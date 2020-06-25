@@ -752,25 +752,23 @@ static bool Render(Buffer *out, const char *start, const char *input, Seq *hash_
                 switch (JsonGetElementType(var))
                 {
                 case JSON_ELEMENT_TYPE_PRIMITIVE:
-                    switch (JsonGetPrimitiveType(var))
+                    if (JsonGetPrimitiveType(var) == JSON_PRIMITIVE_TYPE_BOOL)
                     {
-                    case JSON_PRIMITIVE_TYPE_BOOL:
+                        bool skip = skip_content || (!JsonPrimitiveGetAsBool(var) ^ (tag.type == TAG_TYPE_INVERTED));
+
+                        const char *cur_section_end = NULL;
+                        if (!Render(out, start, input, hash_stack, NULL, delim_start, delim_start_len, delim_end, delim_end_len,
+                                    skip, cur_section, &cur_section_end))
                         {
-                            bool skip = skip_content || (!JsonPrimitiveGetAsBool(var) ^ (tag.type == TAG_TYPE_INVERTED));
-
-                            const char *cur_section_end = NULL;
-                            if (!Render(out, start, input, hash_stack, NULL, delim_start, delim_start_len, delim_end, delim_end_len,
-                                        skip, cur_section, &cur_section_end))
-                            {
-                                free(cur_section);
-                                return false;
-                            }
                             free(cur_section);
-                            input = cur_section_end;
+                            return false;
                         }
+                        free(cur_section);
+                        input = cur_section_end;
                         continue;
-
-                    default:
+                    }
+                    else
+                    {
                         Log(LOG_LEVEL_WARNING, "Mustache sections can only take a boolean or a container (array or map) value, but section '%s' isn't getting one of those.",
                             cur_section);
                         free(cur_section);
