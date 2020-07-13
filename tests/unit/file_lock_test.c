@@ -14,7 +14,7 @@
  * which totally confuses the unit test framework used by the other tests.
  */
 
-#if defined(__TERMUX__)
+#if defined(__ANDROID__)
 # define TEMP_DIR "/data/data/com.termux/files/usr/tmp"
 #else
 # define TEMP_DIR "/tmp/file_lib_test"
