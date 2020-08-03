@@ -562,8 +562,15 @@ int safe_open_create_perms(
 #ifdef __MINGW32__
     // Windows gets off easy. No symlinks there.
     return open(pathname, flags, create_perms);
-#else // !__MINGW32__
-
+#elif defined(__ANDROID__)
+    // if effective user is not root then don't try to open
+    // all paths from '/' up, might not have permissions.
+    uid_t p_euid = geteuid();
+    if (p_euid != 0)
+    {
+        return open(pathname, flags, create_perms);
+    }
+#else // !__MINGW32__ and !__ANDROID__
     const size_t path_bufsize = strlen(pathname) + 1;
     char path[path_bufsize];
     const size_t res_len = StringCopy(pathname, path, path_bufsize);
