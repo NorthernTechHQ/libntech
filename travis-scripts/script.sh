@@ -8,13 +8,13 @@ if [ "$TRAVIS_OS_NAME" = osx ]
 then
     ./autogen.sh --enable-debug --with-openssl="$(brew --prefix openssl)"
     gmake --version
-    gmake CFLAGS="-Werror -Wall -Wno-pointer-sign"
+    gmake CFLAGS="-Werror -Wall"
     gmake --debug -C tests/unit check
     exit
 elif [ "$JOB_TYPE" = compile_and_unit_test_no_deps ]
 then
     ./autogen.sh --enable-debug --with-pcre=no --with-openssl=no
-    make CFLAGS="-Werror -Wall -Wno-pointer-sign"
+    make CFLAGS="-Werror -Wall"
     make check
     exit
 else
@@ -25,15 +25,15 @@ fi
 
 if [ "$JOB_TYPE" = compile_only ]
 then
-    make CFLAGS="-Werror -Wno-pointer-sign" -k
+    make CFLAGS="-Werror" -k
 elif [ "$JOB_TYPE" = compile_and_unit_test ]
 then
-    make CFLAGS="-Wall -Wextra -Werror -Wno-pointer-sign -Wno-sign-compare"
+    make CFLAGS="-Wall -Wextra -Werror -Wno-sign-compare"
     make -C tests/unit check
     exit
 elif [ "$JOB_TYPE" = compile_and_unit_test_asan ]
 then
-    make CFLAGS="-Werror -Wall -Wno-pointer-sign -fsanitize=address" LDFLAGS="-fsanitize=address"
+    make CFLAGS="-Werror -Wall -fsanitize=address" LDFLAGS="-fsanitize=address"
     make -C tests/unit CFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address" check
     exit
 else
