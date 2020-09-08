@@ -37,6 +37,12 @@
 #define CF_MAXSIDSIZE    2048      /* Windows only: Max size (bytes) of
                                      security identifiers */
 
+// Limit database names and table names so they can be combined
+// into CF_MAXVARSIZE without truncation
+// NOTE: Databases like PostgreSQL and MySQL actually have stricter limits
+#define CF_MAXTABLENAMESIZE 256
+#define CF_MAXDBNAMESIZE    256
+
 /* Max size of plaintext in one transaction, see net.c:SendTransaction(),
    leave space for encryption padding (assuming max 64*8 = 512-bit cipher
    block size). */
