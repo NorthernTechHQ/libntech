@@ -26,6 +26,7 @@
 #define CFENGINE_STRING_LIB_H
 
 #include <stdbool.h> // bool
+#include <string.h>  // strstr()
 #include <stdarg.h> // va_list
 #include <compiler.h>
 #include <sequence.h>
