@@ -102,6 +102,16 @@ static inline bool CharIsPrintableAscii(const char c)
 }
 bool EmptyString(const char *s);
 
+static inline bool StringContains(const char *const haystack, const char *const needle)
+{
+    return (strstr(haystack, needle) != NULL);
+}
+
+static inline bool StringContainsChar(const char *const haystack, const char needle)
+{
+    return (strchr(haystack, needle) != NULL);
+}
+
 size_t StringBytesToHex(char *dst, size_t dst_size,
                         const unsigned char *src_bytes, size_t src_len);
 
