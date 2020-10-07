@@ -6,8 +6,6 @@
 #include <writer.h> // StringWriter()
 #include <file_lib.h> // safe_fopen()
 
-#define SEQ_PREFIX_LEN 10
-
 //////////////////////////////////////////////////////////////////////////////
 // SeqString - Sequence of strings (char *)
 //////////////////////////////////////////////////////////////////////////////
@@ -109,7 +107,7 @@ static long GetLengthPrefix(const char *data)
         return -1;
     }
 
-    if (data[SEQ_PREFIX_LEN - 1] != ' ')
+    if (data[STR_LENGTH_PREFIX_LEN - 1] != ' ')
     {
         return -1;
     }
@@ -144,18 +142,28 @@ static char *ValidDuplicate(const char *src, long n)
     return dst;
 }
 
+bool WriteLenPrefixedString(Writer *w, const char *string)
+{
+    const size_t str_length = strlen(string);
+    const size_t bytes_written = WriterWriteF(
+        w, "%-" TO_STRING(STR_LENGTH_PREFIX_LEN) "zu%s\n", str_length, string);
+    // TODO: Make WriterWriteF actually be able to propagate errors
+    //       (return negative number on short writes).
+    if (bytes_written == 0)
+    {
+        return false;
+    }
+    return true;
+}
+
 bool SeqStringWrite(Seq *seq, Writer *w)
 {
     const size_t length = SeqLength(seq);
     for (int i = 0; i < length; ++i)
     {
         const char *const s = SeqAt(seq, i);
-        const unsigned long str_length = strlen(s);
-        const size_t bytes_written = WriterWriteF(
-            w, "%-" TO_STRING(SEQ_PREFIX_LEN) "lu%s\n", str_length, s);
-        // TODO: Make WriterWriteF actually be able to propagate errors
-        //       (return negative number on short writes).
-        if (bytes_written == 0)
+        bool success = WriteLenPrefixedString(w, s);
+        if (!success)
         {
             return false;
         }
@@ -196,7 +204,7 @@ bool SeqStringWriteFile(Seq *seq, const char *file)
 Seq *SeqStringDeserialize(const char *const serialized)
 {
     assert(serialized != NULL);
-    assert(SEQ_PREFIX_LEN > 0);
+    assert(STR_LENGTH_PREFIX_LEN > 0);
 
     Seq *seq = SeqNew(128, free);
 
@@ -207,7 +215,7 @@ Seq *SeqStringDeserialize(const char *const serialized)
         long length = GetLengthPrefix(src);
 
         // Advance the src pointer
-        src += SEQ_PREFIX_LEN;
+        src += STR_LENGTH_PREFIX_LEN;
 
         char *new_str = NULL;
 
@@ -231,6 +239,39 @@ Seq *SeqStringDeserialize(const char *const serialized)
     return seq;
 }
 
+int ReadLenPrefixedString(int fd, char **string)
+{
+    char prefix[STR_LENGTH_PREFIX_LEN];
+    ssize_t bytes_read = FullRead(fd, prefix, STR_LENGTH_PREFIX_LEN);
+    if (bytes_read == 0)
+    {
+        // EOF
+        return 0;
+    }
+    if (bytes_read < 0)
+    {
+        // Error
+        return -1;
+    }
+    assert(prefix[STR_LENGTH_PREFIX_LEN - 1] == ' '); // NOTE: Not NUL-terminated
+    const long length = GetLengthPrefix(prefix);
+
+    // Read data, followed by a '\n' which we replace with '\0':
+    const long size = length + 1;
+    char *const data = xmalloc(size);
+    bytes_read = FullRead(fd, data, size);
+    if (bytes_read != size || data[length] != '\n')
+    {
+        // Short read, or error, or missing newline
+        free(data);
+        return -1;
+    }
+    data[length] = '\0'; // Replace newline with NUL-terminator
+    *string = data;
+
+    return 1;
+}
+
 Seq *SeqStringReadFile(const char *file)
 {
     const int fd = safe_open(file, O_RDONLY);
@@ -240,37 +281,25 @@ Seq *SeqStringReadFile(const char *file)
     }
 
     Seq *seq = SeqNew(500, &free);
-    char prefix[SEQ_PREFIX_LEN];
 
     while (true)
     {
-        ssize_t bytes_read = FullRead(fd, prefix, SEQ_PREFIX_LEN);
-        if (bytes_read == 0)
+        char *data;
+        int ret = ReadLenPrefixedString(fd, &data);
+        if (ret < 0)
         {
-            // EOF
+            /* error */
+            SeqDestroy(seq);
+            return NULL;
+        }
+        else if (ret == 0)
+        {
+            /* done (EOF) */
             return seq;
         }
-        if (bytes_read < 0)
+        else
         {
-            // Error
-            SeqDestroy(seq);
-            return NULL;
+            SeqAppend(seq, data);
         }
-        assert(prefix[SEQ_PREFIX_LEN - 1] == ' '); // NOTE: Not NUL-terminated
-        const long length = GetLengthPrefix(prefix);
-
-        // Read data, followed by a '\n' which we replace with '\0':
-        const long size = length + 1;
-        char *const data = xmalloc(size);
-        bytes_read = FullRead(fd, data, size);
-        if (bytes_read != size || data[length] != '\n')
-        {
-            // Short read, or error, or missing newline
-            SeqDestroy(seq);
-            free(data);
-            return NULL;
-        }
-        data[length] = '\0'; // Replace newline with NUL-terminator
-        SeqAppend(seq, data);
     }
 }
