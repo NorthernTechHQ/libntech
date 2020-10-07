@@ -5,6 +5,8 @@
 #include <stdbool.h> // bool
 #include <writer.h> // Writer
 
+#define STR_LENGTH_PREFIX_LEN 10
+
 /**
   @brief Create a new Sequence from splitting a string on a fixed delimiter
   @param [in] str String to split.
@@ -24,16 +26,28 @@ bool SeqStringContains(const Seq *seq, const char *str);
 int SeqStringLength(Seq *seq);
 
 /**
- * @brief Serializes a sequence of strings to a length prefixed format
- *
- * (De)Serialize uses a length prefixed format.
- * For every element in a string sequence,
- * the serialized output includes:
+ * Serialize the string into a length-prefixed format that consists of:
  * 1. 10 bytes of length prefix, where index 9 must be a space
  * 2. The data, with no escaping / modifications
  * 3. A single newline (\n) for readability
- * It is assumed that the sequence contains ascii printable
- * NUL terminated characters.
+ * It is assumed that the string only contains ascii printable
+ * characters and is NUL-terminated.
+ */
+bool WriteLenPrefixedString(Writer *w, const char *string);
+
+/**
+ * @brief Read (deserialize) a length-prefixed string
+ *
+ * Expects the format described in WriteLenPrefixedString() above.
+ *
+ * @return -1 in case of error, 0 in case of EOF, 1 in case of successfull read
+ */
+int ReadLenPrefixedString(int fd, char **string);
+
+/**
+ * @brief Serializes a sequence of strings to a length prefixed format
+ *
+ * (De)Serialize uses a length prefixed format.
  */
 char *SeqStringSerialize(Seq *seq);
 
