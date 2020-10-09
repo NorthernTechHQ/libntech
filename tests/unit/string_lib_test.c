@@ -496,6 +496,78 @@ static void test_string_to_long_compatibility(void)
     // Old function (StringToLongUnsafe) does not allow trailing whitespace
 }
 
+static void test_string_to_int64(void)
+{
+    assert_int_equal(StringToInt64ExitOnError("0"),    0);
+    assert_int_equal(StringToInt64ExitOnError("-0"),   0);
+    assert_int_equal(StringToInt64ExitOnError("+0"),   0);
+    assert_int_equal(StringToInt64ExitOnError("123"),  123);
+    assert_int_equal(StringToInt64ExitOnError("+123"), 123);
+    assert_int_equal(StringToInt64ExitOnError("9999999999"), 9999999999);
+    assert_int_equal(StringToInt64ExitOnError("-9999999999"), -9999999999);
+    assert_int_equal(StringToInt64ExitOnError("1234 "), 1234);
+    assert_int_equal(StringToInt64ExitOnError("1234\n"), 1234);
+
+    assert_int_equal(StringToInt64DefaultOnError("123", -1), 123);
+    assert_int_equal(StringToInt64DefaultOnError("9999999999", 0), 9999999999);
+    assert_int_equal(StringToInt64DefaultOnError("-9999999999", 0), -9999999999);
+    assert_int_equal(StringToInt64DefaultOnError("", 456), 456);
+    assert_int_equal(StringToInt64DefaultOnError(" ", 456), 456);
+    assert_int_equal(StringToInt64DefaultOnError("\n", 456), 456);
+    assert_int_equal(StringToInt64DefaultOnError("a", 456), 456);
+    assert_int_equal(StringToInt64DefaultOnError("abc", 456), 456);
+    assert_int_equal(StringToInt64DefaultOnError("k", 456), 456);
+
+    {
+        // Paranoid test, ensure value is not cast to smaller type:
+        int error_code;
+        int64_t out;
+
+        error_code = StringToInt64("9223372036854775807", &out);
+        assert_int_equal(error_code, 0);
+        assert_true(out == 9223372036854775807);
+
+        error_code = StringToInt64("-9223372036854775808", &out);
+        assert_int_equal(error_code, 0);
+        // https://stackoverflow.com/a/60323339 :
+        assert_true(out == -9223372036854775807 - 1);
+    }
+
+    {
+        // Error cases:
+        // Give bad address - function should not read/write to it
+
+        int error_code;
+
+        error_code = StringToInt64("", NULL + 1);
+        assert_true(error_code != 0);
+
+        error_code = StringToInt64(" ", NULL + 1);
+        assert_true(error_code != 0);
+
+        error_code = StringToInt64("-", NULL + 1);
+        assert_true(error_code != 0);
+
+        error_code = StringToInt64("\n", NULL + 1);
+        assert_true(error_code != 0);
+
+        error_code = StringToInt64("[]", NULL + 1);
+        assert_true(error_code != 0);
+
+        error_code = StringToInt64("{}", NULL + 1);
+        assert_true(error_code != 0);
+
+        error_code = StringToInt64("\"\"", NULL + 1);
+        assert_true(error_code != 0);
+
+        error_code = StringToInt64("e", NULL + 1);
+        assert_true(error_code != 0);
+
+        error_code = StringToInt64("1234abc", NULL + 1);
+        assert_true(error_code != 0);
+    }
+}
+
 static void test_string_from_long(void)
 {
     char *result = StringFromLong(123456789);
@@ -1265,6 +1337,7 @@ int main()
         unit_test(test_string_to_long_errors),
         unit_test(test_string_to_long_unsafe),
         unit_test(test_string_to_long_compatibility),
+        unit_test(test_string_to_int64),
         unit_test(test_string_from_long),
         unit_test(test_string_to_double),
         unit_test(test_string_from_double),

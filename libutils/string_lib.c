@@ -31,6 +31,7 @@
 #include <logging.h>
 #include <cleanup.h>
 #include <definitions.h> // CF_BUFSIZE
+#include <condition_macros.h> // nt_static_assert()
 
 
 char *StringVFormat(const char *fmt, va_list ap)
@@ -483,9 +484,9 @@ bool EmptyString(const char *s)
  */
 int StringToLong(const char *str, long *value_out)
 {
+    nt_static_assert(ERANGE != 0);
     assert(str != NULL);
     assert(value_out != NULL);
-    assert(ERANGE != 0);
 
     char *endptr = NULL;
     long val;
@@ -589,6 +590,107 @@ long StringToLongExitOnError(const char *str)
     {
         LogStringToLongError(str, "StringToLongExitOnError", return_code);
         DoCleanupAndExit(EXIT_FAILURE);
+    }
+    return result;
+}
+
+/**
+ * @brief Converts a string of numerals in base 10 to 64-bit signed int
+ *
+ * Result is stored in *value_out, return value should be checked.
+ * On error *value_out is unmodified and false is returned.
+ *
+ * @see StringToLong()
+ * @param[in] str String with numerals to convert, cannot be NULL
+ * @param[out] value_out Where to store result on success, cannot be NULL
+ * @return 0 on success, error code otherwise (see source code)
+ */
+int StringToInt64(const char *str, int64_t *value_out)
+{
+    nt_static_assert(sizeof(int64_t) == sizeof(intmax_t));
+    nt_static_assert(ERANGE != 0);
+    assert(str != NULL);
+    assert(value_out != NULL);
+
+    char *endptr = NULL;
+    int64_t val;
+
+    errno = 0;
+    val = strtoimax(str, &endptr, 10);
+
+    if ((errno == ERANGE && (val == INTMAX_MAX || val == INTMAX_MIN)))
+    {
+        return ERANGE; // Overflow or underflow
+    }
+
+    if (endptr == str)
+    {
+        return -81; // No digits found
+    }
+
+    if (endptr == NULL)
+    {
+        return -82; // endpointer not set by strtol
+    }
+
+    if (*endptr != '\0' && !isspace(*endptr))
+    {
+        return -83; // string not properly terminated
+    }
+
+    if (errno != 0)
+    {
+        return errno; // Unknown error
+    }
+
+    *value_out = val;
+    return 0;
+}
+
+/**
+ * @brief Convert a string to int64_t, exits if parsing fails
+ *
+ * Only use this function in contexts/components where it is acceptable
+ * to immediately exit when something goes wrong.
+ *
+ * @warning This function can exit the process based on string contents
+ * @see StringToInt64()
+ * @see StringToLongExitOnError()
+ * @param[in] str String with numerals to convert, cannot be NULL
+ * @return Result of conversion
+ */
+int64_t StringToInt64ExitOnError(const char *str)
+{
+    assert(str != NULL);
+
+    int64_t result;
+    const int error_code = StringToInt64(str, &result);
+    if (error_code != 0)
+    {
+        LogStringToLongError(str, "StringToInt64ExitOnError", error_code);
+        DoCleanupAndExit(EXIT_FAILURE);
+    }
+    return result;
+}
+
+/**
+ * @brief Converts a string to int64_t, with a default value in case of errors
+ *
+ * @see StringToInt64()
+ * @see StringToLongDefaultOnError()
+ * @param[in] str String with numerals to convert, cannot be NULL
+ * @param[in] default_return Value to return on error
+ * @return Result of conversion
+ */
+int64_t StringToInt64DefaultOnError(const char *str, int64_t default_return)
+{
+    assert(str != NULL);
+
+    int64_t result;
+    const int error_code = StringToInt64(str, &result);
+    if (error_code != 0)
+    {
+        return default_return;
     }
     return result;
 }
