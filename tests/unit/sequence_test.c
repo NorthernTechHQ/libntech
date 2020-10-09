@@ -524,6 +524,7 @@ static void test_get_data(void)
     for (size_t i = 4; i < 16; i++)
     {
         void *item = data[i];
+        UNUSED(item);
     }
 
     /* no leak here, 'data' is not a copy */
