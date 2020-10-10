@@ -46,11 +46,11 @@
 //   very important. Error messages are confusing if you end up using the wrong
 //   static_assert. Error message would only appear on some platforms, not others.
 
-// #ifdef _Static_assert
-// // Note: The message here is not really necessary,
-// //       most compilers will include this information anyway.
-// #define nt_static_assert(x) _Static_assert(x, __FILE__ ":" TO_STRING(__LINE__) ": (" #x ") -> false")
-// #else
+#ifdef _Static_assert
+// Note: The message here is not really necessary,
+//       most compilers will include this information anyway.
+#define nt_static_assert(x) _Static_assert(x, __FILE__ ":" TO_STRING(__LINE__) ": (" #x ") -> false")
+#else
 #define nt_static_assert(x) {                               \
     switch (0) {                                            \
     case 0: /* Cause duplicate case if next is 0 as well */ \
@@ -59,6 +59,6 @@
         break;                                              \
     }                                                       \
 }
-// #endif
+#endif
 
 #endif
