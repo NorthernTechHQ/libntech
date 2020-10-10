@@ -187,7 +187,7 @@ int PassOpenFile_Get(int uds, char **text)
 
     /* Deliver pid to peer over uds */
     char msg[PID_MSG_SIZE];
-    assert(sizeof(PID_FMT) - 3 + PRINTSIZE(unsigned long) <= PID_MSG_SIZE);
+    nt_static_assert(sizeof(PID_FMT) - 3 + PRINTSIZE(unsigned long) <= PID_MSG_SIZE);
     unsigned long pid = GetCurrentProcessId();
     int len = snprintf(msg, sizeof(msg), PID_FMT, pid);
     assert(len > 0 && len < PID_MSG_SIZE);

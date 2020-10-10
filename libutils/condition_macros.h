@@ -35,4 +35,30 @@
 }
 #endif
 
+// libntech static assert (compile time check):
+// has nt_ prefix to not be confused with static_assert
+// Why not just static_assert?
+// - It is already defined on some platforms (recent RHEL and Ubuntu),
+//   but in incompatible ways. On RHEL second arg (message) is required,
+//   on Ubuntu it is not.
+// Why not redefine static_assert (undef + define)?
+// - Hard to know which static_assert you are using. Include ordering becomes
+//   very important. Error messages are confusing if you end up using the wrong
+//   static_assert. Error message would only appear on some platforms, not others.
+
+// #ifdef _Static_assert
+// // Note: The message here is not really necessary,
+// //       most compilers will include this information anyway.
+// #define nt_static_assert(x) _Static_assert(x, __FILE__ ":" TO_STRING(__LINE__) ": (" #x ") -> false")
+// #else
+#define nt_static_assert(x) {                               \
+    switch (0) {                                            \
+    case 0: /* Cause duplicate case if next is 0 as well */ \
+        break;                                              \
+    case x: /* Error if 0 or if non-const expression */     \
+        break;                                              \
+    }                                                       \
+}
+// #endif
+
 #endif
