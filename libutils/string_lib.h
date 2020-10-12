@@ -26,6 +26,7 @@
 #define CFENGINE_STRING_LIB_H
 
 #include <stdbool.h> // bool
+#include <stdint.h>  // int64_t
 #include <string.h>  // strstr()
 #include <stdarg.h> // va_list
 #include <compiler.h>
@@ -72,6 +73,9 @@ void LogStringToLongError(const char *str_attempted, const char *id, int error_c
 long StringToLongDefaultOnError(const char *str, long default_return);
 long StringToLongExitOnError(const char *str);
 long StringToLongUnsafe(const char *str); // Deprecated, do not use
+int StringToInt64(const char *str, int64_t *value_out);
+int64_t StringToInt64DefaultOnError(const char *str, int64_t default_return);
+int64_t StringToInt64ExitOnError(const char *str);
 
 char *StringFromLong(long number);
 double StringToDouble(const char *str);

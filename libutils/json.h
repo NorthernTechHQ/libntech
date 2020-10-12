@@ -27,6 +27,7 @@
 
 #include <regex.h>
 #include <writer.h>
+#include <inttypes.h> // int64_t
 
 /**
   @brief JSON data-structure.
@@ -199,6 +200,9 @@ const char *JsonPrimitiveGetAsString(const JsonElement *primitive);
 char *JsonPrimitiveToString(const JsonElement *primitive);
 bool JsonPrimitiveGetAsBool(const JsonElement *primitive);
 long JsonPrimitiveGetAsInteger(const JsonElement *primitive);
+int JsonPrimitiveGetAsInt64(const JsonElement *primitive, int64_t *value_out);
+int64_t JsonPrimitiveGetAsInt64DefaultOnError(const JsonElement *primitive, int64_t default_return);
+int64_t JsonPrimitiveGetAsInt64ExitOnError(const JsonElement *primitive);
 double JsonPrimitiveGetAsReal(const JsonElement *primitive);
 
 JsonElement *JsonStringCreate(const char *value);
