@@ -28,9 +28,7 @@
 #include <misc_lib.h>
 #include <cleanup.h>
 
-#ifdef __MINGW32__
 #include <definitions.h>        /* CF_BUFSIZE */
-#endif
 
 char VPREFIX[1024] = ""; /* GLOBAL_C */
 
@@ -376,28 +374,31 @@ void VLog(LogLevel level, const char *fmt, va_list ap)
     free(msg);
 }
 
-/* TODO create libutils/defs.h. */
-#define CF_MAX_BUFSIZE 16384
-
 /**
  * @brief Logs binary data in #buf, with unprintable bytes translated to '.'.
  *        Message is prefixed with #prefix.
- * @param #buflen must be no more than CF_MAX_BUFSIZE
+ * @param #buflen must be no more than CF_BUFSIZE
  */
 void LogRaw(LogLevel level, const char *prefix, const void *buf, size_t buflen)
 {
-    const unsigned char *src = buf;
-    unsigned char dst[buflen+1];
-    assert(sizeof(dst) <= CF_MAX_BUFSIZE);
+    if (buflen > CF_BUFSIZE)
+    {
+        debug_abort_if_reached();
+        buflen = CF_BUFSIZE;
+    }
 
     LoggingContext *lctx = GetCurrentThreadContext();
     if (level <= lctx->report_level || level <= lctx->log_level)
     {
+        const unsigned char *src = buf;
+        unsigned char dst[CF_BUFSIZE+1];
+        assert(buflen < sizeof(dst));
         size_t i;
         for (i = 0; i < buflen; i++)
         {
             dst[i] = isprint(src[i]) ? src[i] : '.';
         }
+        assert(i < sizeof(dst));
         dst[i] = '\0';
 
         /* And Log the translated buffer, which is now a valid string. */
