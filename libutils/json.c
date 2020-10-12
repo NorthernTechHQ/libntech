@@ -754,6 +754,34 @@ long JsonPrimitiveGetAsInteger(const JsonElement *const primitive)
     return StringToLongExitOnError(primitive->primitive.value);
 }
 
+
+int JsonPrimitiveGetAsInt64(const JsonElement *primitive, int64_t *value_out)
+{
+    assert(primitive != NULL);
+    assert(primitive->type == JSON_ELEMENT_TYPE_PRIMITIVE);
+    assert(primitive->primitive.type == JSON_PRIMITIVE_TYPE_INTEGER);
+
+    return StringToInt64(primitive->primitive.value, value_out);
+}
+
+int64_t JsonPrimitiveGetAsInt64DefaultOnError(const JsonElement *primitive, int64_t default_return)
+{
+    assert(primitive != NULL);
+    assert(primitive->type == JSON_ELEMENT_TYPE_PRIMITIVE);
+    assert(primitive->primitive.type == JSON_PRIMITIVE_TYPE_INTEGER);
+
+    return StringToInt64DefaultOnError(primitive->primitive.value, default_return);
+}
+
+int64_t JsonPrimitiveGetAsInt64ExitOnError(const JsonElement *primitive)
+{
+    assert(primitive != NULL);
+    assert(primitive->type == JSON_ELEMENT_TYPE_PRIMITIVE);
+    assert(primitive->primitive.type == JSON_PRIMITIVE_TYPE_INTEGER);
+
+    return StringToInt64ExitOnError(primitive->primitive.value);
+}
+
 double JsonPrimitiveGetAsReal(const JsonElement *const primitive)
 {
     assert(primitive != NULL);

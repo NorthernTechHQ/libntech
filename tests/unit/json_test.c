@@ -4,6 +4,7 @@
 #include <string_lib.h>
 #include <file_lib.h>
 #include <misc_lib.h> /* xsnprintf */
+#include <alloc.h>    // xasprintf()
 
 #include <float.h>
 
@@ -918,6 +919,103 @@ static void test_parse_escaped_string(void)
     }
 }
 
+static void test_parse_big_numbers(void)
+{
+#define JSON_TEST_BIG_NUMBER "9999999999"
+    // JsonPrimitiveGetAsInt64():
+    {
+        const char *data = "[" JSON_TEST_BIG_NUMBER "]";
+        JsonElement *json = NULL;
+        assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_true(json != NULL);
+
+        const JsonElement *const primitive = JsonArrayGet(json, 0);
+        int64_t number;
+        const int error_code = JsonPrimitiveGetAsInt64(primitive, &number);
+        assert_int_equal(error_code, 0);
+        char *result;
+        xasprintf(&result, "%jd", (intmax_t) number);
+        assert_string_equal(result, JSON_TEST_BIG_NUMBER);
+        free(result);
+        JsonDestroy(json);
+    }
+    {
+        const char *data = "[-" JSON_TEST_BIG_NUMBER "]";
+        JsonElement *json = NULL;
+        assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_true(json != NULL);
+
+        const JsonElement *const primitive = JsonArrayGet(json, 0);
+        int64_t number;
+        const int error_code = JsonPrimitiveGetAsInt64(primitive, &number);
+        assert_int_equal(error_code, 0);
+        char *result;
+        xasprintf(&result, "%jd", (intmax_t) number);
+        assert_string_equal(result, "-" JSON_TEST_BIG_NUMBER);
+        free(result);
+        JsonDestroy(json);
+    }
+    // JsonPrimitiveGetAsInt64DefaultOnError():
+    {
+        const char *data = "[" JSON_TEST_BIG_NUMBER "]";
+        JsonElement *json = NULL;
+        assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_true(json != NULL);
+
+        const JsonElement *const primitive = JsonArrayGet(json, 0);
+        const int64_t number = JsonPrimitiveGetAsInt64DefaultOnError(primitive, -1);
+        char *result;
+        xasprintf(&result, "%jd", (intmax_t) number);
+        assert_string_equal(result, JSON_TEST_BIG_NUMBER);
+        free(result);
+        JsonDestroy(json);
+    }
+    {
+        const char *data = "[-" JSON_TEST_BIG_NUMBER "]";
+        JsonElement *json = NULL;
+        assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_true(json != NULL);
+
+        const JsonElement *const primitive = JsonArrayGet(json, 0);
+        const int64_t number = JsonPrimitiveGetAsInt64DefaultOnError(primitive, -1);
+        char *result;
+        xasprintf(&result, "%jd", (intmax_t) number);
+        assert_string_equal(result, "-" JSON_TEST_BIG_NUMBER);
+        free(result);
+        JsonDestroy(json);
+    }
+    // JsonPrimitiveGetAsInt64ExitOnError():
+    {
+        const char *data = "[" JSON_TEST_BIG_NUMBER "]";
+        JsonElement *json = NULL;
+        assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_true(json != NULL);
+
+        const JsonElement *const primitive = JsonArrayGet(json, 0);
+        const int64_t number = JsonPrimitiveGetAsInt64ExitOnError(primitive);
+        char *result;
+        xasprintf(&result, "%jd", (intmax_t) number);
+        assert_string_equal(result, JSON_TEST_BIG_NUMBER);
+        free(result);
+        JsonDestroy(json);
+    }
+    {
+        const char *data = "[-" JSON_TEST_BIG_NUMBER "]";
+        JsonElement *json = NULL;
+        assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_true(json != NULL);
+
+        const JsonElement *const primitive = JsonArrayGet(json, 0);
+        const int64_t number = JsonPrimitiveGetAsInt64ExitOnError(primitive);
+        char *result;
+        xasprintf(&result, "%jd", (intmax_t) number);
+        assert_string_equal(result, "-" JSON_TEST_BIG_NUMBER);
+        free(result);
+        JsonDestroy(json);
+    }
+#undef JSON_TEST_BIG_NUMBER
+}
+
 static void test_parse_good_numbers(void)
 {
     {
@@ -1557,6 +1655,7 @@ int main()
         unit_test(test_parse_empty_containers),
         unit_test(test_parse_empty_string),
         unit_test(test_parse_escaped_string),
+        unit_test(test_parse_big_numbers),
         unit_test(test_parse_good_numbers),
         unit_test(test_parse_object_compound),
         unit_test(test_parse_object_diverse),
