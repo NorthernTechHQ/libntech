@@ -543,7 +543,7 @@ void LogDebug(enum LogModule mod, const char *fmt, ...)
     assert(mod < LOG_MOD_MAX);
 
     /* Did we forget any entry in log_modules? Should be a static assert. */
-    assert(sizeof(log_modules) / sizeof(log_modules[0]) == LOG_MOD_MAX);
+    nt_static_assert(sizeof(log_modules) / sizeof(log_modules[0]) == LOG_MOD_MAX);
 
     if (LogModuleEnabled(mod))
     {
