@@ -29,6 +29,7 @@
 #include <sys/types.h> // uid_t
 #include <writer.h>
 #include <set.h>
+#include <sequence.h>
 
 typedef enum
 {

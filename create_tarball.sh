@@ -42,7 +42,7 @@ dist()
 
 {
   git checkout $BRANCH
-  ./autogen.sh --with-tokyocabinet=/usr
+  ./autogen.sh
   make dist
 }
 
@@ -53,7 +53,7 @@ check()
   cd ..
   tar xf core/cfengine-$CURR_VERSION.tar.gz
   cd cfengine-$CURR_VERSION
-  ./configure --with-tokyocabinet=/usr --disable-coverage --disable-shared
+  ./configure --disable-coverage --disable-shared
   make check -j8
 }
 

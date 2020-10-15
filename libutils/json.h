@@ -25,7 +25,6 @@
 #ifndef CFENGINE_JSON_H
 #define CFENGINE_JSON_H
 
-#include <regex.h>
 #include <writer.h>
 #include <inttypes.h> // int64_t
 
@@ -114,6 +113,7 @@ typedef enum
     JSON_PARSE_ERROR_INVALID_START,
     JSON_PARSE_ERROR_NO_LIBYAML,
     JSON_PARSE_ERROR_LIBYAML_FAILURE,
+    JSON_PARSE_ERROR_NO_SUCH_FILE,
     JSON_PARSE_ERROR_NO_DATA,
     JSON_PARSE_ERROR_TRUNCATED,
 
@@ -185,9 +185,6 @@ JsonType JsonGetType(const JsonElement *element);
 const char *JsonElementGetPropertyName(const JsonElement *element);
 
 const char *JsonGetPropertyAsString(const JsonElement *element);
-
-JsonElement *StringCaptureData(
-    pcre *pattern, const char *regex, const char *data);
 
 
 //////////////////////////////////////////////////////////////////////////////
