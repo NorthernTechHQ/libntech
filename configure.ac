@@ -1403,10 +1403,6 @@ if test "x$use_coverage" = "xyes"; then
     AC_MSG_ERROR([GCC is required for --enable-coverage])
   fi
 
-  if test "$debug" != "yes"; then
-    AC_MSG_ERROR([--enable-debug is required for --enable-coverage])
-  fi
-
   AC_CHECK_PROG(LCOV, lcov, lcov)
   AC_CHECK_PROG(LCOV_GENHTML, genhtml, genhtml)
 
