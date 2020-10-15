@@ -1964,6 +1964,7 @@ const char *JsonParseErrorToString(const JsonParseError error)
         [JSON_PARSE_ERROR_NO_LIBYAML] =
             "CFEngine was not built with libyaml support",
         [JSON_PARSE_ERROR_LIBYAML_FAILURE] = "libyaml internal failure",
+        [JSON_PARSE_ERROR_NO_SUCH_FILE] = "No such file or directory",
         [JSON_PARSE_ERROR_NO_DATA] = "No data"};
 
     return parse_errors[error];
@@ -2697,7 +2698,7 @@ JsonParseError JsonParseAnyFile(
     Writer *contents = FileRead(path, size_max, &truncated);
     if (contents == NULL)
     {
-        return JSON_PARSE_ERROR_NO_DATA;
+        return JSON_PARSE_ERROR_NO_SUCH_FILE;
     }
     else if (truncated)
     {

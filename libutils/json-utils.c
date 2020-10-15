@@ -351,8 +351,7 @@ JsonElement *JsonReadDataFile(const char *log_identifier, const char *input_path
     JsonParseError res =
         JsonParseAnyFile(input_path, size_max, &json, yaml_mode);
 
-    // the NO_DATA errors often happen when the file hasn't been created yet
-    if (res == JSON_PARSE_ERROR_NO_DATA)
+    if ((res == JSON_PARSE_ERROR_NO_DATA) || (res == JSON_PARSE_ERROR_NO_SUCH_FILE))
     {
         Log(LOG_LEVEL_ERR,
             "%s: data error parsing %s file '%s': %s",
