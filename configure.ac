@@ -1482,13 +1482,11 @@ AC_MSG_RESULT( )
 AC_MSG_RESULT(Summary:)
 AC_MSG_RESULT(> Version: AC_PACKAGE_VERSION)
 
-AC_MSG_RESULT([> Required libraries])
+AC_MSG_RESULT([> Optional libraries])
 
 AC_MSG_RESULT([-> OpenSSL: $OPENSSL_PATH])
 
 AC_MSG_RESULT([-> PCRE: $PCRE_PATH])
-
-AC_MSG_RESULT([> Optional libraries])
 
 if test "x$ac_cv_lib_mysqlclient_mysql_real_connect" = "xyes"; then
   AC_MSG_RESULT([-> MySQL connector: $MYSQL_PATH])

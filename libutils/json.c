@@ -33,7 +33,9 @@
 #include <misc_lib.h>
 #include <file_lib.h>
 #include <printsize.h>
+#ifdef WITH_PCRE
 #include <regex.h>
+#endif
 #include <buffer.h>
 
 static const int SPACES_PER_INDENT = 2;
@@ -2733,6 +2735,7 @@ JsonParseError JsonParseFile(
 /*******************************************************************/
 
 #ifdef WITH_PCRE
+#include <json-pcre.h>
 
 // returns NULL on any failure
 // takes either a pre-compiled pattern OR a regex (one of the two shouldn't be

@@ -31,7 +31,6 @@
 #include <stdarg.h> // va_list
 #include <compiler.h>
 #include <sequence.h>
-#include <pcre.h>
 
 
 typedef struct

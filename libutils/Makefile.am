@@ -47,6 +47,7 @@ libutils_la_SOURCES = \
 	hash_method.h \
 	ip_address.c ip_address.h \
 	json.c json.h json-priv.h \
+	json-pcre.h \
 	json-utils.c json-utils.h \
 	json-yaml.c json-yaml.h \
 	known_dirs.c known_dirs.h \

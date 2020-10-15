@@ -25,7 +25,6 @@
 #ifndef CFENGINE_JSON_H
 #define CFENGINE_JSON_H
 
-#include <regex.h>
 #include <writer.h>
 #include <inttypes.h> // int64_t
 
@@ -186,9 +185,6 @@ JsonType JsonGetType(const JsonElement *element);
 const char *JsonElementGetPropertyName(const JsonElement *element);
 
 const char *JsonGetPropertyAsString(const JsonElement *element);
-
-JsonElement *StringCaptureData(
-    pcre *pattern, const char *regex, const char *data);
 
 
 //////////////////////////////////////////////////////////////////////////////

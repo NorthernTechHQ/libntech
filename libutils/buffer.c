@@ -27,7 +27,9 @@
 #include <buffer.h>
 #include <refcount.h>
 #include <misc_lib.h>
+#ifdef WITH_PCRE
 #include <pcre_wrap.h>
+#endif
 #include <string_lib.h>
 
 Buffer *BufferNewWithCapacity(unsigned int initial_capacity)
