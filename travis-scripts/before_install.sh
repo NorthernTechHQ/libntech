@@ -5,8 +5,6 @@ then
     set +e
     rvm get stable
     brew update
-    brew install lmdb
-    brew --prefix lmdb
     brew install make
     brew --prefix make
     brew install autoconf
@@ -26,7 +24,6 @@ else
     sudo apt-get --quiet update
     # Needed to build
     sudo apt-get install -y libpam0g-dev
-    sudo apt-get install -y liblmdb-dev
     # Needed to test
     sudo apt-get install -y fakeroot
 
