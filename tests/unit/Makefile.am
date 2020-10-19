@@ -38,7 +38,7 @@ LDADD = ../../libutils/libutils.la libtest.la
 LIBS = $(CORE_LIBS)
 AM_LDFLAGS = $(CORE_LDFLAGS)
 
-AM_CFLAGS = $(CORE_CFLAGS) $(PTHREAD_CFLAGS)
+AM_CFLAGS = $(CORE_CFLAGS) $(PTHREAD_CFLAGS) -DUNIT_TESTING_DEBUG=1
 
 
 check_LTLIBRARIES = libtest.la
