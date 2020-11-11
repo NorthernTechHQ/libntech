@@ -490,6 +490,18 @@ static bool RenderVariable(Buffer *out,
             // because we return false earlier otherwise
             return RenderVariablePrimitive(out, var, escape, json_key);
         }
+        else if (item_mode)
+        {
+            // This can happen in 2 cases:
+            // if you try to use {{.}} on the top element (without iterating)
+            // if you try to use {{.}} while iterating and the current element is a container
+            // In both cases we want to give an error(warning) since this is not clear in the
+            // mustache spec
+            Log(LOG_LEVEL_WARNING,
+                "{{.}} mustache tag cannot expand a container without specifying conversion"
+                " - consider {{$.}} or {{%%.}}");
+            return false;
+        }
     }
 
     assert(false);
