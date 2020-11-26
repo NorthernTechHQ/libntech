@@ -231,7 +231,14 @@ int StringSafeCompare(const char *const a, const char *const b)
     }
     if (a != NULL && b != NULL)
     {
-        return strcmp(a, b);
+        // Adding this as strcmp gives difference of the buffer values in aarch64
+        // Whereas it gives 1, 0 or -1 in other platforms accordingly.
+        int compare_result = strcmp(a, b);
+        if (compare_result != 0)
+        {
+            compare_result = compare_result / abs(compare_result);
+        }
+        return compare_result;
     }
 
     // Weird edge cases where one is NULL:
