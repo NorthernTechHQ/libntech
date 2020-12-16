@@ -843,7 +843,7 @@ int CountChar(const char *string, char sep)
     return count;
 }
 
-void ReplaceChar(char *in, char *out, int outSz, char from, char to)
+void ReplaceChar(const char *in, char *out, int outSz, char from, char to)
 /* Replaces all occurrences of 'from' to 'to' in preallocated
  * string 'out'. */
 {
