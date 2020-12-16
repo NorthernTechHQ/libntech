@@ -155,7 +155,7 @@ char **String2StringArray(const char *str, char separator);
 void FreeStringArray(char **strs);
 
 int CountChar(const char *string, char sp);
-void ReplaceChar(char *in, char *out, int outSz, char from, char to);
+void ReplaceChar(const char *in, char *out, int outSz, char from, char to);
 void ReplaceTrailingChar(char *str, char from, char to);
 char *EscapeCharCopy(const char *str, char to_escape, char escape_with);
 
