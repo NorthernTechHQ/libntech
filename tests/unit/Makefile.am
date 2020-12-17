@@ -76,6 +76,7 @@ endif
 
 check_PROGRAMS = \
 	cleanup_test \
+	condition_macros_test \
 	csv_writer_test \
 	set_test \
 	csv_parser_test \
