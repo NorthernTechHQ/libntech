@@ -561,11 +561,10 @@ setnetgrent(const char *netgroup);
 
 #if !HAVE_DECL_ENDNETGRENT
 #if ENDNETGRENT_RETURNS_INT
-int
+int endnetgrent(void);
 #else
-void
+void endnetgrent(void);
 #endif
-endnetgrent(void);
 #endif
 
 #if !HAVE_DECL_STRSTR
