@@ -126,6 +126,9 @@ cscope.*
 .project
 .settings
 
+# vscode
+/.vscode
+
 # qt-creator
 /core.config
 /core.creator
