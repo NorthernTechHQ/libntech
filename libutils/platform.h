@@ -448,11 +448,19 @@ static inline uint32_t ByteSwap32(uint32_t le32uint)
     return be32uint;
 }
 # ifdef WORDS_BIGENDIAN
-#  define le32toh(x) ByteSwap32(x)
-#  define htole32(x) ByteSwap32(x)
+#  ifndef le32toh
+#   define le32toh(x) ByteSwap32(x)
+#  endif
+#  ifndef htole32
+#   define htole32(x) ByteSwap32(x)
+#  endif
 # else
-#  define le32toh(x) (x)
-#  define htole32(x) (x)
+#  ifndef le32toh
+#   define le32toh(x) (x)
+#  endif
+#  ifndef htole32
+#   define htole32(x) (x)
+#  endif
 # endif
 #endif // !HAVE_DECL_LE32TOH
 
