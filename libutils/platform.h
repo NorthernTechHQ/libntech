@@ -560,11 +560,10 @@ int getnetgrent(char **host, char **user, char **domain);
 
 #if !HAVE_DECL_SETNETGRENT
 #if SETNETGRENT_RETURNS_INT
-int
+int setnetgrent(const char *netgroup);
 #else
-void
+void setnetgrent(const char *netgroup);
 #endif
-setnetgrent(const char *netgroup);
 #endif
 
 #if !HAVE_DECL_ENDNETGRENT
