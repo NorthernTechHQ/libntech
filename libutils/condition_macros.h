@@ -61,4 +61,10 @@
 }
 #endif
 
+// Useful to assert that 2 string literals are the same, at compile time:
+// #define nt_static_assert_string_equal(a,b) nt_static_assert(strcmp(a,b) == 0)
+// This macro doesn't work everywhere, yet, because not all the compilers we
+// use will optimize out the strcmp() call for string literals.
+// TODO: Enable later :)
+
 #endif
