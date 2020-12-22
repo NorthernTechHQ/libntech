@@ -53,7 +53,7 @@ typedef struct
 {
     HashMap *map;
     BucketListItem *cur;
-    int bucket;
+    size_t bucket;
 } HashMapIterator;
 
 HashMap *HashMapNew(MapHashFn hash_fn, MapKeyEqualFn equal_fn,

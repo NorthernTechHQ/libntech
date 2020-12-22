@@ -26,7 +26,7 @@
 
 void ConvertFromCharToWChar(int16_t *dst, const char *src, size_t size)
 {
-    int c;
+    size_t c;
     size--; // Room for '\0'.
     for (c = 0; c < size && src[c]; c++)
     {
@@ -38,7 +38,7 @@ void ConvertFromCharToWChar(int16_t *dst, const char *src, size_t size)
 bool ConvertFromWCharToChar(char *dst, const int16_t *src, size_t size)
 {
     bool clean = true;
-    int c;
+    size_t c;
     size--; // Room for '\0'.
     for (c = 0; c < size && src[c]; c++)
     {

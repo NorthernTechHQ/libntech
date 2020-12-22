@@ -62,7 +62,7 @@ size_t StringCopy(const char *const from, char *const to, const size_t buf_size)
     assert(from != NULL);
     assert(to != NULL);
     assert(from != to);
-    assert(buf_size >= 0);
+    assert(buf_size >= 0UL);
 
     memset(to, 0, buf_size);
     strncpy(to, from, buf_size);
@@ -397,7 +397,7 @@ char *StringConcatenate(size_t count, const char *first, ...)
 
 char *StringSubstring(const char *source, size_t source_len, int start, int len)
 {
-    size_t end = -1;
+    ssize_t end = -1;
 
     if (len == 0)
     {
@@ -1291,7 +1291,7 @@ size_t TrimCSVLineCRLFStrict(char *const data)
     return length;
 }
 
-void StringCloseHole(char *s, const int start, const int end)
+void StringCloseHole(char *s, const size_t start, const size_t end)
 {
     assert(s != NULL);
     assert(0 <= start && start <= end && end <= strlen(s));
@@ -1393,7 +1393,7 @@ void *memcchr(const void *buf, int c, size_t buf_size)
  * @param[out] obuf   : the output buffer
  * @retval    true if string was capped, false if not
  */
-bool StringNotMatchingSetCapped(const char *isp, int limit,
+bool StringNotMatchingSetCapped(const char *isp, size_t limit,
                       const char *exclude, char *obuf)
 {
     size_t l = strcspn(isp, exclude);
@@ -1414,7 +1414,7 @@ bool StringNotMatchingSetCapped(const char *isp, int limit,
 
 bool StringAppend(char *dst, const char *src, size_t n)
 {
-    int i, j;
+    size_t i, j;
     n--;
     for (i = 0; i < n && dst[i]; i++)
     {

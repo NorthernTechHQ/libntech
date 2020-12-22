@@ -302,7 +302,7 @@ size_t ThreadedQueuePushN(ThreadedQueue *queue, void **items, size_t n_items)
 
     ThreadLock(queue->lock);
 
-    for (int i = 0; i < n_items; i++)
+    for (size_t i = 0; i < n_items; i++)
     {
         /* This should be a no-op in most iterations of the loop. */
         ExpandIfNecessary(queue);

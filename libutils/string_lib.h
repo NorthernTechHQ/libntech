@@ -188,7 +188,7 @@ size_t TrimCSVLineCRLFStrict(char *data);
  * end are erased. The number of bytes erased is end - start. If start == end,
  * no bytes are erased. Assumes: 0 <= start <= end <= strlen(s)
  */
-void StringCloseHole(char *s, int start, int end);
+void StringCloseHole(char *s, size_t start, size_t end);
 
 /**
  * @brief Check if a string ends with the given suffix
@@ -262,7 +262,7 @@ size_t StringCopy(const char *from, char *to, size_t buf_size);
 
 void *memcchr(const void *buf, int c, size_t buf_size);
 
-bool StringNotMatchingSetCapped(const char *isp, int limit,
+bool StringNotMatchingSetCapped(const char *isp, size_t limit,
                       const char *exclude, char *obuf);
 
 /**

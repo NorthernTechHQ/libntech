@@ -58,7 +58,7 @@ bool SeqStringContains(const Seq *const seq, const char *const str)
     assert(str != NULL);
 
     size_t length = SeqLength(seq);
-    for (int i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
     {
         if (StringEqual(str, SeqAt(seq, i)))
         {
@@ -85,7 +85,7 @@ int SeqStringLength(Seq *seq)
 // TODO: These static helper functions could be (re)moved
 static bool HasNulByte(const char *str, size_t n)
 {
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
         if (str[i] == '\0')
         {
@@ -125,10 +125,9 @@ static long GetLengthPrefix(const char *data)
     return length;
 }
 
-static char *ValidDuplicate(const char *src, long n)
+static char *ValidDuplicate(const char *src, size_t n)
 {
     assert(src != NULL);
-    assert(n >= 0);
     char *dst = xcalloc(n + 1, sizeof(char));
 
     size_t len = StringCopy(src, dst, n + 1);
@@ -159,7 +158,7 @@ bool WriteLenPrefixedString(Writer *w, const char *string)
 bool SeqStringWrite(Seq *seq, Writer *w)
 {
     const size_t length = SeqLength(seq);
-    for (int i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
     {
         const char *const s = SeqAt(seq, i);
         bool success = WriteLenPrefixedString(w, s);
