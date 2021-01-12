@@ -1557,7 +1557,7 @@ StringSet* GlobFileList(const char *pattern)
 
         if (glob(expanded, globflags, NULL, &globbuf) == 0)
         {
-            for (int i = 0; i < globbuf.gl_pathc; i++)
+            for (size_t i = 0; i < globbuf.gl_pathc; i++)
             {
                 StringSetAdd(set, xstrdup(globbuf.gl_pathv[i]));
             }

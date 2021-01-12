@@ -257,15 +257,15 @@ Hash *HashNewFromKey(const RSA *rsa, HashMethod method)
     }
 
     unsigned char buffer[buf_len];
-    int actlen;
+    size_t actlen;
 
     actlen = BN_bn2bin(n, buffer);
-    CF_ASSERT(actlen <= buf_len, "Buffer overflow n, %d > %zu!",
+    CF_ASSERT(actlen <= buf_len, "Buffer overflow n, %zu > %zu!",
               actlen, buf_len);
     EVP_DigestUpdate(context, buffer, actlen);
 
     actlen = BN_bn2bin(e, buffer);
-    CF_ASSERT(actlen <= buf_len, "Buffer overflow e, %d > %zu!",
+    CF_ASSERT(actlen <= buf_len, "Buffer overflow e, %zu > %zu!",
               actlen, buf_len);
     EVP_DigestUpdate(context, buffer, actlen);
 
@@ -323,7 +323,7 @@ bool HashEqual(const Hash *a, const Hash *b)
     {
         return false;
     }
-    int i = 0;
+    size_t i = 0;
     for (i = 0; i < a->size; ++i)
     {
         if (a->digest[i] != b->digest[i])
@@ -571,14 +571,14 @@ void HashPubKey(
         const size_t buf_len = MAX(n_len, e_len);
 
         unsigned char buffer[buf_len];
-        int actlen;
+        size_t actlen;
         actlen = BN_bn2bin(n, buffer);
-        CF_ASSERT(actlen <= buf_len, "Buffer overflow n, %d > %zu!",
+        CF_ASSERT(actlen <= buf_len, "Buffer overflow n, %zu > %zu!",
                   actlen, buf_len);
         EVP_DigestUpdate(context, buffer, actlen);
 
         actlen = BN_bn2bin(e, buffer);
-        CF_ASSERT(actlen <= buf_len, "Buffer overflow e, %d > %zu!",
+        CF_ASSERT(actlen <= buf_len, "Buffer overflow e, %zu > %zu!",
                   actlen, buf_len);
         EVP_DigestUpdate(context, buffer, actlen);
 
@@ -701,7 +701,7 @@ size_t StringCopyTruncateAndHashIfNecessary(
     // (Overwrite the last part of dst)
     const char lookup[]="0123456789abcdef";
     assert((md5_hex_length % 2) == 0);
-    for (int i = 0; i < md5_hex_length / 2; i++)
+    for (size_t i = 0; i < md5_hex_length / 2; i++)
     {
         hash_start[i * 2]     = lookup[digest[i] >> 4];
         hash_start[i * 2 + 1] = lookup[digest[i] & 0xf];

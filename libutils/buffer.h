@@ -50,8 +50,8 @@ typedef struct
 {
     char *buffer;
     BufferBehavior mode;
-    unsigned int capacity;
-    unsigned int used;
+    size_t capacity;
+    size_t used;
     bool unsafe;
 } Buffer;
 
@@ -74,7 +74,7 @@ Buffer* BufferNew(void);
   @return Pointer to initialized Buffer if the initialization was successful,
           otherwise terminate with message to stderr.
   */
-Buffer *BufferNewWithCapacity(unsigned int initial_capacity);
+Buffer *BufferNewWithCapacity(size_t initial_capacity);
 
 /**
   @brief Initializes a buffer based on a const char pointer.
@@ -85,7 +85,7 @@ Buffer *BufferNewWithCapacity(unsigned int initial_capacity);
   @remarks Length is used as a reference only. If a '\0' is found, only so many bytes will be copied.
   @remarks Only C_STRING behavior is accepted if this constructor is used.
   */
-Buffer* BufferNewFrom(const char *data, unsigned int length);
+Buffer* BufferNewFrom(const char *data, size_t length);
 
 /**
   @brief Destroys a buffer and frees the memory associated with it.
@@ -127,7 +127,7 @@ int BufferCompare(const Buffer *buffer1, const Buffer *buffer2);
   @param bytes Collection of bytes to be copied into the buffer.
   @param length Length of the collection of bytes.
   */
-void BufferSet(Buffer *buffer, const char *bytes, unsigned int length);
+void BufferSet(Buffer *buffer, const char *bytes, size_t length);
 
 /**
   @brief This functions allows direct access to the storage inside Buffer.
@@ -137,7 +137,7 @@ void BufferSet(Buffer *buffer, const char *bytes, unsigned int length);
   */
 char *BufferGet(Buffer *buffer);
 
-void BufferAppend(Buffer *buffer, const char *bytes, unsigned int length);
+void BufferAppend(Buffer *buffer, const char *bytes, size_t length);
 
 /**
   @brief Appends a char to an existing buffer.
@@ -207,13 +207,13 @@ void BufferClear(Buffer *buffer);
   @return The size of the buffer, that is the number of bytes contained on it.
   @note
   */
-unsigned int BufferSize(const Buffer *buffer);
+size_t BufferSize(const Buffer *buffer);
 
 /**
   @param buffer Structure to operate on.
   @return Returns the capacity of the buffer.
   */
-unsigned BufferCapacity(const Buffer *buffer);
+size_t BufferCapacity(const Buffer *buffer);
 
 /**
   @brief Returns the current mode of operation of the buffer.
@@ -261,7 +261,7 @@ void BufferRewrite(Buffer *buffer, BufferFilterFn filter, const bool invert);
   @param buffer
   @param max the maximum number of bytes to trim to
   */
-void BufferTrimToMaxLength(Buffer *buffer, unsigned int max);
+void BufferTrimToMaxLength(Buffer *buffer, size_t max);
 
 /**
   @brief Canonify a buffer in place: replace [^0-9a-zA-Z] with '_'

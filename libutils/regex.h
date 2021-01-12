@@ -35,9 +35,9 @@
 
 /* Try to use CompileRegex() and StringMatchWithPrecompiledRegex(). */
 pcre *CompileRegex(const char *regex);
-bool StringMatch(const char *regex, const char *str, int *start, int *end);
+bool StringMatch(const char *regex, const char *str, size_t *start, size_t *end);
 bool StringMatchWithPrecompiledRegex(pcre *regex, const char *str,
-                                     int *start, int *end);
+                                     size_t *start, size_t *end);
 bool StringMatchFull(const char *regex, const char *str);
 bool StringMatchFullWithPrecompiledRegex(pcre *regex, const char *str);
 Seq *StringMatchCaptures(const char *regex, const char *str, const bool return_names);

@@ -32,7 +32,7 @@
 #endif
 #include <string_lib.h>
 
-Buffer *BufferNewWithCapacity(unsigned int initial_capacity)
+Buffer *BufferNewWithCapacity(size_t initial_capacity)
 {
     Buffer *buffer = xmalloc(sizeof(Buffer));
 
@@ -50,7 +50,7 @@ Buffer *BufferNew(void)
     return BufferNewWithCapacity(DEFAULT_BUFFER_CAPACITY);
 }
 
-static void ExpandIfNeeded(Buffer *buffer, unsigned int needed)
+static void ExpandIfNeeded(Buffer *buffer, size_t needed)
 {
     assert(buffer != NULL);
     if (needed >= buffer->capacity)
@@ -61,7 +61,7 @@ static void ExpandIfNeeded(Buffer *buffer, unsigned int needed)
     }
 }
 
-Buffer* BufferNewFrom(const char *data, unsigned int length)
+Buffer* BufferNewFrom(const char *data, size_t length)
 {
     Buffer *buffer = BufferNewWithCapacity(length + 1);
     BufferAppend(buffer, data, length);
@@ -126,7 +126,7 @@ int BufferCompare(const Buffer *buffer1, const Buffer *buffer2)
              * BUFFER_BEHAVIOR_BYTEARRAY
              * Byte by byte comparison
              */
-            unsigned int i = 0;
+            size_t i = 0;
             if (buffer1->used < buffer2->used)
             {
                 for (i = 0; i < buffer1->used; ++i)
@@ -181,7 +181,7 @@ int BufferCompare(const Buffer *buffer1, const Buffer *buffer2)
          * When we switch back to CSTRING we adjust the length to
          * match the first '\0'.
          */
-        unsigned int i = 0;
+        size_t i = 0;
         if (buffer1->used < buffer2->used)
         {
             for (i = 0; i < buffer1->used; ++i)
@@ -233,7 +233,7 @@ int BufferCompare(const Buffer *buffer1, const Buffer *buffer2)
     return 0;
 }
 
-void BufferSet(Buffer *buffer, const char *bytes, unsigned int length)
+void BufferSet(Buffer *buffer, const char *bytes, size_t length)
 {
     assert(buffer != NULL);
     assert(bytes != NULL);
@@ -261,7 +261,7 @@ void BufferAppendString(Buffer *buffer, const char *str)
     buffer->buffer[buffer->used] = '\0';
 }
 
-void BufferTrimToMaxLength(Buffer *buffer, unsigned int max)
+void BufferTrimToMaxLength(Buffer *buffer, size_t max)
 {
     assert(buffer != NULL);
 
@@ -273,7 +273,7 @@ void BufferTrimToMaxLength(Buffer *buffer, unsigned int max)
     }
 }
 
-void BufferAppend(Buffer *buffer, const char *bytes, unsigned int length)
+void BufferAppend(Buffer *buffer, const char *bytes, size_t length)
 {
     assert(buffer != NULL);
     assert(bytes != NULL);
@@ -333,7 +333,8 @@ void BufferAppendF(Buffer *buffer, const char *format, ...)
     va_copy(aq, ap);
 
     int printed = vsnprintf(buffer->buffer + buffer->used, buffer->capacity - buffer->used, format, aq);
-    if (printed >= (buffer->capacity - buffer->used))
+    assert(printed >= 0);
+    if ((size_t) printed >= (buffer->capacity - buffer->used))
     {
         /*
          * Allocate a larger buffer and retry.
@@ -374,7 +375,11 @@ int BufferPrintf(Buffer *buffer, const char *format, ...)
      * everything is easy, however if we are shared then we need a different strategy.
      */
     int printed = vsnprintf(buffer->buffer, buffer->capacity, format, aq);
-    if (printed >= buffer->capacity)
+    if (printed < 0) 
+    {
+        // vsnprintf failed!
+    }
+    else if ((size_t) printed >= buffer->capacity)
     {
         /*
          * Allocate a larger buffer and retry.
@@ -413,7 +418,11 @@ int BufferVPrintf(Buffer *buffer, const char *format, va_list ap)
      */
 
     int printed = vsnprintf(buffer->buffer, buffer->capacity, format, aq);
-    if (printed >= buffer->capacity)
+    if (printed < 0)
+    {
+        // vsnprintf failed!
+    }
+    else if ((size_t) printed >= buffer->capacity)
     {
         ExpandIfNeeded(buffer, printed);
         buffer->used = 0;
@@ -468,7 +477,7 @@ void BufferClear(Buffer *buffer)
     buffer->buffer[0] = '\0';
 }
 
-unsigned int BufferSize(const Buffer *buffer)
+size_t BufferSize(const Buffer *buffer)
 {
     assert(buffer != NULL);
     return buffer != NULL ? buffer->used : 0;
@@ -506,7 +515,7 @@ void BufferSetMode(Buffer *buffer, BufferBehavior mode)
      */
     if (BUFFER_BEHAVIOR_CSTRING == mode)
     {
-        for (unsigned int i = 0; i < buffer->used; ++i)
+        for (size_t i = 0; i < buffer->used; ++i)
         {
             if (buffer->buffer[i] == '\0')
             {
@@ -523,7 +532,7 @@ Buffer* BufferFilter(Buffer *buffer, BufferFilterFn filter, const bool invert)
     assert(buffer != NULL);
 
     Buffer *filtered = BufferNew();
-    for (unsigned int i = 0; i < buffer->used; ++i)
+    for (size_t i = 0; i < buffer->used; ++i)
     {
         bool test = (*filter)(buffer->buffer[i]);
         if (invert)
@@ -549,7 +558,7 @@ void BufferRewrite(Buffer *buffer, BufferFilterFn filter, const bool invert)
     BufferDestroy(rewrite);
 }
 
-unsigned BufferCapacity(const Buffer *buffer)
+size_t BufferCapacity(const Buffer *buffer)
 {
     assert(buffer != NULL);
     return buffer != NULL ? buffer->capacity : 0;

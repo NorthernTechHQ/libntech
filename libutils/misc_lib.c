@@ -125,7 +125,7 @@ void xsnprintf(char *str, size_t str_size, const char *format, ...)
         Log(LOG_LEVEL_WARNING, "Unexpected failure from snprint(\"%s\"): %s",
             format, GetErrorStr());
     }
-    else if (ret >= str_size)                           /* output truncated */
+    else if ((size_t) ret >= str_size)                           /* output truncated */
     {
 #ifdef NDEBUG
         UnexpectedError("Result of snprintf(\"%s\") truncated at %zu chars",

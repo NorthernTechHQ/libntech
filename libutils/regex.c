@@ -52,7 +52,7 @@ pcre *CompileRegex(const char *regex)
     return rx;
 }
 
-bool StringMatchWithPrecompiledRegex(pcre *regex, const char *str, int *start, int *end)
+bool StringMatchWithPrecompiledRegex(pcre *regex, const char *str, size_t *start, size_t *end)
 {
     assert(regex);
     assert(str);
@@ -87,7 +87,7 @@ bool StringMatchWithPrecompiledRegex(pcre *regex, const char *str, int *start, i
     return result >= 0;
 }
 
-bool StringMatch(const char *regex, const char *str, int *start, int *end)
+bool StringMatch(const char *regex, const char *str, size_t *start, size_t *end)
 {
     pcre *pattern = CompileRegex(regex);
 
@@ -120,11 +120,11 @@ bool StringMatchFull(const char *regex, const char *str)
 
 bool StringMatchFullWithPrecompiledRegex(pcre *pattern, const char *str)
 {
-    int start = 0, end = 0;
+    size_t start = 0, end = 0;
 
     if (StringMatchWithPrecompiledRegex(pattern, str, &start, &end))
     {
-        return (start == 0) && (end == strlen(str));
+        return (start == 0U) && (end == strlen(str));
     }
     else
     {

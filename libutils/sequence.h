@@ -54,7 +54,7 @@ typedef struct
     void (*ItemDestroy) (void *item);
 } Seq;
 
-static inline void *SeqAt(const Seq *seq, int i)
+static inline void *SeqAt(const Seq *seq, size_t i)
 {
     assert(seq != NULL);
     assert(i < seq->length);

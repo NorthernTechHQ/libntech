@@ -2767,7 +2767,7 @@ JsonElement *StringCaptureData(
 
     JsonElement *json = JsonObjectCreate(length / 2);
 
-    for (int i = 1; i < length; i += 2)
+    for (size_t i = 1; i < length; i += 2)
     {
         Buffer *key = SeqAt(s, i - 1);
         Buffer *value = SeqAt(s, i);

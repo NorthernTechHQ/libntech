@@ -217,7 +217,7 @@ static void FreeBucketListItemSoft(HashMap *map, BucketListItem *item)
 
 void HashMapClear(HashMap *map)
 {
-    for (int i = 0; i < map->size; ++i)
+    for (size_t i = 0; i < map->size; ++i)
     {
         if (map->buckets[i])
         {
@@ -232,7 +232,7 @@ void HashMapSoftDestroy(HashMap *map)
 {
     if (map)
     {
-        for (int i = 0; i < map->size; ++i)
+        for (size_t i = 0; i < map->size; ++i)
         {
             if (map->buckets[i])
             {
@@ -263,7 +263,7 @@ void HashMapPrintStats(const HashMap *hmap, FILE *f)
     size_t num_buckets = 0;
     bucket_lengths = xcalloc(hmap->size, sizeof(size_t));
 
-    for (int i = 0; i < hmap->size; i++)
+    for (size_t i = 0; i < hmap->size; i++)
     {
         BucketListItem *b = hmap->buckets[i];
         if (b != NULL)
@@ -290,7 +290,7 @@ void HashMapPrintStats(const HashMap *hmap, FILE *f)
     {
         /* Find the maximum 10 times, zeroing it after printing it. */
         int longest_bucket_id = 0;
-        for (int i = 0; i < hmap->size; i++)
+        for (size_t i = 0; i < hmap->size; i++)
         {
             if (bucket_lengths[i] > bucket_lengths[longest_bucket_id])
             {
