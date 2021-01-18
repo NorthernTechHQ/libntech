@@ -883,7 +883,7 @@ JsonElement *JsonObjectCreate(const size_t initialCapacity)
         JSON_CONTAINER_TYPE_OBJECT, NULL, initialCapacity);
 }
 
-static void JsonEncodeStringWriter(
+void JsonEncodeStringWriter(
     const char *const unescaped_string, Writer *const writer)
 {
     assert(unescaped_string != NULL);

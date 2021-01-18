@@ -537,4 +537,6 @@ void JsonWrite(
 
 void JsonWriteCompact(Writer *w, const JsonElement *element);
 
+void JsonEncodeStringWriter(const char *const unescaped_string, Writer *const writer);
+
 #endif
