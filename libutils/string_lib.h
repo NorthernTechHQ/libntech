@@ -72,6 +72,9 @@ void LogStringToLongError(const char *str_attempted, const char *id, int error_c
 long StringToLongDefaultOnError(const char *str, long default_return);
 long StringToLongExitOnError(const char *str);
 long StringToLongUnsafe(const char *str); // Deprecated, do not use
+int StringToUlong(const char *str, unsigned long *value_out) FUNC_WARN_UNUSED_RESULT;
+unsigned long StringToUlongDefaultOnError(const char *str, unsigned long default_return);
+unsigned long StringToUlongExitOnError(const char *str);
 int StringToInt64(const char *str, int64_t *value_out);
 int64_t StringToInt64DefaultOnError(const char *str, int64_t default_return);
 int64_t StringToInt64ExitOnError(const char *str);

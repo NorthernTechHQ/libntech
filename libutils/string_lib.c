@@ -531,7 +531,8 @@ int StringToLong(const char *str, long *value_out)
 }
 
 /**
- * @brief Log StringToLong conversion error with an identifier for debugging
+ * @brief Log StringToLong & StringToUlong conversion error with an identifier
+ *        for debugging.
  */
 void LogStringToLongError(const char *str_attempted, const char *id, int error_code)
 {
@@ -596,6 +597,119 @@ long StringToLongExitOnError(const char *str)
     if (return_code != 0)
     {
         LogStringToLongError(str, "StringToLongExitOnError", return_code);
+        DoCleanupAndExit(EXIT_FAILURE);
+    }
+    return result;
+}
+
+/**
+ * @brief Converts a string of numerals in base 10 to a unsigned long 
+ *        integer.
+ *
+ * Result is stored in *value_out, return value should be checked.
+ * On error *value_out is unmodified and an error code is returned.
+ * Leading spaces in input string are skipped.
+ * String numeral must be terminated by NULL byte or space (isspace).
+ *
+ * @see StringToUlongExitOnError()
+ * @see StringToUlongDefaultOnError()
+ * @param[in] str String with numerals to convert, cannot be NULL
+ * @param[out] value_out Where to store result on success, cannot be NULL
+ * @return 0 on success, error code otherwise (see source code)
+ */
+int StringToUlong(const char *str, unsigned long *value_out)
+{
+    nt_static_assert(ERANGE != 0);
+    assert(str != NULL);
+    assert(value_out != NULL);
+
+    char *endptr = NULL;
+
+    errno = 0;
+    const unsigned long val = strtoul(str, &endptr, 10);
+
+    if ((errno == ERANGE && val == ULONG_MAX))
+    {
+        return ERANGE; // Overflow
+    }
+
+    // Negative numbers should cause underflow
+    if (val > 0) // "-0" is ok
+    {
+        const char *ch = str;
+        while (ch < endptr && isspace(*ch)) ch++;
+        if (*ch == '-')
+        {
+            return ERANGE; // Underflow
+        }
+    }
+
+    if (endptr == str)
+    {
+        return -81; // No digits found
+    }
+
+    if (endptr == NULL)
+    {
+        return -82; // endpointer not set by strtol
+    }
+
+    if (*endptr != '\0' && !isspace(*endptr))
+    {
+        return -83; // string not properly terminated
+    }
+
+    if (errno != 0)
+    {
+        return errno; // Unknown error
+    }
+
+    *value_out = val;
+    return 0;
+}
+
+/**
+ * @brief Converts a string of numerals in base 10 to a unsigned long 
+ *        integer, uses a default value if errors occur.
+ *
+ * @see StringToUlong()
+ * @param[in] str String with numerals to convert, cannot be NULL
+ * @param[in] default_return Value to return on error
+ * @return Result of conversion (or default_return in case of error)
+ */
+unsigned long StringToUlongDefaultOnError(const char *str, unsigned long default_return)
+{
+    assert(str != NULL);
+    unsigned long result = 0;
+    int return_code = StringToUlong(str, &result);
+    if (return_code != 0)
+    {
+        // Do not log anything because this can be used frequently
+        return default_return;
+    }
+    return result;
+}
+
+/**
+ * @brief Converts a string of numerals in base 10 to a unsigned long 
+ *        integer, exits on error.
+ *
+ * Only use this function in contexts/components where it is acceptable
+ * to immediately exit when something goes wrong.
+ *
+ * @warning This function can exit the process based on string contents
+ * @see StringToUlong()
+ * @param[in] str String with numerals to convert, cannot be NULL
+ * @return Result of conversion
+ */
+unsigned long StringToUlongExitOnError(const char *str)
+{
+    assert(str != NULL);
+    unsigned long result;
+    int return_code = StringToUlong(str, &result);
+    if (return_code != 0)
+    {
+        LogStringToLongError(str, "StringToUlongExitOnError", return_code);
         DoCleanupAndExit(EXIT_FAILURE);
     }
     return result;

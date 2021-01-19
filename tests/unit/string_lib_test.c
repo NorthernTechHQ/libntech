@@ -496,6 +496,86 @@ static void test_string_to_long_compatibility(void)
     // Old function (StringToLongUnsafe) does not allow trailing whitespace
 }
 
+static void test_string_to_ulong(void)
+{
+    // Basic usage:
+    assert_int_equal(StringToUlongExitOnError("0"),    0);
+    assert_int_equal(StringToUlongExitOnError("-0"),   0);
+    assert_int_equal(StringToUlongExitOnError("+0"),   0);
+    assert_int_equal(StringToUlongExitOnError("123"),  123);
+    assert_int_equal(StringToUlongExitOnError("+123"), 123);
+
+    // WARNING: Some platforms have 32-bit unsigned long, 4 294 967 295 is ULONG_MAX
+    assert_int_equal(StringToUlongExitOnError("2147483647"), 2147483647);
+    assert_int_equal(StringToUlongExitOnError("1987654320"), 1987654320);
+
+    // Leading spaces:
+    assert_int_equal(StringToUlongExitOnError(" 0") ,   0);
+    assert_int_equal(StringToUlongExitOnError(" 123"),  123);
+    assert_int_equal(StringToUlongExitOnError(" -0"), 0);
+    assert_int_equal(StringToUlongExitOnError("             0"),   0);
+    assert_int_equal(StringToUlongExitOnError("             123"), 123);
+    assert_int_equal(StringToUlongExitOnError("            -0"), 0);
+
+    // Trailing spaces:
+    assert_int_equal(StringToUlongExitOnError("0 "),    0);
+    assert_int_equal(StringToUlongExitOnError("789 "),  789);
+    assert_int_equal(StringToUlongExitOnError("-0 "), 0);
+    assert_int_equal(StringToUlongExitOnError("0               "), 0);
+    assert_int_equal(StringToUlongExitOnError("789             "), 789);
+    assert_int_equal(StringToUlongExitOnError("+789            "), 789);
+
+    // More spaces:
+    assert_int_equal(StringToUlongExitOnError("   0    "), 0);
+    assert_int_equal(StringToUlongExitOnError("   -0   "), 0);
+    assert_int_equal(StringToUlongExitOnError("   456  "), 456);
+
+    // Space separated numbers:
+    assert_int_equal(StringToUlongExitOnError("   456  9  "), 456);
+    assert_int_equal(StringToUlongExitOnError("1 0"),         1);
+}
+
+static void test_string_to_ulong_default(void)
+{
+    assert_int_equal(StringToUlongDefaultOnError("0",10), 0);
+    assert_int_equal(StringToUlongDefaultOnError(" ",10), 10);
+    assert_int_equal(StringToUlongDefaultOnError("error",123), 123);
+    assert_int_equal(StringToUlongDefaultOnError("-123",0), 0);
+}
+
+static void test_string_to_ulong_errors(void)
+{
+    // A succesful call to StringToLong should return 0:
+    long target = 0;
+    assert_int_equal(StringToUlong("1234", &target), 0);
+    assert_int_equal(target, 1234);
+
+    // Test that invalid inputs give error return code:
+    assert_int_not_equal(StringToUlong("",       &target), 0);
+    assert_int_not_equal(StringToUlong(" ",      &target), 0);
+    assert_int_not_equal(StringToUlong("error",  &target), 0);
+    assert_int_not_equal(StringToUlong("-error", &target), 0);
+    assert_int_not_equal(StringToUlong("ffff",   &target), 0);
+    assert_int_not_equal(StringToUlong("1d",     &target), 0);
+    assert_int_not_equal(StringToUlong("56789d", &target), 0);
+    assert_int_equal(StringToUlong("9999999999999999999999999999999",
+                                  &target),
+                     ERANGE);
+    assert_int_equal(StringToUlong(" 999999999999999999999999999999",
+                                  &target),
+                     ERANGE);
+    assert_int_equal(StringToUlong("-1",
+                                  &target),
+                     ERANGE);
+
+    // Test that error logging function can be called:
+    LogStringToLongError("-999999999999999999999999999999", "string_lib_test",
+                         ERANGE);
+
+    // Check that target is unmodified after errors:
+    assert_int_equal(target, 1234);
+}
+
 static void test_string_to_int64(void)
 {
     assert_int_equal(StringToInt64ExitOnError("0"),    0);
@@ -1337,6 +1417,9 @@ int main()
         unit_test(test_string_to_long_errors),
         unit_test(test_string_to_long_unsafe),
         unit_test(test_string_to_long_compatibility),
+        unit_test(test_string_to_ulong),
+        unit_test(test_string_to_ulong_default),
+        unit_test(test_string_to_ulong_errors),
         unit_test(test_string_to_int64),
         unit_test(test_string_from_long),
         unit_test(test_string_to_double),
