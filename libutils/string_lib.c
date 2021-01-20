@@ -496,10 +496,9 @@ int StringToLong(const char *str, long *value_out)
     assert(value_out != NULL);
 
     char *endptr = NULL;
-    long val;
 
     errno = 0;
-    val = strtol(str, &endptr, 10);
+    const long val = strtol(str, &endptr, 10);
 
     if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)))
     {
