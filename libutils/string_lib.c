@@ -1407,7 +1407,7 @@ size_t TrimCSVLineCRLFStrict(char *const data)
 void StringCloseHole(char *s, const size_t start, const size_t end)
 {
     assert(s != NULL);
-    assert(0 <= start && start <= end && end <= strlen(s));
+    assert(start <= end && end <= strlen(s));
     assert((end - start) <= strlen(s));
 
     if (end > start)
