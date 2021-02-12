@@ -61,7 +61,7 @@ ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (ItemDestroy) (voi
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
-    stack->lock = malloc(sizeof(pthread_mutex_t));
+    stack->lock = xmalloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(stack->lock, &attr);
     if (ret != 0)
     {
@@ -192,7 +192,7 @@ ThreadedStack *ThreadedStackCopy(ThreadedStack const *stack)
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
-    new_stack->lock = malloc(sizeof(pthread_mutex_t));
+    new_stack->lock = xmalloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(new_stack->lock, &attr);
     if (ret != 0)
     {
