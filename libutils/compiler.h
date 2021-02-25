@@ -70,6 +70,16 @@
 
 
 /**
+ * For variables only used in debug builds, in particular only in assert()
+ * calls, use NDEBUG_UNUSED.
+ */
+#ifdef NDEBUG
+#define NDEBUG_UNUSED __attribute__((unused))
+#else
+#define NDEBUG_UNUSED
+#endif
+
+/**
  * If you want a string literal version of a macro, useful in scanf formats:
  *
  * #define BUFSIZE 1024
