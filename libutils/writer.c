@@ -55,6 +55,10 @@ struct Writer_
 
 Writer *FileWriter(FILE *file)
 {
+    if (file == NULL)
+    {
+        return NULL;
+    }
     Writer *writer = xcalloc(1, sizeof(Writer));
 
     writer->type = WT_FILE;

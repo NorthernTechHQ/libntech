@@ -52,6 +52,10 @@ CsvWriter *CsvWriterOpenSpecifyTerminate(Writer *w, bool terminate_last_line)
 
 CsvWriter *CsvWriterOpen(Writer *w)
 {
+    if (w == NULL)
+    {
+        return NULL;
+    }
     return CsvWriterOpenSpecifyTerminate(w, true);
 }
 
