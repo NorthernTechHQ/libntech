@@ -29,6 +29,8 @@
 
 #include <alloc.h>
 #include <sequence.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <string_lib.h>
 #include <misc_lib.h>
 #include <file_lib.h>
@@ -1066,6 +1068,13 @@ void JsonObjectAppendInteger(
     JsonObjectAppendElement(object, key, child);
 }
 
+void JsonObjectAppendInteger64(
+    JsonElement *const object, const char *const key, const int64_t value)
+{
+    JsonElement *child = JsonIntegerCreate64(value);
+    JsonObjectAppendElement(object, key, child);
+}
+
 void JsonObjectAppendBool(
     JsonElement *const object, const char *const key, const _Bool value)
 {
@@ -1448,6 +1457,14 @@ JsonElement *JsonIntegerCreate(const int value)
 {
     char *buffer;
     xasprintf(&buffer, "%d", value);
+
+    return JsonElementCreatePrimitive(JSON_PRIMITIVE_TYPE_INTEGER, buffer);
+}
+
+JsonElement *JsonIntegerCreate64(const int64_t value)
+{
+    char *buffer;
+    xasprintf(&buffer, "%" PRIi64, value);
 
     return JsonElementCreatePrimitive(JSON_PRIMITIVE_TYPE_INTEGER, buffer);
 }
