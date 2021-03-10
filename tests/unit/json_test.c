@@ -922,6 +922,7 @@ static void test_parse_escaped_string(void)
 static void test_parse_big_numbers(void)
 {
 #define JSON_TEST_BIG_NUMBER "9999999999"
+#define JSON_TEST_BIG_NUMBER_INT64 9999999999LL
     // JsonPrimitiveGetAsInt64():
     {
         const char *data = "[" JSON_TEST_BIG_NUMBER "]";
@@ -1013,7 +1014,35 @@ static void test_parse_big_numbers(void)
         free(result);
         JsonDestroy(json);
     }
+    // JsonIntegerCreate64
+    {
+        JsonElement *object = JsonObjectCreate(1);
+        JsonElement *size = JsonIntegerCreate64(JSON_TEST_BIG_NUMBER_INT64);
+        JsonObjectAppendElement(object, "64bitvalue", size);
+        assert_int_equal(1, JsonLength(object));
+        JsonElement *const primitive = JsonObjectGet(object, "64bitvalue");
+        assert_string_equal(
+            JSON_TEST_BIG_NUMBER, JsonPrimitiveGetAsString(primitive));
+        JsonDestroy(object);
+    }
+    // JsonObjectAppendInteger64
+    {
+        JsonElement *object = JsonObjectCreate(1);
+        JsonObjectAppendInteger64(object, "64bitvalue", JSON_TEST_BIG_NUMBER_INT64);
+        assert_int_equal(1, JsonLength(object));
+        const JsonElement *const primitive =
+            JsonObjectGet(object, "64bitvalue");
+        int64_t number;
+        const int error_code = JsonPrimitiveGetAsInt64(primitive, &number);
+        assert_int_equal(error_code, 0);
+        char *result;
+        xasprintf(&result, "%" PRIi64, number);
+        assert_string_equal(result, JSON_TEST_BIG_NUMBER);
+        free(result);
+        JsonDestroy(object);
+    }
 #undef JSON_TEST_BIG_NUMBER
+#undef JSON_TEST_BIG_NUMBER_INT64
 }
 
 static void test_parse_good_numbers(void)
