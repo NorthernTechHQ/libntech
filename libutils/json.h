@@ -204,6 +204,7 @@ double JsonPrimitiveGetAsReal(const JsonElement *primitive);
 
 JsonElement *JsonStringCreate(const char *value);
 JsonElement *JsonIntegerCreate(int value);
+JsonElement *JsonIntegerCreate64(int64_t value);
 JsonElement *JsonRealCreate(double value);
 JsonElement *JsonBoolCreate(bool value);
 JsonElement *JsonNullCreate();
@@ -254,6 +255,14 @@ void JsonObjectAppendString(
   @param value [in] The value of the field.
   */
 void JsonObjectAppendInteger(JsonElement *object, const char *key, int value);
+
+/**
+  @brief Append a 64-bit integer field to an object.
+  @param object [in] The JSON object parent.
+  @param key [in] the key of the field.
+  @param value [in] The value of the field.
+  */
+void JsonObjectAppendInteger64(JsonElement *object, const char *key, int64_t value);
 
 /**
   @brief Append an real number field to an object.
