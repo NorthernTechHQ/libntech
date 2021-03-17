@@ -847,6 +847,78 @@ static void test_iterator_current(void)
     JsonDestroy(json);
 }
 
+static bool VisitPrimitive(JsonElement *primitive, void *data)
+{
+    assert_int_equal(JsonGetElementType(primitive), JSON_ELEMENT_TYPE_PRIMITIVE);
+
+    Writer *writer = data;
+    WriterWrite(writer, JsonPrimitiveGetAsString(primitive));
+    WriterWriteChar(writer, ',');
+    return true;
+}
+
+static bool VisitArray(JsonElement *array, void *data)
+{
+    assert_int_equal(JsonGetElementType(array), JSON_ELEMENT_TYPE_CONTAINER);
+    assert_int_equal(JsonGetContainerType(array), JSON_CONTAINER_TYPE_ARRAY);
+
+    Writer *writer = data;
+    WriterWriteF(writer, "[%zd]", JsonLength(array));
+    return true;
+}
+
+static bool VisitObject(JsonElement *object, void *data)
+{
+    assert_int_equal(JsonGetElementType(object), JSON_ELEMENT_TYPE_CONTAINER);
+    assert_int_equal(JsonGetContainerType(object), JSON_CONTAINER_TYPE_OBJECT);
+
+    Writer *writer = data;
+    WriterWriteChar(writer, '{');
+    JsonIterator iter = JsonIteratorInit(object);
+    while (JsonIteratorHasMore(&iter))
+    {
+        WriterWrite(writer, JsonIteratorNextKey(&iter));
+        WriterWriteChar(writer, ',');
+    }
+    WriterWriteChar(writer, '}');
+    return true;
+}
+
+static bool VisitArrayAbortOnEmpty(JsonElement *array, void *data)
+{
+    assert_int_equal(JsonGetElementType(array), JSON_ELEMENT_TYPE_CONTAINER);
+    assert_int_equal(JsonGetContainerType(array), JSON_CONTAINER_TYPE_ARRAY);
+
+    Writer *writer = data;
+    WriterWriteF(writer, "[%zd]", JsonLength(array));
+    return (JsonLength(array) != 0);
+}
+
+static void test_json_walk(void)
+{
+
+    JsonElement *data = LoadTestFile("sample.json");
+    assert_true(data != NULL);
+
+    Writer *trace_writer = StringWriter();
+    bool ret = JsonWalk(data, VisitObject, VisitArray, VisitPrimitive, (void *) trace_writer);
+    assert_true(ret);
+
+    const char *expected_trace = "{primitive1,array0,array1,obj0,obj1,}value1,[0][2]value2,value3,"
+                                 "{}{primitive2,array2,obj2,}value4,[1]value5,{array3,primitive3,}[0]value6,";
+    assert_string_equal(StringWriterData(trace_writer), expected_trace);
+    WriterClose(trace_writer);
+
+    trace_writer = StringWriter();
+    ret = JsonWalk(data, VisitObject, VisitArrayAbortOnEmpty, VisitPrimitive, (void *) trace_writer);
+    assert_false(ret);
+    expected_trace = "{primitive1,array0,array1,obj0,obj1,}value1,[0]";
+    assert_string_equal(StringWriterData(trace_writer), expected_trace);
+    WriterClose(trace_writer);
+
+    JsonDestroy(data);
+}
+
 static void test_parse_empty_string(void)
 {
     const char *data = "";
@@ -1670,6 +1742,7 @@ int main()
         unit_test(test_object_get_array),
         unit_test(test_object_get_string),
         unit_test(test_object_iterator),
+        unit_test(test_json_walk),
         unit_test(test_parse_array_bad_nested_elems),
         unit_test(test_parse_array_comma_after_brace),
         unit_test(test_parse_array_diverse),
