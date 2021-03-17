@@ -1333,7 +1333,7 @@ AC_DEFINE_UNQUOTED(LOGDIR, "${LOGDIR}", [Logdir location])
 AC_SUBST(logdir, "${LOGDIR}")
 
 AC_ARG_WITH(piddir,
-    [  --with-piddir=LOGDIR  default for internal pid directory ],
+    [  --with-piddir=PIDDIR  default for internal pid directory ],
     [
         if test "x$withval" != x ; then
             PIDDIR="$withval"
