@@ -35,9 +35,6 @@ matrix:
     - os: linux
       env: JOB_TYPE=compile_and_unit_test COVERAGE=no
       compiler: clang
-    - os: osx
-      env: JOB_TYPE=compile_and_unit_test COVERAGE=no
-      sudo: false
     - arch: arm64
       os: linux
       env: JOB_TYPE=compile_and_unit_test_asan
