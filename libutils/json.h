@@ -468,6 +468,40 @@ JsonPrimitiveType JsonIteratorCurrentPrimitiveType(const JsonIterator *iter);
 bool JsonIteratorHasMore(const JsonIterator *iter);
 
 
+/**
+ * @param element current element being visited
+ * @param data    arbitrary data passed to JsonWalk()
+ * @return        whether the recursive walk should continue or not
+ */
+typedef bool JsonElementVisitor(JsonElement *element, void *data);
+
+/**
+ * Recursively walk over the JSON element.
+ *
+ * @param element           JSON element to start with
+ * @param object_visitor    function to call on child objects
+ * @param array_visitor     function to call on child arrays
+ * @param primitive_visitor function to call on child primitives
+ * @param data              arbitrary data passed to visitor functions
+ * @return                  whether the recursive walk finished or was stopped (see #JsonElementVisitor)
+ *
+ * The function starts with the given JSON element #element and recursively
+ * visits its child elements (if any), calling respective visitor functions on
+ * each of the child elements.
+ *
+ * @note Each parent element is visited before its child elements.
+ * @note Every element in the given JSON is visited unless one of the visitor functions returns
+ *       #false.
+ * @note Every element is visited at most once.
+ * @warning Modifications of the visited elements must be done with extreme caution and good
+ *          understanding of the implementation of the #JsonElement and #JsonIterator internals.
+ */
+bool JsonWalk(JsonElement *element,
+              JsonElementVisitor object_visitor,
+              JsonElementVisitor array_visitor,
+              JsonElementVisitor primitive_visitor,
+              void *data);
+
 //////////////////////////////////////////////////////////////////////////////
 // JSON Parsing
 //////////////////////////////////////////////////////////////////////////////

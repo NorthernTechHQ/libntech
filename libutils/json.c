@@ -2749,6 +2749,61 @@ JsonParseError JsonParseFile(
     return JsonParseAnyFile(path, size_max, json_out, false);
 }
 
+bool JsonWalk(JsonElement *element,
+              JsonElementVisitor object_visitor,
+              JsonElementVisitor array_visitor,
+              JsonElementVisitor primitive_visitor,
+              void *data)
+{
+    assert(element != NULL);
+
+    if (element->type == JSON_ELEMENT_TYPE_PRIMITIVE)
+    {
+        if (primitive_visitor != NULL)
+        {
+            return primitive_visitor(element, data);
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    assert(element->type == JSON_ELEMENT_TYPE_CONTAINER);
+    if (element->container.type == JSON_CONTAINER_TYPE_ARRAY)
+    {
+        if (array_visitor != NULL)
+        {
+            bool keep_going = array_visitor(element, data);
+            if (!keep_going)
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        assert(element->container.type == JSON_CONTAINER_TYPE_OBJECT);
+        if (object_visitor != NULL)
+        {
+            bool keep_going = object_visitor(element, data);
+            if (!keep_going)
+            {
+                return false;
+            }
+        }
+    }
+
+    bool keep_going = true;
+    JsonIterator iter = JsonIteratorInit(element);
+    while (keep_going && JsonIteratorHasMore(&iter))
+    {
+        JsonElement *child = JsonIteratorNextValue(&iter);
+        keep_going = JsonWalk(child, object_visitor, array_visitor, primitive_visitor, data);
+    }
+    return keep_going;
+}
+
 /*******************************************************************/
 
 #ifdef WITH_PCRE

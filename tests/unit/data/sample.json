@@ -1,0 +1,10 @@
+{
+    "primitive1": "value1",
+    "array0": [],
+    "array1": [ "value2", "value3" ],
+    "obj0": {},
+    "obj1": { "primitive2": "value4",
+              "array2": [ "value5" ],
+              "obj2": { "array3": [],
+                        "primitive3": "value6" } }
+}
