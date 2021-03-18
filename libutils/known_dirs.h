@@ -32,6 +32,7 @@ const char *GetDefaultDir_helper(char dir[PATH_MAX], const char *root_dir,
 
 const char *GetWorkDir(void);
 const char *GetBinDir(void);
+const char *GetDataDir(void);
 const char *GetLogDir(void);
 const char *GetPidDir(void);
 const char *GetMasterDir(void);
@@ -42,6 +43,7 @@ const char *GetStateDir(void);
 
 const char *GetDefaultWorkDir(void);
 const char *GetDefaultLogDir(void);
+const char *GetDefaultDataDir(void);
 const char *GetDefaultPidDir(void);
 const char *GetDefaultMasterDir(void);
 const char *GetDefaultInputDir(void);
