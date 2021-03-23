@@ -566,18 +566,6 @@ AM_CONDITIONAL([HAVE_LIBXML2],
     [test "x$with_libxml2" != xno &&
      test "x$ac_cv_lib_xml2_xmlFirstElementChild" = xyes])
 
-dnl avahi
-
-AC_CHECK_HEADERS(avahi-client/client.h,
-    AM_CONDITIONAL(HAVE_AVAHI_CLIENT, true),
-    AM_CONDITIONAL(HAVE_AVAHI_CLIENT, false),
-    [])
-AC_CHECK_HEADERS(avahi-common/address.h,
-    AM_CONDITIONAL(HAVE_AVAHI_COMMON, true),
-    AM_CONDITIONAL(HAVE_AVAHI_COMMON, false),
-    [])
-
-dnl
 
 dnl ######################################################################
 dnl Checks for header files.
