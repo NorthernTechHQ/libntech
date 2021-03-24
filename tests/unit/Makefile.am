@@ -107,7 +107,8 @@ check_PROGRAMS = \
 	threaded_stack_test \
 	version_comparison_test \
 	ring_buffer_test \
-	libcompat_test
+	libcompat_test \
+	definitions_test
 
 if WITH_OPENSSL
 check_PROGRAMS += \
