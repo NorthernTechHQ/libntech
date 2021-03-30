@@ -30,8 +30,8 @@
  *****************************************************************************/
 #define KIBIBYTE(n) (n * 1024UL)
 #define MEBIBYTE(n) (n * 1024UL * 1024UL)
-#define GIBIBYTE(n) (n * 1024UL * 1024UL * 1024UL)
-#define TEBIBYTE(n) (n * 1024UL * 1024UL * 1024UL * 1024UL)
+#define GIBIBYTE(n) (n * 1024ULL * 1024ULL * 1024ULL)
+#define TEBIBYTE(n) (n * 1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
 /*****************************************************************************
  * Size related defines							     *
