@@ -252,6 +252,7 @@ static Mustache NextTag(const char *input,
         break;
     case '{':
         extra_end = "}";
+        // fall through
     case '&':
         ret.type = TAG_TYPE_VAR_UNESCAPED;
         ret.content++;
@@ -810,10 +811,10 @@ static bool Render(Buffer *out, const char *start, const char *input, Seq *hash_
                                 free(cur_section);
                                 break;
                             }
-                            /* else fall through to the case below because
-                             * iterated objects and arrays are processed in the
-                             * same way */
                         }
+                        /* fall through */
+                        /* Because iterated objects and arrays are processed in the
+                         * same way */
                     case JSON_CONTAINER_TYPE_ARRAY:
                         if (JsonLength(var) > 0)
                         {
