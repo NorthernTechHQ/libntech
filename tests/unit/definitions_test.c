@@ -5,35 +5,37 @@
 
 static void test_metric_prefixes(void)
 {
-    size_t size;
+    uint32_t size32;
 
-    size = KIBIBYTE(0);
-    assert_int_equal(size, 0);
-    size = KIBIBYTE(1);
-    assert_int_equal(size, 1024);
-    size = KIBIBYTE(2);
-    assert_int_equal(size, 2048);
+    size32 = KIBIBYTE(0);
+    assert_int_equal(size32, 0UL);
+    size32 = KIBIBYTE(1);
+    assert_int_equal(size32, 1024UL);
+    size32 = KIBIBYTE(2);
+    assert_int_equal(size32, 2048UL);
 
-    size = MEBIBYTE(0);
-    assert_int_equal(size, 0);
-    size = MEBIBYTE(1);
-    assert_int_equal(size, 1048576);
-    size = MEBIBYTE(2);
-    assert_int_equal(size, 2097152);
+    size32 = MEBIBYTE(0);
+    assert_int_equal(size32, 0UL);
+    size32 = MEBIBYTE(1);
+    assert_int_equal(size32, 1048576UL);
+    size32 = MEBIBYTE(2);
+    assert_int_equal(size32, 2097152UL);
 
-    size = GIBIBYTE(0);
-    assert_int_equal(size, 0);
-    size = GIBIBYTE(1);
-    assert_int_equal(size, 1073741824);
-    size = GIBIBYTE(2);
-    assert_int_equal(size, 2147483648);
+    uint64_t size64;
 
-    size = TEBIBYTE(0);
-    assert_int_equal(size, 0);
-    size = TEBIBYTE(1);
-    assert_int_equal(size, 1099511627776);
-    size = TEBIBYTE(2);
-    assert_int_equal(size, 2199023255552);
+    size64 = GIBIBYTE(0);
+    assert_int_equal(size64, 0ULL);
+    size64 = GIBIBYTE(1);
+    assert_int_equal(size64, 1073741824ULL);
+    size64 = GIBIBYTE(2);
+    assert_int_equal(size64, 2147483648ULL);
+
+    size64 = TEBIBYTE(0);
+    assert_int_equal(size64, 0ULL);
+    size64 = TEBIBYTE(1);
+    assert_int_equal(size64, 1099511627776ULL);
+    size64 = TEBIBYTE(2);
+    assert_int_equal(size64, 2199023255552ULL);
 
     assert_int_equal(KIBIBYTE(1024), MEBIBYTE(1));
     assert_int_equal(MEBIBYTE(1024), GIBIBYTE(1));
