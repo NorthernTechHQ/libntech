@@ -73,6 +73,8 @@
 
 #define ISPOW2(n)     (  (n)>0  &&  ((((n) & ((n)-1)) == 0))  )
 
+#define ABS(n)        (  (n<0)  ?  (-n)  :  (n)  )
+
 
 /*
   In contrast to the standard C modulus operator (%), this gives

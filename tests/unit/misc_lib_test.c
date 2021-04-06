@@ -191,6 +191,15 @@ static void test_ISPOW2(void)
     assert_false(ISPOW2(0xFFFFFFFF));
 }
 
+static void test_ABS(void)
+{
+    assert_int_equal(ABS(-2), 2);
+    assert_int_equal(ABS(-1), 1);
+    assert_int_equal(ABS( 0), 0);
+    assert_int_equal(ABS( 1), 1);
+    assert_int_equal(ABS( 2), 2);
+}
+
 static void test_putenv_wrapper(void)
 {
     assert_true(getenv("UNIT_TEST_VAR") == NULL);
@@ -238,6 +247,7 @@ int main()
         unit_test(test_upper_power_of_two),
         unit_test(test_rand_ISPOW2),
         unit_test(test_ISPOW2),
+        unit_test(test_ABS),
         unit_test(test_putenv_wrapper),
         unit_test(test_setenv_wrapper),
     };
