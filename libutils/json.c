@@ -2019,7 +2019,9 @@ static JsonParseError JsonParseAsString(
             switch (**data)
             {
             case '\\':
+                break;
             case '"':
+                break;
             case '/':
                 break;
 
@@ -2052,7 +2054,7 @@ static JsonParseError JsonParseAsString(
                 WriterWriteChar(writer, '\\');
                 break;
             }
-            /* Deliberate fall-through */
+            /* fall through */
         default:
             WriterWriteChar(writer, **data);
             break;
