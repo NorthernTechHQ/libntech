@@ -90,6 +90,12 @@ static void ExpandIfNeccessary(Seq *seq)
     }
 }
 
+int StrCmpWrapper(const void *s1, const void *s2, void *user_data)
+{
+    UNUSED(user_data);
+    return strcmp(s1, s2);
+}
+
 void SeqSet(Seq *seq, size_t index, void *item)
 {
     assert(seq != NULL);
