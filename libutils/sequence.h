@@ -99,6 +99,22 @@ void SeqSoftDestroy(Seq *seq);
   */
 typedef int (*SeqItemComparator) (const void *, const void *, void *user_data);
 
+/**
+  @brief Wrapper of the standard library function strcmp.
+  Used to avoid cast-function-type compiler warnings when
+  casting strcmp to (SeqItemComparator) in sequence functions.
+
+  @param [in] s1 The string being compared to the s2 string
+  @param [in] s2 The string that s1 is compared to
+  @param [in] user_data This parameter is the ignored user_data that the SeqItemComparator
+  expects
+
+  @return 0 if s1 and s2 strings are equal
+  @return negative if s1 is less than s2
+  @return positive if s1 is greater than s2
+ */
+int StrCmpWrapper(const void *s1, const void *s2, void *user_data);
+
 void SeqSet(Seq *set, size_t index, void *item);
 
 /**
