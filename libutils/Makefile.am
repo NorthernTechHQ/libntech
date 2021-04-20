@@ -63,6 +63,7 @@ libutils_la_SOURCES = \
 	platform.h condition_macros.h \
 	printsize.h \
 	proc_keyvalue.c proc_keyvalue.h \
+	proc_manager.c proc_manager.h \
 	queue.c queue.h \
 	rb-tree.c rb-tree.h \
 	refcount.c refcount.h \
