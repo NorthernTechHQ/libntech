@@ -63,6 +63,7 @@ HashMap *HashMapNew(MapHashFn hash_fn, MapKeyEqualFn equal_fn,
 
 bool HashMapInsert(HashMap *map, void *key, void *value);
 bool HashMapRemove(HashMap *map, const void *key);
+bool HashMapRemoveSoft(HashMap *map, const void *key);
 MapKeyValue *HashMapGet(const HashMap *map, const void *key);
 void HashMapClear(HashMap *map);
 void HashMapSoftDestroy(HashMap *map);

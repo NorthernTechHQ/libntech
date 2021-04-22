@@ -172,6 +172,39 @@ bool HashMapRemove(HashMap *map, const void *key)
     return false;
 }
 
+bool HashMapRemoveSoft(HashMap *map, const void *key)
+{
+    assert(map != NULL);
+
+    unsigned bucket = HashMapGetBucket(map, key);
+
+    /*
+     * prev points to a previous "next" pointer to rewrite it in case value need
+     * to be deleted
+     */
+
+    for (BucketListItem **prev = &map->buckets[bucket];
+         *prev != NULL;
+         prev = &((*prev)->next))
+    {
+        BucketListItem *cur = *prev;
+        if (map->equal_fn(cur->value.key, key))
+        {
+            map->destroy_key_fn(cur->value.key);
+            *prev = cur->next;
+            free(cur);
+            map->load--;
+            if ((map->load < map->min_threshold) && (map->size > map->init_size))
+            {
+                HashMapResize(map, map->size >> 1);
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
 MapKeyValue *HashMapGet(const HashMap *map, const void *key)
 {
     unsigned bucket = HashMapGetBucket(map, key);
