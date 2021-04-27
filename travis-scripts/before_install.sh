@@ -33,7 +33,7 @@ else
         sudo apt-get install -y libssl-dev
         sudo apt-get install -y libxml2-dev libacl1-dev
     fi
-    # codecov.io dependency
+    # Code coverage dependency:
     sudo apt-get install -y lcov
     # Ensure traditional yacc compatibility
     sudo apt-get purge      -y bison
