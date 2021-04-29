@@ -49,7 +49,7 @@ GET_DEFAULT_DIRECTORY_DEFINE(State, STATEDIR)
 
 #elif !defined(__MINGW32__)
 
-const char *GetDefaultDir_helper(char *dir, const char *root_dir,
+const char *GetDefaultDir_helper(char dir[PATH_MAX], const char *root_dir,
                                  const char *append_dir)
 {
     assert(dir != NULL);
