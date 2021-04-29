@@ -1405,6 +1405,67 @@ static void test_parse_array_nested_garbage(void)
     }
 }
 
+static void test_array_extend(void)
+{
+    {
+        JsonElement *a = JsonArrayCreate(6);
+        JsonArrayAppendString(a, "one");
+        JsonArrayAppendString(a, "two");
+        JsonArrayAppendString(a, "three");
+
+        JsonElement *b = JsonArrayCreate(3);
+        JsonArrayAppendString(b, "four");
+        JsonArrayAppendString(b, "five");
+        JsonArrayAppendString(b, "six");
+
+        JsonArrayExtend(a, b);
+
+        assert_int_equal(JsonLength(a), 6);
+        assert_string_equal(JsonArrayGetAsString(a, 0), "one");
+        assert_string_equal(JsonArrayGetAsString(a, 1), "two");
+        assert_string_equal(JsonArrayGetAsString(a, 2), "three");
+        assert_string_equal(JsonArrayGetAsString(a, 3), "four");
+        assert_string_equal(JsonArrayGetAsString(a, 4), "five");
+        assert_string_equal(JsonArrayGetAsString(a, 5), "six");
+
+        JsonDestroy(a);
+    }
+    {
+        JsonElement *a = JsonArrayCreate(3);
+        JsonArrayAppendString(a, "one");
+        JsonArrayAppendString(a, "two");
+        JsonArrayAppendString(a, "three");
+
+        JsonElement *b = JsonArrayCreate(0);
+
+        JsonArrayExtend(a, b);
+
+        assert_int_equal(JsonLength(a), 3);
+        assert_string_equal(JsonArrayGetAsString(a, 0), "one");
+        assert_string_equal(JsonArrayGetAsString(a, 1), "two");
+        assert_string_equal(JsonArrayGetAsString(a, 2), "three");
+
+        JsonDestroy(a);
+    }
+    {
+        JsonElement *a = JsonArrayCreate(3);
+
+        JsonElement *b = JsonArrayCreate(3);
+        JsonArrayAppendString(b, "four");
+        JsonArrayAppendString(b, "five");
+        JsonArrayAppendString(b, "six");
+
+        JsonArrayExtend(a, b);
+
+        assert_int_equal(JsonLength(a), 3);
+        assert_string_equal(JsonArrayGetAsString(a, 0), "four");
+        assert_string_equal(JsonArrayGetAsString(a, 1), "five");
+        assert_string_equal(JsonArrayGetAsString(a, 2), "six");
+
+        JsonDestroy(a);
+    }
+}
+
 static void test_array_remove_range(void)
 {
     {
@@ -1732,6 +1793,7 @@ int main()
         unit_test(test_array_get_string),
         unit_test(test_array_iterator),
         unit_test(test_array_remove_range),
+        unit_test(test_array_extend),
         unit_test(test_copy_compare),
         unit_test(test_detach_key_from_object),
         unit_test(test_iterator_current),
