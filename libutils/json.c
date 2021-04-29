@@ -1353,6 +1353,30 @@ void JsonArrayAppendElement(
     SeqAppend(array->container.children, element);
 }
 
+void JsonArrayExtend(JsonElement *array1, JsonElement *array2)
+{
+    assert(array1 != NULL);
+    assert(array1->type == JSON_ELEMENT_TYPE_CONTAINER);
+    assert(array1->container.type == JSON_CONTAINER_TYPE_ARRAY);
+    assert(array2 != NULL);
+    assert(array2->type == JSON_ELEMENT_TYPE_CONTAINER);
+    assert(array2->container.type == JSON_CONTAINER_TYPE_ARRAY);
+
+    JsonIterator iter = JsonIteratorInit(array2);
+    JsonElement *element = JsonIteratorNextValue(&iter);
+    while (element != NULL)
+    {
+        JsonArrayAppendElement(array1, element);
+        element = JsonIteratorNextValue(&iter);
+    }
+
+    if (array2->propertyName != NULL)
+    {
+        free(array2->propertyName);
+    }
+    free(array2);
+}
+
 void JsonArrayRemoveRange(
     JsonElement *const array, const size_t start, const size_t end)
 {

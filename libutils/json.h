@@ -417,6 +417,14 @@ void JsonArrayAppendObject(JsonElement *array, JsonElement *object);
 void JsonArrayAppendElement(JsonElement *array, JsonElement *element);
 
 /**
+  * @brief Add elements from `array2` to `array1`.
+  * @param array1 [in/out] The JSON array to add elements to.
+  * @param array2 [in] The JSON array to add elements from.
+  * @note `array1` takes ownership of elements in `array2`. `array2` is freed.
+  */
+void JsonArrayExtend(JsonElement *array1, JsonElement *array2);
+
+/**
   @brief Remove an inclusive range from a JSON array.
   @see SequenceRemoveRange
   @param array [in] The JSON array parent.
