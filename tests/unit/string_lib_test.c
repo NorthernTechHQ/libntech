@@ -496,6 +496,76 @@ static void test_string_to_long_compatibility(void)
     // Old function (StringToLongUnsafe) does not allow trailing whitespace
 }
 
+#define ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG(str, value_out, expected) \
+    assert_int_equal(StringDecimalToLong(str, &value_out), 0); \
+    assert_int_equal(value_out, expected)
+
+static void test_string_decimal_to_long(void)
+{
+    long value_out;
+
+    // Basic usage:
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("0.0", value_out, 0);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("-0.0", value_out, 0);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("+0.0", value_out, 0);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("123.0", value_out, 123);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("+123.0", value_out, 123);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("-123.0", value_out, (long) -123);
+
+    // Leading spaces:
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG(" 0.0", value_out, 0);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG(" 123.0", value_out, 123);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG(" -123.0", value_out, (long) -123);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("           0.0", value_out, 0);  // 12 is max accepted int length
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("      123.0", value_out, 123);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("      -123.0", value_out, (long) -123);
+
+    // Trailing spaces:
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("9.0 ", value_out, 9);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("789.0 ", value_out, 789);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("-789.0 ", value_out, (long) -789);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("9.0           ", value_out, 9);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("789.0         ", value_out, 789);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("-789.0        ", value_out, (long) -789);
+
+    // More spaces:
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("   0.0     ", value_out, 0);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("   -0.0    ", value_out, 0);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("   123.0  ", value_out, 123);
+
+    // Space separated numbers:
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("   123.456 78   9  ", value_out, 123);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("123.0 45", value_out, 123);
+
+    // Edge case: it doesnt matter what is after the decimal point
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("789.0b", value_out, 789);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("123.blah", value_out, 123);
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("456.", value_out, 456);
+}
+
+static void test_string_decimal_to_long_errors(void)
+{
+    // Successful call returns 0
+    long value_out;
+
+    ASSERT_INT_EQUAL_STRING_DECIMAL_TO_LONG("1234.5678", value_out, 1234);
+
+    assert_int_not_equal(StringDecimalToLong("", &value_out), 0);
+    assert_int_not_equal(StringDecimalToLong(" ", &value_out), 0);
+    assert_int_not_equal(StringDecimalToLong("error", &value_out), 0);
+    assert_int_not_equal(StringDecimalToLong("-error", &value_out), 0);
+    assert_int_not_equal(StringDecimalToLong("ffff", &value_out), 0);
+    assert_int_equal(StringDecimalToLong("999999999999999999999999999999.9", &value_out),
+                     -84);
+    assert_int_equal(StringDecimalToLong(" 999999999999999999999999999999.9", &value_out),
+                     -84);
+    assert_int_equal(StringDecimalToLong("-999999999999999999999999999999.9", &value_out),
+                     -84);
+
+    // value_out should be unmodified after errors
+    assert_int_equal(value_out, 1234);
+}
+
 static void test_string_to_ulong(void)
 {
     // Basic usage:
@@ -1424,6 +1494,8 @@ int main()
         unit_test(test_string_from_long),
         unit_test(test_string_to_double),
         unit_test(test_string_from_double),
+        unit_test(test_string_decimal_to_long),
+        unit_test(test_string_decimal_to_long_errors),
 
         unit_test(test_safe_compare),
         unit_test(test_safe_equal),
