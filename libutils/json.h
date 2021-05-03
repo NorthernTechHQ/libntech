@@ -417,6 +417,15 @@ void JsonArrayAppendObject(JsonElement *array, JsonElement *object);
 void JsonArrayAppendElement(JsonElement *array, JsonElement *element);
 
 /**
+  * @brief Move elements from JSON array `b` to JSON array `a`.
+  * @param a [in] The JSON array to move elements to.
+  * @param b [in] The JSON array to move elements from.
+  * @note JSON array `a` takes ownership of elements in JSON array `b`.
+  *       JSON array `b` is freed from memory.
+  */
+void JsonArrayExtend(JsonElement *a, JsonElement *b);
+
+/**
   @brief Remove an inclusive range from a JSON array.
   @see SequenceRemoveRange
   @param array [in] The JSON array parent.

@@ -1353,6 +1353,24 @@ void JsonArrayAppendElement(
     SeqAppend(array->container.children, element);
 }
 
+void JsonArrayExtend(JsonElement *a, JsonElement *b)
+{
+    assert(a != NULL);
+    assert(a->type == JSON_ELEMENT_TYPE_CONTAINER);
+    assert(a->container.type == JSON_CONTAINER_TYPE_ARRAY);
+    assert(b != NULL);
+    assert(b->type == JSON_ELEMENT_TYPE_CONTAINER);
+    assert(b->container.type == JSON_CONTAINER_TYPE_ARRAY);
+
+    SeqAppendSeq(a->container.children, b->container.children);
+    SeqSoftDestroy(b->container.children);
+    if (b->propertyName != NULL)
+    {
+        free(b->propertyName);
+    }
+    free(b);
+}
+
 void JsonArrayRemoveRange(
     JsonElement *const array, const size_t start, const size_t end)
 {
