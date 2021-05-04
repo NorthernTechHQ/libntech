@@ -1,6 +1,7 @@
 #include <test.h>
 
 #include <set.h>
+#include <json.h>
 #include <alloc.h>
 
 void test_stringset_from_string(void)
@@ -117,6 +118,48 @@ void test_stringset_join(void)
     }
 }
 
+void test_json_array_to_stringset(void)
+{
+    StringSet *expected = StringSetNew();
+    StringSetAdd(expected, xstrdup("item1"));
+    StringSetAdd(expected, xstrdup("2"));
+    StringSetAdd(expected, xstrdup("item2"));
+
+    JsonElement *json;
+    const char *str = "[\"item1\", \"2\", \"item2\"]";
+    assert_int_equal(JSON_PARSE_OK, JsonParse(&str, &json));
+    StringSet *converted = JsonArrayToStringSet(json);
+    assert_true(converted != NULL);
+    assert_true(StringSetIsEqual(expected, converted));
+    StringSetDestroy(converted);
+    JsonDestroy(json);
+
+    /* integer primitive should just be converted to string */
+    str = "[\"item1\", 2, \"item2\"]";
+    assert_int_equal(JSON_PARSE_OK, JsonParse(&str, &json));
+    converted = JsonArrayToStringSet(json);
+    assert_true(converted != NULL);
+    assert_true(StringSetIsEqual(expected, converted));
+    StringSetDestroy(converted);
+    JsonDestroy(json);
+
+    /* non-primitive child elements not supported */
+    str = "[\"item1\", {\"key\": \"value\"}, \"item2\"]";
+    assert_int_equal(JSON_PARSE_OK, JsonParse(&str, &json));
+    converted = JsonArrayToStringSet(json);
+    assert_true(converted == NULL);
+    JsonDestroy(json);
+
+    /* non-array JSONs not supported */
+    str = "{\"key\": \"value\"}";
+    assert_int_equal(JSON_PARSE_OK, JsonParse(&str, &json));
+    converted = JsonArrayToStringSet(json);
+    assert_true(converted == NULL);
+    JsonDestroy(json);
+
+    StringSetDestroy(expected);
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -125,7 +168,8 @@ int main()
         unit_test(test_stringset_from_string),
         unit_test(test_stringset_serialization),
         unit_test(test_stringset_clear),
-        unit_test(test_stringset_join)
+        unit_test(test_stringset_join),
+        unit_test(test_json_array_to_stringset),
     };
 
     return run_tests(tests);

@@ -200,3 +200,48 @@ JsonElement *StringSetToJson(const StringSet *set)
 
     return arr;
 }
+
+static bool VisitJsonArrayFirst(ARG_UNUSED JsonElement *element, void *data)
+{
+    /* We only want one array with items, so just make sure there are no items
+     * in the string set yet. This doesn't fail if there is a nested array as
+     * the first item in the top-level array, but let's just live with that for
+     * the sake of simplicity. */
+    StringSet *set = data;
+    return (StringSetSize(set) == 0);
+}
+
+static bool AddArrayItemToStringSet(JsonElement *element, void *data)
+{
+    char *element_str = JsonPrimitiveToString(element);
+    StringSet *set = data;
+    if ((element_str != NULL) && (set != NULL))
+    {
+        StringSetAdd(set, element_str);
+        return true;
+    }
+    return false;
+}
+
+StringSet *JsonArrayToStringSet(const JsonElement *array)
+{
+    assert(array != NULL);
+
+    if (JsonGetType(array) != JSON_TYPE_ARRAY)
+    {
+        return NULL;
+    }
+
+    StringSet *ret = StringSetNew();
+
+    /* We know our visitor functions don't modify the given array so we can
+     * safely type-cast the array to JsonElement* without 'const'. */
+    bool success = JsonWalk((JsonElement *) array, JsonErrorVisitor, VisitJsonArrayFirst,
+                            AddArrayItemToStringSet, ret);
+    if (!success)
+    {
+        StringSetDestroy(ret);
+        return NULL;
+    }
+    return ret;
+}
