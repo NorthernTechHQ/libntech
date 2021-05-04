@@ -511,6 +511,14 @@ bool JsonWalk(JsonElement *element,
               JsonElementVisitor primitive_visitor,
               void *data);
 
+/**
+ * Visitor that just stops the walk on any element.
+ *
+ * Can be used as one of the visitor functions for JsonWalk() to detect
+ * undesired child elements.
+ */
+bool JsonErrorVisitor(JsonElement *element, void *data);
+
 //////////////////////////////////////////////////////////////////////////////
 // JSON Parsing
 //////////////////////////////////////////////////////////////////////////////
