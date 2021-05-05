@@ -142,4 +142,9 @@ StringSet *StringSetFromString(const char *str, char delimiter);
 Buffer *StringSetToBuffer(StringSet *set, const char delimiter);
 JsonElement *StringSetToJson(const StringSet *set);
 
+/**
+ * Convert a flat JSON array into a #StringSet.
+ */
+StringSet *JsonArrayToStringSet(const JsonElement *array);
+
 #endif

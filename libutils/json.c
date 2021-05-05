@@ -2824,6 +2824,11 @@ bool JsonWalk(JsonElement *element,
     return keep_going;
 }
 
+bool JsonErrorVisitor(ARG_UNUSED JsonElement *element, ARG_UNUSED void *data)
+{
+    return false;
+}
+
 /*******************************************************************/
 
 #ifdef WITH_PCRE
