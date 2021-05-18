@@ -516,6 +516,160 @@ static void test_hashmap_degenerate_hash_fn(void)
     HashMapDestroy(hashmap);
 }
 
+#define ARRAY_STRING_KEY(last_char) {'k', 'e', 'y', last_char, '\0'}
+#define ARRAY_STRING_VALUE(last_char) {'v', 'a', 'l', 'u', 'e', last_char, '\0'}
+
+/**
+ * @brief Return pointer to heap allocated string constructed as
+ *        "keyX" where X is last_char.
+ */
+static char *MallocStringKey(char last_char)
+{
+    return xstrdup((char[]) ARRAY_STRING_KEY(last_char));
+}
+
+/**
+ * @brief Return pointer to heap allocated string constructed as
+ *        "valueX" where X is last_char.
+ */
+static char *MallocStringValue(char last_char)
+{
+    return xstrdup((char[]) ARRAY_STRING_VALUE(last_char));
+}
+
+static void test_array_map_insert(void)
+{
+    ArrayMap *m = ArrayMapNew(StringEqual_untyped, free, free);
+
+    // Test simple insertion
+    for (int i = 0; i < 3; ++i)
+    {
+        char* k = MallocStringKey('A' + i);
+        char* v = MallocStringValue('A' + i);
+        assert_int_equal(ArrayMapInsert(m, k, v), 2);
+    }
+
+    assert_int_equal(m->size, 3);
+
+    // Test replacing
+    for (int i = 0; i < 3; ++i)
+    {
+        char* k = MallocStringKey('A' + i);
+        char* v = MallocStringKey('0' + i);
+        assert_int_equal(ArrayMapInsert(m, k, v), 1);
+    }
+
+    assert_int_equal(m->size, 3);
+
+    // Fill array up to size 14
+    for (int i = 0; i < 14 - 3; ++i)
+    {
+        ArrayMapInsert(m, MallocStringKey('a' + i), MallocStringValue('a' + i));
+    }
+
+    assert_int_equal(m->size, 14);
+
+    // Test (no) insertion for size > 14
+    for (int i = 0; i < 3; ++i)
+    {
+        char* k = MallocStringKey('\0');
+        char* v = MallocStringValue('\0');
+        assert_int_equal(ArrayMapInsert(m, k, v), 0);
+        free(k);
+        free(v);
+    }
+
+    ArrayMapDestroy(m);
+}
+
+void test_array_map_get(void)
+{
+    ArrayMap *m = ArrayMapNew(StringEqual_untyped, free, free);
+
+    // Fill with some test strings
+    for (int i = 0; i < 5; ++i)
+    {
+        char *k = MallocStringKey('A' + i);
+        char *v = MallocStringValue('A' + i);
+        assert_int_equal(ArrayMapInsert(m, k, v), 2);
+    }
+
+    // Get all the test strings
+    for (int i = 0; i < 5; ++i)
+    {
+        char k[] = ARRAY_STRING_KEY('A' + i);
+        MapKeyValue *pair = ArrayMapGet(m, k);
+        assert_true(pair != NULL);
+        assert_string_equal(pair->key, (char[]) ARRAY_STRING_KEY('A' + i));
+        assert_string_equal(pair->value, (char[]) ARRAY_STRING_VALUE('A' + i));
+    }
+
+    // Get non existent keys
+    for (int i = 0; i < 5; ++i)
+    {
+        char k[] = ARRAY_STRING_KEY('a' + i);
+        MapKeyValue *pair = ArrayMapGet(m, k);
+        assert_true(pair == NULL);
+    }
+
+    ArrayMapDestroy(m);
+}
+
+static void test_array_map_remove(void)
+{
+    ArrayMap *m = ArrayMapNew(StringEqual_untyped, free, free);
+
+    // Fill with some test strings
+    for (int i = 0; i < 5; ++i)
+    {
+        char *k = MallocStringKey('A' + i);
+        char *v = MallocStringValue('A' + i);
+        assert_int_equal(ArrayMapInsert(m, k, v), 2);
+    }
+
+    // Remove all keys one by one in reverse order
+    for (int i = 4; i >= 0; --i)
+    {
+        char k[] = ARRAY_STRING_KEY('A' + 4 - i);
+        assert_true(ArrayMapRemove(m, k));
+        assert_true(ArrayMapGet(m, k) == NULL);
+    }
+
+    // Try to remove non existent keys
+    for (int i = 0; i < 5; ++i)
+    {
+        char k[] = ARRAY_STRING_KEY('A' + i);
+        assert_false(ArrayMapRemove(m, k));
+    }
+
+    ArrayMapDestroy(m);
+}
+
+static void test_array_map_soft_destroy(void)
+{
+    ArrayMap *m = ArrayMapNew(StringEqual_untyped, free, free);
+
+    // Generate some pairs and keep track of values
+    char *values[5];
+
+    for (int i = 0; i < 5; ++i)
+    {
+        char *k = MallocStringKey('A' + i);
+        char *v = MallocStringValue('A' + i);
+        values[i] = v;
+        assert_int_equal(ArrayMapInsert(m, k, v), 2);
+    }
+
+    // Soft destroy and free them manually (should not double free)
+    // DEV: perhaps too... much?
+    ArrayMapSoftDestroy(m);
+
+    for (int i = 0; i < 5; ++i)
+    {
+        free(values[i]);
+    }
+}
+
 /* A special struct for *Value* in the Map, that references the Key. */
 typedef struct
 {
@@ -566,6 +720,41 @@ static void test_array_map_key_referenced_in_value(void)
          * the same results, as the string is the same as in key2. */
         MapKeyValue *keyval2 = ArrayMapGet(m, "blah");
         assert_true(keyval2 == keyval);
+    }
+
+    ArrayMapDestroy(m);
+}
+
+static void test_array_map_iterator(void)
+{
+    ArrayMap *m = ArrayMapNew(StringEqual_untyped, free, free);
+
+    // Fill with some test strings
+    for (int i = 0; i < 5; ++i)
+    {
+        char *k = MallocStringKey('A' + i);
+        char *v = MallocStringValue('A' + i);
+        assert_int_equal(ArrayMapInsert(m, k, v), 2);
+    }
+
+    // Consume iterator
+    ArrayMapIterator iter = ArrayMapIteratorInit(m);
+    assert_true(iter.map == m);
+
+    for (int i = 0; i < 5; ++i)
+    {
+        char k[] = ARRAY_STRING_KEY('A' + i);
+        char v[] = ARRAY_STRING_VALUE('A' + i);
+        MapKeyValue *pair = ArrayMapIteratorNext(&iter);
+        assert_true(pair != NULL);
+        assert_string_equal(pair->key, k);
+        assert_string_equal(pair->value, v);
+    }
+
+    // Consumed iterator should return NULL
+    for (int i = 0; i < 5; ++i)
+    {
+        assert_true(ArrayMapIteratorNext(&iter) == NULL);
     }
 
     ArrayMapDestroy(m);
@@ -638,7 +827,12 @@ int main()
         unit_test(test_soft_destroy),
         unit_test(test_hashmap_new_destroy),
         unit_test(test_hashmap_degenerate_hash_fn),
+        unit_test(test_array_map_insert),
+        unit_test(test_array_map_get),
+        unit_test(test_array_map_remove),
+        unit_test(test_array_map_soft_destroy),
         unit_test(test_array_map_key_referenced_in_value),
+        unit_test(test_array_map_iterator),
         unit_test(test_hash_map_key_referenced_in_value),
         unit_test(test_iterate_jumbo),
 #ifndef _AIX
