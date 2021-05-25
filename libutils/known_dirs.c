@@ -145,13 +145,6 @@ const char *GetBinDir(void)
     }
 }
 
-const char *GetDataDir(void)
-{
-    const char *datadir = getenv("CFENGINE_TEST_OVERRIDE_WORKDIR");
-
-    return datadir == NULL ? GetDefaultDataDir() : datadir;
-}
-
 const char *GetLogDir(void)
 {
     const char *logdir = getenv("CFENGINE_TEST_OVERRIDE_WORKDIR");
@@ -194,3 +187,5 @@ const char *GetMasterDir(void)
     GET_DIRECTORY_DEFINE_FUNC_BODY(Master, master, MASTER, masterfiles)
 const char *GetStateDir(void)
     GET_DIRECTORY_DEFINE_FUNC_BODY(State, state, STATE, state)
+const char *GetDataDir(void)
+    GET_DIRECTORY_DEFINE_FUNC_BODY(Data, data, CF_DATA, data)
