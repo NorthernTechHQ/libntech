@@ -233,7 +233,7 @@ char *StringVFormat(const char *fmt, va_list ap);
  * @return formatted string (on heap) or NULL in case of error. errno is set in
  * the latter case (see errno codes for sprintf).
  */
-char *StringFormat(const char *fmt, ...) FUNC_ATTR_PRINTF(1, 2);
+char *StringFormat(const char *fmt, ...) FUNC_WARN_UNUSED_RESULT FUNC_ATTR_PRINTF(1, 2);
 
 /**
  * @brief Copy a string from `from` to `to` (a buffer of at least buf_size)
