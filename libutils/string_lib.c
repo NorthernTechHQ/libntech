@@ -32,7 +32,7 @@
 #include <cleanup.h>
 #include <definitions.h> // CF_BUFSIZE
 #include <condition_macros.h> // nt_static_assert()
-
+#include <printsize.h>
 
 char *StringVFormat(const char *fmt, va_list ap)
 {
@@ -529,8 +529,43 @@ int StringToLong(const char *str, long *value_out)
 }
 
 /**
- * @brief Log StringToLong & StringToUlong conversion error with an identifier
- *        for debugging.
+ * @brief Convert a string representing a real number to int, discarding the decimal part.
+ *
+ * Attempts to find the first '.' character in order to copy the integer part to a
+ * temporary array before passing it to StringToLong. Should the input string be
+ * an entire integer by itself no copying occurs. The integer part must NOT exceed 12 digits.
+ *
+ * @param[in] str String matching the regex \d+(\.\d+)?, cannot be NULL
+ * @param[out] value_out Where to store result on success, cannot be NULL
+ * @return 0 on success, -84 if the integer part is too long or other error code otherwise (see StringToLong source code)
+ */
+int StringDecimalToLong(const char *str, long *value_out)
+{
+    assert(str != NULL);
+    assert(value_out != NULL);
+
+    size_t len_of_int_part = strcspn(str, ".");
+
+    if (len_of_int_part > PRINTSIZE(INT_MAX))
+    {
+        return -84;  // Integer part too large to allocate buffer
+    }
+
+    if (len_of_int_part == 0 || str[len_of_int_part] == '\0')
+    {
+        return StringToLong(str, value_out);
+    }
+
+    char int_part[len_of_int_part + 1];
+    strncpy(int_part, str, len_of_int_part);
+    int_part[len_of_int_part] = '\0';
+
+    return StringToLong(int_part, value_out);
+}
+
+/**
+ * @brief Log StringToLong & StringToUlong & StringDecimalToLong conversion error
+ *        with an identifier for debugging.
  */
 void LogStringToLongError(const char *str_attempted, const char *id, int error_code)
 {
@@ -549,6 +584,9 @@ void LogStringToLongError(const char *str_attempted, const char *id, int error_c
             break;
         case -83:
             error_str = "Not terminated";
+            break;
+        case -84:
+            error_str = "Integer part too large";
             break;
     }
     Log(LOG_LEVEL_ERR, "Conversion error (%d - %s) on '%s' (%s)", error_code, error_str, str_attempted, id);
