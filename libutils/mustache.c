@@ -303,7 +303,9 @@ static Mustache NextTag(const char *input,
         ret.content_len--;
     }
 
-    while (ret.content[ret.content_len - 1] == ' ' || ret.content[ret.content_len - 1] == '\t')
+    while (ret.content_len > 0
+           && (ret.content[ret.content_len - 1] == ' '
+               || ret.content[ret.content_len - 1] == '\t'))
     {
         ret.content_len--;
     }
