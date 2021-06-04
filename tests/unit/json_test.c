@@ -443,6 +443,19 @@ static void test_object_get_string(void)
     JsonDestroy(obj);
 }
 
+static void test_object_get_bool(void)
+{
+    JsonElement *obj = JsonObjectCreate(10);
+
+    JsonObjectAppendBool(obj, "true", true);
+    JsonObjectAppendBool(obj, "false", false);
+
+    assert_int_equal(JsonObjectGetAsBool(obj, "true"), true);
+    assert_int_equal(JsonObjectGetAsBool(obj, "false"), false);
+
+    JsonDestroy(obj);
+}
+
 static void test_object_get_array(void)
 {
     JsonElement *arr = JsonArrayCreate(10);
@@ -1803,6 +1816,7 @@ int main()
         unit_test(test_object_duplicate_key),
         unit_test(test_object_get_array),
         unit_test(test_object_get_string),
+        unit_test(test_object_get_bool),
         unit_test(test_object_iterator),
         unit_test(test_json_walk),
         unit_test(test_parse_array_bad_nested_elems),
