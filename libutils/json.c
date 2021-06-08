@@ -1230,6 +1230,24 @@ const char *JsonObjectGetAsString(
     return NULL;
 }
 
+bool JsonObjectGetAsBool(
+    const JsonElement *const object, const char *key)
+{
+    assert(object != NULL);
+    assert(JsonGetType(object) == JSON_TYPE_OBJECT);
+    assert(key != NULL);
+
+    JsonElement *childPrimitive = JsonObjectGet(object, key);
+
+    if (childPrimitive != NULL)
+    {
+        assert(JsonGetType(childPrimitive) == JSON_TYPE_BOOL);
+        return StringEqual(childPrimitive->primitive.value, "true");
+    }
+
+    return false;
+}
+
 JsonElement *JsonObjectGetAsObject(
     JsonElement *const object, const char *const key)
 {
