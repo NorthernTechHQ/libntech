@@ -326,7 +326,7 @@ const char *JsonObjectGetAsString(const JsonElement *object, const char *key);
   @brief Get the value of a field in an object, as a boolean.
   @param object [in] The JSON object parent.
   @param key [in] the key of the field.
-  @returns TODO
+  @returns The boolean value for the key or false if key is not available
   */
 bool JsonObjectGetAsBool(const JsonElement *const object, const char *key);
 
