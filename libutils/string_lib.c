@@ -25,7 +25,6 @@
 #include <platform.h>
 #include <string_lib.h>
 
-#include <alloc.h>
 #include <writer.h>
 #include <misc_lib.h>
 #include <logging.h>
@@ -34,20 +33,6 @@
 #include <condition_macros.h> // nt_static_assert()
 #include <printsize.h>
 
-char *StringVFormat(const char *fmt, va_list ap)
-{
-    char *value;
-    int ret = xvasprintf(&value, fmt, ap);
-    if (ret < 0)
-    {
-        return NULL;
-    }
-    else
-    {
-        return value;
-    }
-}
-
 char *StringFormat(const char *fmt, ...)
 {
     va_list ap;
@@ -55,35 +40,6 @@ char *StringFormat(const char *fmt, ...)
     char *res = StringVFormat(fmt, ap);
     va_end(ap);
     return res;
-}
-
-size_t StringCopy(const char *const from, char *const to, const size_t buf_size)
-{
-    assert(from != NULL);
-    assert(to != NULL);
-    assert(from != to);
-
-    memset(to, 0, buf_size);
-    strncpy(to, from, buf_size);
-    if (to[buf_size-1] != '\0')
-    {
-        to[buf_size-1] = '\0';
-        return buf_size;
-    }
-    return strlen(to); // TODO - Replace the extra pass by using stpncpy:
-
-    /*
-    // stpncpy has bad/unsafe behavior when string is too long:
-    // * Does not NUL terminate
-    // * Returns a pointer to potentially invalid memory
-    // These issues have to be handled (even for correct arguments)
-
-    const char *const end = stpncpy(to, from, buf_size);
-    assert(end >= to);
-    const long len = end - to;
-    to[buf_size] = '\0';
-    return len;
-    */
 }
 
 unsigned int StringHash(const char *str, unsigned int seed)
@@ -110,97 +66,7 @@ unsigned int StringHash(const char *str, unsigned int seed)
     return h;
 }
 
-unsigned int StringHash_untyped(const void *str, unsigned int seed)
-{
-    return StringHash(str, seed);
-}
-
-char ToLower(char ch)
-{
-    if (isupper((unsigned char) ch))
-    {
-        return (ch - 'A' + 'a');
-    }
-    else
-    {
-        return (ch);
-    }
-}
-
 /*********************************************************************/
-
-char ToUpper(char ch)
-{
-    if ((isdigit((unsigned char) ch)) || (ispunct((unsigned char) ch)))
-    {
-        return (ch);
-    }
-
-    if (isupper((unsigned char) ch))
-    {
-        return (ch);
-    }
-    else
-    {
-        return (ch - 'a' + 'A');
-    }
-}
-
-/*********************************************************************/
-
-void ToUpperStrInplace(char *str)
-{
-    for (; *str != '\0'; str++)
-    {
-        *str = ToUpper(*str);
-    }
-}
-
-/*********************************************************************/
-
-void ToLowerStrInplace(char *str)
-{
-    for (; *str != '\0'; str++)
-    {
-        *str = ToLower(*str);
-    }
-}
-
-/*********************************************************************/
-
-char *SafeStringDuplicate(const char *str)
-{
-    if (str == NULL)
-    {
-        return NULL;
-    }
-
-    return xstrdup(str);
-}
-
-/*********************************************************************/
-
-char *SafeStringNDuplicate(const char *str, size_t size)
-{
-    if (str == NULL)
-    {
-        return NULL;
-    }
-
-    return xstrndup(str, size);
-}
-
-/*********************************************************************/
-
-int SafeStringLength(const char *str)
-{
-    if (str == NULL)
-    {
-        return 0;
-    }
-
-    return strlen(str);
-}
 
 // Compare two pointers (strings) where exactly one is NULL
 static int NullCompare(const void *const a, const void *const b)
@@ -259,16 +125,6 @@ int StringSafeCompareN(const char *const a, const char *const b, const size_t n)
     return NullCompare(a, b);
 }
 
-bool StringEqual(const char *const a, const char *const b)
-{
-    return (StringSafeCompare(a, b) == 0);
-}
-
-bool StringEqualN(const char *const a, const char *const b, const size_t n)
-{
-    return (StringSafeCompareN(a, b, n) == 0);
-}
-
 int StringSafeCompare_IgnoreCase(const char *const a, const char *const b)
 {
     if (a == b) // Same address or both NULL
@@ -297,21 +153,6 @@ int StringSafeCompareN_IgnoreCase(const char *const a, const char *const b, cons
 
     // Weird edge cases where one is NULL:
     return NullCompare(a, b);
-}
-
-bool StringEqual_IgnoreCase(const char *const a, const char *const b)
-{
-    return (StringSafeCompare_IgnoreCase(a, b) == 0);
-}
-
-bool StringEqualN_IgnoreCase(const char *const a, const char *const b, const size_t n)
-{
-    return (StringSafeCompareN_IgnoreCase(a, b, n) == 0);
-}
-
-bool StringEqual_untyped(const void *a, const void *b)
-{
-    return StringEqual(a, b);
 }
 
 /*********************************************************************/
@@ -427,49 +268,6 @@ char *StringSubstring(const char *source, size_t source_len, int start, int len)
 
     memcpy(result, source + start, end - start + 1);
     return result;
-}
-
-/*********************************************************************/
-
-bool StringIsNumeric(const char *s)
-{
-    for (; *s; s++)
-    {
-        if (!isdigit((unsigned char)*s))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool StringIsPrintable(const char *s)
-{
-    for (; *s; s++)
-    {
-        if (!isprint((unsigned char)*s))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool EmptyString(const char *s)
-{
-    const char *sp;
-
-    for (sp = s; *sp != '\0'; sp++)
-    {
-        if (!isspace((unsigned char)*sp))
-        {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 /*********************************************************************/
@@ -593,28 +391,6 @@ void LogStringToLongError(const char *str_attempted, const char *id, int error_c
 }
 
 /**
- * @brief Converts a string of numerals in base 10 to a long integer,
- *        uses a default value if errors occur.
- *
- * @see StringToLong()
- * @param[in] str String with numerals to convert, cannot be NULL
- * @param[in] default_return Value to return on error
- * @return Result of conversion (or default_return in case of error)
- */
-long StringToLongDefaultOnError(const char *str, long default_return)
-{
-    assert(str != NULL);
-    long result = 0;
-    int return_code = StringToLong(str, &result);
-    if (return_code != 0)
-    {
-        // Do not log anything because this can be used frequently
-        return default_return;
-    }
-    return result;
-}
-
-/**
  * @brief Converts a string of numerals in base 10 to a long integer, exits on error.
  *
  * Only use this function in contexts/components where it is acceptable
@@ -702,28 +478,6 @@ int StringToUlong(const char *str, unsigned long *value_out)
 
     *value_out = val;
     return 0;
-}
-
-/**
- * @brief Converts a string of numerals in base 10 to a unsigned long 
- *        integer, uses a default value if errors occur.
- *
- * @see StringToUlong()
- * @param[in] str String with numerals to convert, cannot be NULL
- * @param[in] default_return Value to return on error
- * @return Result of conversion (or default_return in case of error)
- */
-unsigned long StringToUlongDefaultOnError(const char *str, unsigned long default_return)
-{
-    assert(str != NULL);
-    unsigned long result = 0;
-    int return_code = StringToUlong(str, &result);
-    if (return_code != 0)
-    {
-        // Do not log anything because this can be used frequently
-        return default_return;
-    }
-    return result;
 }
 
 /**
@@ -831,28 +585,6 @@ int64_t StringToInt64ExitOnError(const char *str)
 }
 
 /**
- * @brief Converts a string to int64_t, with a default value in case of errors
- *
- * @see StringToInt64()
- * @see StringToLongDefaultOnError()
- * @param[in] str String with numerals to convert, cannot be NULL
- * @param[in] default_return Value to return on error
- * @return Result of conversion
- */
-int64_t StringToInt64DefaultOnError(const char *str, int64_t default_return)
-{
-    assert(str != NULL);
-
-    int64_t result;
-    const int error_code = StringToInt64(str, &result);
-    if (error_code != 0)
-    {
-        return default_return;
-    }
-    return result;
-}
-
-/**
  * @brief Convert a string of numerals to a long integer (deprecated).
  *
  * @warning This function is deprecated, do not use it
@@ -874,43 +606,7 @@ long StringToLongUnsafe(const char *str)
     return result;
 }
 
-char *StringFromLong(long number)
-{
-    char *str = xcalloc(32, sizeof(char));
-    snprintf(str, 32, "%ld", number);
-    return str;
-}
-
 /*********************************************************************/
-
-double StringToDouble(const char *str)
-{
-    assert(str);
-
-    char *end;
-    double result = strtod(str, &end);
-
-    assert(!*end && "Failed to convert string to double");
-
-    return result;
-}
-
-char *StringFromDouble(double number)
-{
-    return StringFormat("%.2f", number);
-}
-
-/*********************************************************************/
-
-char *NULLStringToEmpty(char *str)
-{
-    if(!str)
-    {
-        return "";
-    }
-
-    return str;
-}
 
 /**
  * @NOTE this function always '\0'-terminates the destination string #dst.
@@ -934,34 +630,6 @@ size_t StringBytesToHex(char *dst, size_t dst_size,
     dst[2*i] = '\0';
 
     return 2*i;
-}
-
-bool IsStrIn(const char *str, const char *const strs[])
-{
-    int i;
-
-    for (i = 0; strs[i]; ++i)
-    {
-        if (strcmp(str, strs[i]) == 0)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool IsStrCaseIn(const char *str, const char *const strs[])
-{
-    int i;
-
-    for (i = 0; strs[i]; ++i)
-    {
-        if (strcasecmp(str, strs[i]) == 0)
-        {
-            return true;
-        }
-    }
-    return false;
 }
 
 int CountChar(const char *string, char sep)
@@ -1074,24 +742,6 @@ ssize_t StringReplace(char *buf, size_t buf_size,
     memcpy(buf, tmp, tmp_len + 1);
 
     return tmp_len;
-}
-
-void ReplaceTrailingChar(char *str, char from, char to)
-/* Replaces any unwanted last char in str. */
-{
-    int strLen;
-
-    strLen = SafeStringLength(str);
-
-    if (strLen == 0)
-    {
-        return;
-    }
-
-    if (str[strLen - 1] == from)
-    {
-        str[strLen - 1] = to;
-    }
 }
 
 static StringRef StringRefNull(void)
@@ -1280,18 +930,6 @@ char *EscapeCharCopy(const char *str, char to_escape, char escape_with)
     return out;
 }
 
-char *ScanPastChars(char *scanpast, char *input)
-{
-    char *pos = input;
-
-    while ((*pos != '\0') && (strchr(scanpast, *pos)))
-    {
-        pos++;
-    }
-
-    return pos;
-}
-
 int StripTrailingNewline(char *str, size_t max_length)
 {
     if (str)
@@ -1441,20 +1079,6 @@ size_t TrimCSVLineCRLFStrict(char *const data)
     return length;
 }
 
-void StringCloseHole(char *s, const size_t start, const size_t end)
-{
-    assert(s != NULL);
-    assert(start <= end && end <= strlen(s));
-    assert((end - start) <= strlen(s));
-
-    if (end > start)
-    {
-        memmove(s + start, s + end,
-                /* The 1+ ensures we copy the final '\0' */
-                strlen(s + end) + 1);
-    }
-}
-
 bool StringEndsWithCase(const char *str, const char *suffix, const bool case_fold)
 {
     size_t str_len = strlen(str);
@@ -1484,11 +1108,6 @@ bool StringEndsWithCase(const char *str, const char *suffix, const bool case_fol
     return true;
 }
 
-bool StringEndsWith(const char *str, const char *suffix)
-{
-    return StringEndsWithCase(str, suffix, false);
-}
-
 bool StringStartsWith(const char *str, const char *prefix)
 {
     int str_len = strlen(str);
@@ -1508,29 +1127,6 @@ bool StringStartsWith(const char *str, const char *prefix)
     }
     return true;
 }
-
-
-/**
- * Returns pointer to the first byte in #buf that is not #c. Returns NULL if
- * all of #buf contains only bytes of value #c.
- *
- * @NOTE this functions complements memchr() from POSIX.
- *
- * @TODO move to libcompat, it appears to be available in some systems.
- */
-void *memcchr(const void *buf, int c, size_t buf_size)
-{
-    const char *cbuf = buf;
-    for (size_t i = 0; i < buf_size; i++)
-    {
-        if (cbuf[i] != c)
-        {
-            return (void *) &cbuf[i];                    /* cast-away const */
-        }
-    }
-    return NULL;
-}
-
 
 /*
  * @brief extract info from input string given two types of constraints:
@@ -1560,21 +1156,6 @@ bool StringNotMatchingSetCapped(const char *isp, size_t limit,
         obuf[limit-1]='\0';
         return true;
     }
-}
-
-bool StringAppend(char *dst, const char *src, size_t n)
-{
-    size_t i, j;
-    n--;
-    for (i = 0; i < n && dst[i]; i++)
-    {
-    }
-    for (j = 0; i < n && src[j]; i++, j++)
-    {
-        dst[i] = src[j];
-    }
-    dst[i] = '\0';
-    return (i < n || !src[j]);
 }
 
 /**
@@ -1724,42 +1305,4 @@ void StrCatDelim(char *dst, size_t dst_size, size_t *dst_len,
     {
         *dst_len = needed_len;
     }
-}
-
-/*********************************************************************/
-
-void CanonifyNameInPlace(char *s)
-{
-    for (; *s != '\0'; s++)
-    {
-        if (!isalnum((unsigned char) *s))
-        {
-            *s = '_';
-        }
-    }
-}
-
-bool StringMatchesOption(
-    const char *const supplied,
-    const char *const longopt,
-    const char *const shortopt)
-{
-    assert(supplied != NULL);
-    assert(shortopt != NULL);
-    assert(longopt != NULL);
-    assert(strlen(shortopt) == 2);
-    assert(strlen(longopt) >= 3);
-    assert(shortopt[0] == '-' && shortopt[1] != '-');
-    assert(longopt[0] == '-' && longopt[1] == '-' && longopt[2] != '-');
-
-    const size_t length = strlen(supplied);
-    if (length <= 1)
-    {
-        return false;
-    }
-    else if (length == 2)
-    {
-        return StringEqual(supplied, shortopt);
-    }
-    return StringEqualN_IgnoreCase(supplied, longopt, length);
 }
