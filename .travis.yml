@@ -10,8 +10,6 @@ addons:
 branches:
   only:
     - master
-    - 3.10.x
-    - 3.12.x
 
 env:
   global:
