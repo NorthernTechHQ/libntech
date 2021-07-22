@@ -45,6 +45,31 @@ static void test_append(void)
     SeqDestroy(seq);
 }
 
+static void test_set(void)
+{
+    Seq *seq = SeqNew(10, free);
+    for (size_t i = 0; i < 10; i++)
+    {
+        SeqAppend(seq, xstrdup("snookie"));
+    }
+    assert_int_equal(seq->length, 10);
+
+    SeqSet(seq, 0, xstrdup("blah"));
+    assert_int_equal(seq->length, 10);
+    assert_string_equal(SeqAt(seq, 0), "blah");
+
+    char *item = SeqAt(seq, 5);
+    assert_string_equal(item, "snookie");
+    SeqSoftSet(seq, 5, xstrdup("blah"));
+    assert_int_equal(seq->length, 10);
+    assert_string_equal(SeqAt(seq, 5), "blah");
+
+    /* SeqSoftSet() shouldn't have destroyed the item so we should (be able to)
+     * free it and SeqDestroy() should destroy the replacement. */
+    free(item);
+    SeqDestroy(seq);
+}
+
 static int CompareNumbers(const void *a, const void *b,
                           ARG_UNUSED void *_user_data)
 {
@@ -863,6 +888,7 @@ int main()
     {
         unit_test(test_create_destroy),
         unit_test(test_append),
+        unit_test(test_set),
         unit_test(test_append_once),
         unit_test(test_lookup),
         unit_test(test_binary_lookup),

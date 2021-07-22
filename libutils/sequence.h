@@ -115,7 +115,19 @@ typedef int (*SeqItemComparator) (const void *, const void *, void *user_data);
  */
 int StrCmpWrapper(const void *s1, const void *s2, void *user_data);
 
+/**
+ * Replace value at #index.
+ *
+ * @warning Destroys the original item at #index! See SeqSoftSet().
+ */
 void SeqSet(Seq *set, size_t index, void *item);
+
+/**
+ * Set value at #index.
+ *
+ * @note Make sure the original item at #index is destroyed.
+ */
+void SeqSoftSet(Seq *set, size_t index, void *item);
 
 /**
   @brief Append a new item to the Sequence
