@@ -107,6 +107,13 @@ void SeqSet(Seq *seq, size_t index, void *item)
     seq->data[index] = item;
 }
 
+void SeqSoftSet(Seq *seq, size_t index, void *item)
+{
+    assert(seq != NULL);
+    assert(index < SeqLength(seq));
+    seq->data[index] = item;
+}
+
 void SeqAppend(Seq *seq, void *item)
 {
     assert(seq != NULL);
