@@ -75,6 +75,46 @@
 
 #define ABS(n)        (  (n<0)  ?  (-n)  :  (n)  )
 
+/**
+ * Hack to get optional- and required-arguments with short options to work the
+ * same way.
+ *
+ *     If the option has an optional argument, it must be written
+ *     directly after the option character if present.
+ *      - getopt(1) - Linux man page
+ *
+ * This means that getopt expects an option "-o" with an optional argument
+ * "foo" to be passed like this: "-ofoo". While an option "-r" with a
+ * required argument "bar" is expected to be passed like this: "-r bar".
+ *
+ * Confusing, right? This little hack makes sure that the option-character and
+ * the optional argument can also be separated by a whitespace-character. This
+ * way optional- and required-arguments can be passed in the same fashion.
+ *
+ * This is how it works:
+ * If optarg is NULL, we check whether the next string in argv is an option
+ * (the variable optind has the index of the next element to be processed in
+ * argv). If this is not the case, we assume it is an argument. The argument
+ * is extracted and optind is advanced accordingly.
+ *
+ * This is how you use it:
+ * ```
+ * case 'o':
+ *     if (OPTIONAL_ARGUMENT_IS_PRESENT)
+ *     {
+ *         // Handle is present
+ *     }
+ *     else
+ *     {
+ *         // Handle is not present
+ *     }
+ *     break;
+ * ```
+ */
+#define OPTIONAL_ARGUMENT_IS_PRESENT \
+    ((optarg == NULL && optind < argc && argv[optind][0] != '-') \
+     ? (bool) (optarg = argv[optind++]) \
+     : (optarg != NULL))
 
 /*
   In contrast to the standard C modulus operator (%), this gives
