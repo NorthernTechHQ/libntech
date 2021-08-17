@@ -1799,6 +1799,30 @@ static void test_string_escape_json5(void)
     assert_json5_data_eq(7, arr, "\\x01\\x02\\x03\\x04\\x10\\xF0\\xFF");
 }
 
+static void test_json_null_not_null(void)
+{
+    JsonElement *json = NULL;
+    assert_true(NULL_JSON(json));
+    assert_false(JSON_NOT_NULL(json));
+
+    json = JsonObjectCreate(3);
+    assert_true(JSON_NOT_NULL(json));
+    assert_false(NULL_JSON(json));
+
+    JsonObjectAppendInteger(json, "one", 1);
+
+    JsonElement *child = JsonObjectGet(json, "one");
+    assert_true(JSON_NOT_NULL(child));
+    assert_false(NULL_JSON(child));
+
+    JsonObjectAppendNull(json, "two");
+    child = JsonObjectGet(json, "two");
+    assert_true(NULL_JSON(child));
+    assert_false(JSON_NOT_NULL(child));
+
+    JsonDestroy(json);
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -1866,6 +1890,7 @@ int main()
         unit_test(test_show_string),
         unit_test(test_string_escape),
         unit_test(test_string_escape_json5),
+        unit_test(test_json_null_not_null),
     };
 
     return run_tests(tests);
