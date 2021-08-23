@@ -132,4 +132,22 @@ bool LogEnableModulesFromString(char *s);
 long byte_magnitude(long bytes);
 const char *byte_unit(long bytes);
 
+/**
+ * API for logging messages into a buffer which is later either committed
+ * (messages are actually logged) or discarded.
+ *
+ * @note StartLoggingIntoBuffer() needs to be called first and then every time
+ *       after DiscardLogBuffer() or CommitLogBuffer().
+ * @note There's only one global buffer, this API is *not* thread-safe.
+ */
+/**
+ * Enable logging into a buffer for all messages with the log level greater or
+ * equal to #min_level and less or equal than #max_level (keep in mind that the
+ * log levels are sorted from %LOG_LEVEL_CRIT, smallest, to %LOG_LEVEL_DEBUG,
+ * greatest).
+ */
+void StartLoggingIntoBuffer(LogLevel min_level, LogLevel max_level);
+void DiscardLogBuffer();
+void CommitLogBuffer();
+
 #endif
