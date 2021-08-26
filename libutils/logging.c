@@ -27,6 +27,7 @@
 #include <string_lib.h>
 #include <misc_lib.h>
 #include <cleanup.h>
+#include <sequence.h>
 
 #include <definitions.h>        /* CF_BUFSIZE */
 
@@ -39,6 +40,17 @@ static LogLevel global_level = LOG_LEVEL_NOTICE; /* GLOBAL_X */
 
 static pthread_once_t log_context_init_once = PTHREAD_ONCE_INIT; /* GLOBAL_T */
 static pthread_key_t log_context_key; /* GLOBAL_T, initialized by pthread_key_create */
+
+static Seq *log_buffer = NULL;
+static bool logging_into_buffer = false;
+static LogLevel min_log_into_buffer_level = LOG_LEVEL_NOTHING;
+static LogLevel max_log_into_buffer_level = LOG_LEVEL_NOTHING;
+
+typedef struct LogEntry_
+{
+    LogLevel level;
+    char *msg;
+} LogEntry;
 
 static void LoggingInitializeOnce(void)
 {
@@ -339,6 +351,26 @@ void VLog(LogLevel level, const char *fmt, va_list ap)
     char *msg = StringVFormat(fmt, ap);
     char *hooked_msg = NULL;
 
+    if (logging_into_buffer &&
+        (level >= min_log_into_buffer_level) && (level <= max_log_into_buffer_level))
+    {
+        assert(log_buffer != NULL);
+
+        if (log_buffer == NULL)
+        {
+            /* Should never happen. */
+            Log(LOG_LEVEL_ERR,
+                "Attempt to log a message to an unitialized log buffer, discarding the message");
+        }
+
+        LogEntry *entry = xmalloc(sizeof(LogEntry));
+        entry->level = level;
+        entry->msg = msg;
+
+        SeqAppend(log_buffer, entry);
+        return;
+    }
+
     /* Remove ending EOLN. */
     for (char *sp = msg; *sp != '\0'; sp++)
     {
@@ -414,7 +446,21 @@ void Log(LogLevel level, const char *fmt, ...)
     va_end(ap);
 }
 
-
+/**
+ * The same as above, but without the FUNC_ATTR_PRINTF restriction that causes a
+ * compilation warning/error if #fmt is not a constant string.
+ *
+ * @warning This must always be static and only used in special cases in this
+ *          file where #fmt and the variadic arguments already passed the
+ *          FUNC_ATTR_PRINTF check.
+ */
+static void LogNonConstant(LogLevel level, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    VLog(level, fmt, ap);
+    va_end(ap);
+}
 
 static bool module_is_enabled[LOG_MOD_MAX];
 static const char *log_modules[LOG_MOD_MAX] =
@@ -633,4 +679,62 @@ const char *byte_unit(long bytes)
         return "KiB";
     }
     return "bytes";
+}
+
+void LogEntryDestroy(LogEntry *entry)
+{
+    if (entry != NULL)
+    {
+        free(entry->msg);
+        free(entry);
+    }
+}
+
+void StartLoggingIntoBuffer(LogLevel min_level, LogLevel max_level)
+{
+    assert((log_buffer == NULL) && (!logging_into_buffer));
+
+    if (log_buffer != NULL)
+    {
+        /* Should never happen. */
+        Log(LOG_LEVEL_ERR, "Re-initializing log buffer without prior commit, discarding messages");
+        DiscardLogBuffer();
+    }
+
+    log_buffer = SeqNew(16, LogEntryDestroy);
+    logging_into_buffer = true;
+    min_log_into_buffer_level = min_level;
+    max_log_into_buffer_level = max_level;
+}
+
+void DiscardLogBuffer()
+{
+    SeqDestroy(log_buffer);
+    log_buffer = NULL;
+    logging_into_buffer = false;
+}
+
+void CommitLogBuffer()
+{
+    assert(logging_into_buffer);
+    assert(log_buffer != NULL);
+
+    if (log_buffer == NULL)
+    {
+        /* Should never happen. */
+        Log(LOG_LEVEL_ERR, "Attempt to commit an unitialized log buffer");
+    }
+
+    /* Disable now so that LogNonConstant() below doesn't append the message
+     * into the buffer instaed of logging it. */
+    logging_into_buffer = false;
+
+    const size_t n_entries = SeqLength(log_buffer);
+    for (size_t i = 0; i < n_entries; i++)
+    {
+        LogEntry *entry = SeqAt(log_buffer, i);
+        LogNonConstant(entry->level, entry->msg);
+    }
+
+    DiscardLogBuffer();
 }
