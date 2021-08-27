@@ -331,7 +331,14 @@ bool WouldLog(LogLevel level)
     return (log_to_console || log_to_syslog || force_hook);
 }
 
-void VLog(LogLevel level, const char *fmt, va_list ap)
+/**
+ * #no_format determines whether #fmt_msg is interpreted as a format string and
+ * combined with #ap to create the real log message (%false) or as a log message
+ * dirrectly (%true) in which case #ap is ignored.
+ *
+ * @see LogNoFormat()
+ */
+static void VLogNoFormat(LogLevel level, const char *fmt_msg, va_list ap, bool no_format)
 {
     LoggingContext *lctx = GetCurrentThreadContext();
 
@@ -348,7 +355,15 @@ void VLog(LogLevel level, const char *fmt, va_list ap)
         return;                            /* early return - save resources */
     }
 
-    char *msg = StringVFormat(fmt, ap);
+    char *msg;
+    if (no_format)
+    {
+        msg = xstrdup(fmt_msg);
+    }
+    else
+    {
+        msg = StringVFormat(fmt_msg, ap);
+    }
     char *hooked_msg = NULL;
 
     if (logging_into_buffer &&
@@ -406,6 +421,11 @@ void VLog(LogLevel level, const char *fmt, va_list ap)
     free(msg);
 }
 
+void VLog(LogLevel level, const char *fmt, va_list ap)
+{
+    VLogNoFormat(level, fmt, ap, false);
+}
+
 /**
  * @brief Logs binary data in #buf, with unprintable bytes translated to '.'.
  *        Message is prefixed with #prefix.
@@ -447,18 +467,25 @@ void Log(LogLevel level, const char *fmt, ...)
 }
 
 /**
- * The same as above, but without the FUNC_ATTR_PRINTF restriction that causes a
- * compilation warning/error if #fmt is not a constant string.
+ * The same as above, but for logging messages without formatting sequences
+ * ("%s", "%d",...). Or more precisely, for *safe* logging of messages that may
+ * contain such sequences (for example Log(LOG_LEVEL_ERR, "%s") can potentially
+ * log some secrets).
  *
- * @warning This must always be static and only used in special cases in this
- *          file where #fmt and the variadic arguments already passed the
- *          FUNC_ATTR_PRINTF check.
+ * It doesn't have the FUNC_ATTR_PRINTF restriction that causes a compilation
+ * warning/error if #msg is not a constant string.
+ *
+ * @note This is for special cases where #msg was already printf-like formatted,
+ *       the variadic arguments are ignored, they are here just so that
+ *       'va_list ap' can be constructed and passed to VLogNoFormat().
+ *
+ * @see CommitLogBuffer()
  */
-static void LogNonConstant(LogLevel level, const char *fmt, ...)
+static void LogNoFormat(LogLevel level, const char *msg, ...)
 {
     va_list ap;
-    va_start(ap, fmt);
-    VLog(level, fmt, ap);
+    va_start(ap, msg);
+    VLogNoFormat(level, msg, ap, true);
     va_end(ap);
 }
 
@@ -733,7 +760,7 @@ void CommitLogBuffer()
     for (size_t i = 0; i < n_entries; i++)
     {
         LogEntry *entry = SeqAt(log_buffer, i);
-        LogNonConstant(entry->level, entry->msg);
+        LogNoFormat(entry->level, entry->msg);
     }
 
     DiscardLogBuffer();
