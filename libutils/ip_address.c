@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <ip_address.h>
 #include <alloc.h>
+#include <regex.h>
 
 struct IPV4Address {
     uint8_t octets[4];
@@ -1331,3 +1332,19 @@ bool IPAddressIsIPAddress(Buffer *source, IPAddress **address)
     }
     return true;
 }
+
+#ifdef WITH_PCRE
+bool StringIsLocalHostIP(const char *str)
+{
+    const char *regex =
+        "("
+            // IPv4
+            "(0*127(\\.0*((2[0-5][0-5])|(1?[0-9]?[0-9]))){3}"
+        "|"
+            // Ipv6
+            "0*(((:0+){6})|((:0+){0,5}:)|((:0+){0,4}:(:0+))|((:0+){0,3}:(:0+){2})|((:0+){0,2}:(:0+){3})|((:0+)?:(:0+){4})|(:(:0+){5})):0*1)"
+        ")";
+
+    return StringMatchFull(regex, str);
+}
+#endif

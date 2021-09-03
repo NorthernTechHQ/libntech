@@ -145,8 +145,6 @@ buffer_test_CPPFLAGS = $(AM_CPPFLAGS)
 csv_parser_test_SOURCES = csv_parser_test.c ../../libutils/csv_parser.c
 csv_parser_test_LDADD = libtest.la ../../libutils/libutils.la
 
-ipaddress_test_SOURCES = ipaddress_test.c
-
 #file_writer_test_CPPFLAGS = -I$(top_srcdir)/libutils
 file_writer_test_SOURCES = file_writer_test.c
 # ENABLE_COVERAGE is set in top-level configure.ac
@@ -179,6 +177,30 @@ endif
 
 file_lib_test_LDADD = libtest.la
 file_lib_test_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_SYMLINK_ATOMICITY
+
+ipaddress_test_SOURCES = ipaddress_test.c \
+	../../libutils/file_lib.c \
+	../../libutils/logging.c \
+	../../libutils/misc_lib.c \
+	../../libutils/path.c \
+	../../libutils/string_lib.c \
+	../../libutils/sequence.c \
+	../../libutils/set.c \
+	../../libutils/buffer.c \
+	../../libutils/json.c \
+	../../libutils/json-yaml.c \
+	../../libutils/unix_dir.c \
+	../../libutils/cleanup.c \
+	../../libutils/writer.c
+
+if WITH_PCRE
+ipaddress_test_SOURCES += \
+	../../libutils/pcre_wrap.c \
+	../../libutils/regex.c
+endif
+
+ipaddress_test_LDADD = libtest.la
+ipaddress_test_CPPFLAGS = $(AM_CPPFLAGS)
 
 logging_timestamp_test_SOURCES = logging_timestamp_test.c \
 	../../libutils/logging.h
