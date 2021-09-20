@@ -106,9 +106,20 @@ void VLog(LogLevel level, const char *fmt, va_list ap);
 
 void LoggingSetAgentType(const char *type);
 void LoggingEnableTimestamps(bool enable);
+
+/**
+ * The functions below work with two internal variables -- global_level and
+ * global_system_log_level. If the latter one is not set, global_level is used
+ * for both system log logging and report (console) logging. If it is set, it is
+ * used for system log logging in all new threads unless/until
+ * LoggingPrivSetLevels() is called in those threads.
+ */
 void LogSetGlobalLevel(LogLevel level);
 void LogSetGlobalLevelArgOrExit(const char *const arg);
 LogLevel LogGetGlobalLevel(void);
+void LogSetGlobalSystemLogLevel(LogLevel level);
+LogLevel LogGetGlobalSystemLogLevel(void);
+void LogUnsetGlobalSystemLogLevel(void);
 
 void LoggingSetColor(bool enabled);
 
