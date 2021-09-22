@@ -37,6 +37,7 @@ static char AgentType[80] = "generic";
 static bool TIMESTAMPS = false;
 
 static LogLevel global_level = LOG_LEVEL_NOTICE; /* GLOBAL_X */
+static LogLevel global_system_log_level = LOG_LEVEL_NOTHING; /* default value that means not set */
 
 static pthread_once_t log_context_init_once = PTHREAD_ONCE_INIT; /* GLOBAL_T */
 static pthread_key_t log_context_key; /* GLOBAL_T, initialized by pthread_key_create */
@@ -72,7 +73,9 @@ LoggingContext *GetCurrentThreadContext(void)
     if (lctx == NULL)
     {
         lctx = xcalloc(1, sizeof(LoggingContext));
-        lctx->log_level = global_level;
+        lctx->log_level = (global_system_log_level != LOG_LEVEL_NOTHING ?
+                           global_system_log_level :
+                           global_level);
         lctx->report_level = global_level;
         pthread_setspecific(log_context_key, lctx);
     }
@@ -634,7 +637,14 @@ void LogDebug(enum LogModule mod, const char *fmt, ...)
 void LogSetGlobalLevel(LogLevel level)
 {
     global_level = level;
-    LoggingPrivSetLevels(level, level);
+    if (global_system_log_level == LOG_LEVEL_NOTHING)
+    {
+        LoggingPrivSetLevels(level, level);
+    }
+    else
+    {
+        LoggingPrivSetLevels(global_system_log_level, level);
+    }
 }
 
 void LogSetGlobalLevelArgOrExit(const char *const arg)
@@ -654,6 +664,26 @@ void LogSetGlobalLevelArgOrExit(const char *const arg)
 LogLevel LogGetGlobalLevel(void)
 {
     return global_level;
+}
+
+void LogSetGlobalSystemLogLevel(LogLevel level)
+{
+    /* LOG_LEVEL_NOTHING means "unset" (see LogUnsetGlobalSystemLogLevel()) */
+    assert(level != LOG_LEVEL_NOTHING);
+
+    global_system_log_level = level;
+    LoggingPrivSetLevels(level, global_level);
+}
+
+void LogUnsetGlobalSystemLogLevel(void)
+{
+    global_system_log_level = LOG_LEVEL_NOTHING;
+    LoggingPrivSetLevels(global_level, global_level);
+}
+
+LogLevel LogGetGlobalSystemLogLevel(void)
+{
+    return global_system_log_level;
 }
 
 void LoggingSetColor(bool enabled)
