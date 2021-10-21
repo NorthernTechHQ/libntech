@@ -150,11 +150,14 @@ static void test_HashDescriptor(void)
 
 static void test_HashKey(void)
 {
+    printf("test_HashKey()\n");
     ASSERT_IF_NOT_INITIALIZED;
+    printf("initialized ok I guess\n");
     Hash *hash = NULL;
     unsigned int length = 0;
     assert_true(hash == NULL);
     hash = HashNewFromKey(pkey, HASH_METHOD_MD5);
+    printf("hash=%p\n", hash);
     assert_true(hash != NULL);
     assert_int_equal(HASH_METHOD_MD5, HashType(hash));
     assert_int_equal(CF_MD5_LEN, HashLength(hash));

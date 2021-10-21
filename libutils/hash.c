@@ -213,8 +213,10 @@ Hash *HashNewFromDescriptor(const int descriptor, HashMethod method)
 
 Hash *HashNewFromKey(const EVP_PKEY *pkey, HashMethod method)
 {
+printf("HashFromNewKey()\n");
     if (pkey == NULL)
     {
+printf("returning NULL\n");
         return NULL;
     }
     if (method >= HASH_METHOD_NONE)
@@ -223,8 +225,11 @@ Hash *HashNewFromKey(const EVP_PKEY *pkey, HashMethod method)
     }
 
     BIGNUM *n, *e = NULL;
+printf("try get_bn_param()\n");
+printf("pkey=%p\n", pkey);
     EVP_PKEY_get_bn_param(pkey, "n", &n);
     EVP_PKEY_get_bn_param(pkey, "e", &e);
+printf("get_bn_param ok\n");
 
     size_t n_len = (n == NULL) ? 0 : (size_t) BN_num_bytes(n);
     size_t e_len = (e == NULL) ? 0 : (size_t) BN_num_bytes(e);
