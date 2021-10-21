@@ -13,7 +13,7 @@
  * To test the hash implementation we need three things:
  * - A string
  * - A file
- * - A RSA key
+ * - A key
  * We run one test for each, using two algorithms, MD5 and SHA256.
  */
 static int initialized = 0;
@@ -21,7 +21,7 @@ static char message[] = "This is a message";
 static int message_length = 0;
 static char file[] = "/tmp/hashXXXXXX";
 static int fd = -1;
-static RSA *rsa = NULL;
+static EVP_PKEY *pkey = NULL;
 void tests_setup()
 {
     int result = 0;
@@ -40,24 +40,20 @@ void tests_setup()
         initialized = 0;
         return;
     }
-    rsa = RSA_new();
-    if (rsa)
+    pkey = EVP_PKEY_new();
+    if (pkey)
     {
-        BIGNUM *bn = NULL;
-        bn = BN_new();
-        if (!bn)
-        {
-            close (fd);
-            unlink (file);
-            RSA_free(rsa);
-            initialized = 0;
-            return;
-        }
-        BN_set_word(bn, RSA_F4);
-        RSA_generate_key_ex(rsa, 1024, bn, NULL);
-        BN_free(bn);
+        EVP_PKEY_CTX *ctx;
+        ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
+        assert(ctx != NULL);
+        int rc;
+        rc = EVP_PKEY_keygen_init(ctx); // TODO check return
+        printf("EVP_PEKY_keygen_init() returned %d\n", rc);
+        rc = EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, 1024); // TODO check return
+        printf("EVP_PKEY_CTX_set_rsa_keygen_bits() returned %d\n", rc);
+        rc = EVP_PKEY_keygen(ctx, &pkey); // TODO check return
+        printf("EVP_PKEY_keygen() returned %d\n", rc);
     }
-    OpenSSL_add_all_digests();
     initialized = 1;
 }
 
@@ -68,9 +64,9 @@ void tests_teardown()
         close (fd);
         unlink (file);
     }
-    if (rsa)
+    if (pkey)
     {
-        RSA_free(rsa);
+        EVP_PKEY_free(pkey);
     }
     initialized = 0;
 }
@@ -158,7 +154,7 @@ static void test_HashKey(void)
     Hash *hash = NULL;
     unsigned int length = 0;
     assert_true(hash == NULL);
-    hash = HashNewFromKey(rsa, HASH_METHOD_MD5);
+    hash = HashNewFromKey(pkey, HASH_METHOD_MD5);
     assert_true(hash != NULL);
     assert_int_equal(HASH_METHOD_MD5, HashType(hash));
     assert_int_equal(CF_MD5_LEN, HashLength(hash));
@@ -167,7 +163,7 @@ static void test_HashKey(void)
     assert_true(HashPrintable(hash) != NULL);
     HashDestroy(&hash);
     assert_true(hash == NULL);
-    hash = HashNewFromKey(rsa, HASH_METHOD_SHA256);
+    hash = HashNewFromKey(pkey, HASH_METHOD_SHA256);
     assert_true(hash != NULL);
     assert_int_equal(HASH_METHOD_SHA256, HashType(hash));
     assert_int_equal(CF_SHA256_LEN, HashLength(hash));
@@ -177,7 +173,7 @@ static void test_HashKey(void)
     HashDestroy(&hash);
     /* Negative cases */
     assert_true(HashNewFromKey(NULL, HASH_METHOD_MD5) == NULL);
-    assert_true(HashNewFromKey(rsa, HASH_METHOD_NONE) == NULL);
+    assert_true(HashNewFromKey(pkey, HASH_METHOD_NONE) == NULL);
     assert_true(HashNewFromKey(NULL, HASH_METHOD_NONE) == NULL);
 }
 

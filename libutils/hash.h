@@ -57,11 +57,11 @@ Hash *HashNewFromDescriptor(const int descriptor, HashMethod method);
 
 /**
   @brief Creates a new structure of type Hash.
-  @param rsa RSA key to be hashed.
+  @param pkey key to be hashed.
   @param method Hash method.
   @return A structure of type Hash or NULL in case of error.
   */
-Hash *HashNewFromKey(const RSA *rsa, HashMethod method);
+Hash *HashNewFromKey(const EVP_PKEY *pkey, HashMethod method);
 
 /**
   @brief Destroys a structure of type Hash.
@@ -160,7 +160,7 @@ bool HashesMatch(
 char *HashPrintSafe(char *dst, size_t dst_size, const unsigned char *digest,
                     HashMethod type, bool use_prefix);
 char *SkipHashType(char *hash);
-void HashPubKey(const RSA *key, unsigned char digest[EVP_MAX_MD_SIZE + 1], HashMethod type);
+void HashPubKey(const EVP_PKEY *pkey, unsigned char digest[EVP_MAX_MD_SIZE + 1], HashMethod type);
 
 /**
  * @brief Copy a string from src to dst, if src is too big, truncate and hash.

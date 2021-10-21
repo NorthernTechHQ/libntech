@@ -211,9 +211,9 @@ Hash *HashNewFromDescriptor(const int descriptor, HashMethod method)
     return hash;
 }
 
-Hash *HashNewFromKey(const RSA *rsa, HashMethod method)
+Hash *HashNewFromKey(const EVP_PKEY *pkey, HashMethod method)
 {
-    if (rsa == NULL)
+    if (pkey == NULL)
     {
         return NULL;
     }
@@ -222,8 +222,9 @@ Hash *HashNewFromKey(const RSA *rsa, HashMethod method)
         return NULL;
     }
 
-    const BIGNUM *n, *e;
-    RSA_get0_key(rsa, &n, &e, NULL);
+    BIGNUM *n, *e = NULL;
+    EVP_PKEY_get_bn_param(pkey, "n", &n);
+    EVP_PKEY_get_bn_param(pkey, "e", &e);
 
     size_t n_len = (n == NULL) ? 0 : (size_t) BN_num_bytes(n);
     size_t e_len = (e == NULL) ? 0 : (size_t) BN_num_bytes(e);
@@ -528,11 +529,11 @@ void HashString(
 /*******************************************************************/
 
 void HashPubKey(
-    const RSA *const key,
+    const EVP_PKEY *const pkey,
     unsigned char digest[EVP_MAX_MD_SIZE + 1],
     const HashMethod type)
 {
-    assert(key != NULL);
+    assert(pkey != NULL);
     assert(type != HASH_METHOD_CRYPT);
 
     memset(digest, 0, EVP_MAX_MD_SIZE + 1);
@@ -563,8 +564,9 @@ void HashPubKey(
 
     if (EVP_DigestInit(context, md) == 1)
     {
-        const BIGNUM *n, *e;
-        RSA_get0_key(key, &n, &e, NULL);
+        BIGNUM *n, *e = NULL;
+        EVP_PKEY_get_bn_param(pkey, "n", &n);
+        EVP_PKEY_get_bn_param(pkey, "e", &e);
 
         const size_t n_len = (n == NULL) ? 0 : (size_t) BN_num_bytes(n);
         const size_t e_len = (e == NULL) ? 0 : (size_t) BN_num_bytes(e);
