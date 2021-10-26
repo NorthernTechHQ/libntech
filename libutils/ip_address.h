@@ -92,5 +92,19 @@ bool IPAddressIsIPAddress(Buffer *source, IPAddress **address);
   @return true if a < b, false otherwise.
   */
 bool IPAddressCompareLess(IPAddress *a, IPAddress *b);
+/**
+ * @brief Check if string is localhost IPv4-/IPv6 addresses.
+ * 
+ *        For IPv4, any address in the range 127.0.0.0/8 is local host. E.g.
+ *        '127.0.0.1', '127.1.2.3', 127.0.0.0' or '127.255.255.255'.
+ * 
+ *        For IPv6, '::1' is the one and only local host address. IPv6
+ *        addresses can be written in long- and short-form, as well as
+ *        something in-between (e.g. 0:0:0:0:0:0:0:1 / ::1 / 0:0::0:1). All of
+ *        these forms are accepted.
+ * @param str The string to check.
+ * @return True if string is localhost, else false.
+ */
+bool StringIsLocalHostIP(const char *str);
 
 #endif // CFENGINE_IP_ADDRESS_H

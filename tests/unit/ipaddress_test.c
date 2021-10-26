@@ -675,6 +675,84 @@ static void test_isipaddress(void)
     BufferDestroy(bufferAddress);
 }
 
+static void test_string_is_local_host_ip(void)
+{
+#ifdef WITH_PCRE
+    // Test IPv6
+    assert_true(StringIsLocalHostIP("0:0:0:0:0:0:0:1"));
+    assert_true(StringIsLocalHostIP("0:0:0:0:0:0::1"));
+    assert_true(StringIsLocalHostIP("0:0:0:0:0::1"));
+    assert_true(StringIsLocalHostIP("0:0:0:0::1"));
+    assert_true(StringIsLocalHostIP("0:0:0::1"));
+    assert_true(StringIsLocalHostIP("0:0::1"));
+    assert_true(StringIsLocalHostIP("0::1"));
+    assert_true(StringIsLocalHostIP("::1"));
+    assert_true(StringIsLocalHostIP("0:0:0:0:0::0:1"));
+    assert_true(StringIsLocalHostIP("0:0:0:0::0:1"));
+    assert_true(StringIsLocalHostIP("0:0:0::0:1"));
+    assert_true(StringIsLocalHostIP("0:0::0:1"));
+    assert_true(StringIsLocalHostIP("0::0:1"));
+    assert_true(StringIsLocalHostIP("::0:1"));
+    assert_true(StringIsLocalHostIP("0:0:0:0::0:0:1"));
+    assert_true(StringIsLocalHostIP("0:0:0::0:0:1"));
+    assert_true(StringIsLocalHostIP("0:0::0:0:1"));
+    assert_true(StringIsLocalHostIP("0::0:0:1"));
+    assert_true(StringIsLocalHostIP("::0:0:1"));
+    assert_true(StringIsLocalHostIP("0:0:0::0:0:0:1"));
+    assert_true(StringIsLocalHostIP("0:0::0:0:0:1"));
+    assert_true(StringIsLocalHostIP("0::0:0:0:1"));
+    assert_true(StringIsLocalHostIP("::0:0:0:1"));
+    assert_true(StringIsLocalHostIP("0:0::0:0:0:0:1"));
+    assert_true(StringIsLocalHostIP("0::0:0:0:0:1"));
+    assert_true(StringIsLocalHostIP("::0:0:0:0:1"));
+    assert_true(StringIsLocalHostIP("0::0:0:0:0:0:1"));
+    assert_true(StringIsLocalHostIP("::0:0:0:0:0:1"));
+    assert_true(StringIsLocalHostIP("00:000:000000:000000:00000:0000:000:01"));
+    assert_true(StringIsLocalHostIP("000:0000::00:1"));
+    assert_true(StringIsLocalHostIP("00000:00::000:00:00001"));
+    assert_true(StringIsLocalHostIP("0:00:0::0000:00:00:0001"));
+    assert_true(StringIsLocalHostIP("::0:00:00:00:1"));
+    assert_true(StringIsLocalHostIP("::0000000001"));
+
+    assert_false(StringIsLocalHostIP("0:0:1:0:0:0:0:1"));
+    assert_false(StringIsLocalHostIP("ff:0:0:0:0::0:1"));
+    assert_false(StringIsLocalHostIP("0:0:0::0:0:0:2"));
+    assert_false(StringIsLocalHostIP("0::3:2:1"));
+    assert_false(StringIsLocalHostIP("0::0:0"));
+    assert_false(StringIsLocalHostIP("::ff"));
+    assert_false(StringIsLocalHostIP(" 0:0:0:0:0:0:0:1"));
+    assert_false(StringIsLocalHostIP("0:0:0::0:1 "));
+    assert_false(StringIsLocalHostIP(" 0::0:0:1 "));
+    assert_false(StringIsLocalHostIP("\t::0:0:0:0:0:1"));
+    assert_false(StringIsLocalHostIP("0;0;0;;1"));
+    assert_false(StringIsLocalHostIP("0: :0:0:0:0:1"));
+    assert_false(StringIsLocalHostIP("0:0:0:0:0:1"));
+
+    // Test IPv4
+    assert_true(StringIsLocalHostIP("127.0.0.0"));
+    assert_true(StringIsLocalHostIP("127.1.2.3"));
+    assert_true(StringIsLocalHostIP("127.199.199.199"));
+    assert_true(StringIsLocalHostIP("127.255.255.255"));
+    assert_true(StringIsLocalHostIP("0000127.0003.002.01"));
+
+    assert_false(StringIsLocalHostIP("127.0.1"));
+    assert_false(StringIsLocalHostIP("128.0.0.1"));
+    assert_false(StringIsLocalHostIP("127.0.0.256"));
+    assert_false(StringIsLocalHostIP("127.0.300.0"));
+    assert_false(StringIsLocalHostIP("127.o.0.0"));
+    assert_false(StringIsLocalHostIP(" 127.0.0.1"));
+    assert_false(StringIsLocalHostIP("127.0.0.1 "));
+    assert_false(StringIsLocalHostIP(" 127.0.0.1 "));
+    assert_false(StringIsLocalHostIP("\t127.0.0.1"));
+    assert_false(StringIsLocalHostIP("127,0,0,1"));
+
+    // misc
+    assert_false(StringIsLocalHostIP("localhost"));
+    assert_false(StringIsLocalHostIP(""));
+    assert_false(StringIsLocalHostIP(" "));
+#endif
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -687,6 +765,7 @@ int main()
         , unit_test(test_ipv4_address_comparison)
         , unit_test(test_ipv6_address_comparison)
         , unit_test(test_isipaddress)
+        , unit_test(test_string_is_local_host_ip)
     };
 
     return run_tests(tests);
