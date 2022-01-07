@@ -1025,7 +1025,25 @@ void ReplaceChar(const char *in, char *out, int outSz, char from, char to)
 ssize_t StringReplace(char *buf, size_t buf_size,
                       const char *find, const char *replace)
 {
+    return StringReplaceN(buf, buf_size, find, replace, buf_size);
+}
+
+
+/**
+ * Replace the first at most #n occurrences of #find in #buf with #replace.
+ *
+ * @return the length of #buf or -1 in case of overflow, or 0 if no replace
+ *         took place.
+ */
+ssize_t StringReplaceN(char *buf, size_t buf_size,
+                       const char *find, const char *replace, size_t n)
+{
     assert(find[0] != '\0');
+
+    if (n == 0)
+    {
+        return 0;
+    }
 
     char *p = strstr(buf, find);
     if (p == NULL)
@@ -1059,7 +1077,8 @@ ssize_t StringReplace(char *buf, size_t buf_size,
 
         buf_idx = buf_newidx + find_len;
         p = strstr(&buf[buf_idx], find);
-    } while (p != NULL);
+        n--;
+    } while ((p != NULL) && (n > 0));
 
     /* Copy leftover plus terminating '\0'. */
     size_t leftover_len = buf_len - buf_idx;

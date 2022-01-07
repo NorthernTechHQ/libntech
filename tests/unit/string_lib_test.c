@@ -309,6 +309,35 @@ static void test_string_replace_many_percentages(void)
     assert_string_equal(string, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 }
 
+static void test_string_replace_n(void)
+{
+    char buf[11] = "1,2,3,4\0\0\0"; /* strlen(buf) == 7 */
+
+    ssize_t ret = StringReplaceN(buf, sizeof(buf), ",", "__", 2);
+    assert_int_equal(ret, 7 + 2);
+    assert_string_equal(buf, "1__2__3,4");
+
+    /* nothing should happen (n == 0) */
+    ret = StringReplaceN(buf, sizeof(buf), ",", "__", 0);
+    assert_int_equal(ret, 0);
+    assert_string_equal(buf, "1__2__3,4");
+
+    /* one replacement possible */
+    ret = StringReplaceN(buf, sizeof(buf), ",", "__", 2);
+    assert_int_equal(ret, 7 + 3);
+    assert_string_equal(buf, "1__2__3__4");
+
+    /* nothing should happen (n == 0) */
+    ret = StringReplaceN(buf, sizeof(buf), ",", "__", 0);
+    assert_int_equal(ret, 0);
+    assert_string_equal(buf, "1__2__3__4");
+
+    /* nothing should happen (nothing to replace) */
+    ret = StringReplaceN(buf, sizeof(buf), ",", "__", 5);
+    assert_int_equal(ret, 0);
+    assert_string_equal(buf, "1__2__3__4");
+}
+
 /****************************************************************************/
 
 static void test_concatenate(void)
@@ -1473,6 +1502,7 @@ int main()
         unit_test(test_string_replace_smaller),
         unit_test(test_string_replace_none),
         unit_test(test_string_replace_many_percentages),
+        unit_test(test_string_replace_n),
 
         unit_test(test_concatenate),
 

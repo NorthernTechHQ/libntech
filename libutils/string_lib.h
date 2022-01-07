@@ -149,6 +149,8 @@ char *StringSubstring(const char *source, size_t source_len, int start, int len)
 char *SearchAndReplace(const char *source, const char *search, const char *replace);
 
 ssize_t StringReplace(char *buf, size_t buf_size, const char *find, const char *replace);
+ssize_t StringReplaceN(char *buf, size_t buf_size,
+                       const char *find, const char *replace, size_t n);
 
 bool IsStrIn(const char *str, const char *const strs[]);
 bool IsStrCaseIn(const char *str, const char *const strs[]);
