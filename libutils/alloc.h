@@ -27,6 +27,7 @@
 
 #include <stdlib.h> // size_t
 #include <stdarg.h> // va_list
+#include <assert.h> // assert()
 
 #include <compiler.h>
 
@@ -38,6 +39,15 @@ char *xstrndup(const char *str, size_t n);
 void *xmemdup(const void *mem, size_t size);
 int xasprintf(char **strp, const char *fmt, ...) FUNC_ATTR_PRINTF(2, 3);
 int xvasprintf(char **strp, const char *fmt, va_list ap) FUNC_ATTR_PRINTF(2, 0);
+
+static inline void free_array_items(void **array, size_t n_items)
+{
+    assert(array != NULL);
+    for (size_t i = 0; i < n_items; i++)
+    {
+        free(array[i]);
+    }
+}
 
 #define DESTROY_AND_NULL(destroy, ptr) { destroy(ptr); ptr = NULL; }
 #define FREE_AND_NULL(ptr) { DESTROY_AND_NULL(free, ptr); }
