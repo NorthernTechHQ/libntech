@@ -35,6 +35,19 @@ void test_xvasprintf(void)
     test_xvasprintf_sub("Foo%d%s", 123, "17");
 }
 
+void test_free_array_items(void)
+{
+    char **arr = xcalloc(10, sizeof(char*));
+    for (size_t i = 0; i < 10; i++)
+    {
+        arr[i] = xstrdup("some string");
+    }
+
+    free_array_items((void**)arr, 10);
+    free(arr);
+    /* There should be no memleaks now. */
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
