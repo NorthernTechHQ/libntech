@@ -160,12 +160,12 @@ static JsonElement *LookupVariable(Seq *hash_stack, const char *name, size_t nam
 
         if (strcmp("-top-", base_comp_str) == 0)
         {
-            base_var = SeqAt(hash_stack, 0);
+            base_var = (JsonElement *) SeqAt(hash_stack, 0);
         }
 
         for (ssize_t i = SeqLength(hash_stack) - 1; i >= 0; i--)
         {
-            JsonElement *hash = SeqAt(hash_stack, i);
+            JsonElement *hash = (JsonElement *) SeqAt(hash_stack, i);
             if (!hash)
             {
                 continue;
@@ -215,7 +215,8 @@ static Mustache NextTag(const char *input,
                         const char *delim_start, size_t delim_start_len,
                         const char *delim_end, size_t delim_end_len)
 {
-    Mustache ret = {0};
+    Mustache ret;
+    memset(&ret, 0, sizeof(Mustache));
     ret.type = TAG_TYPE_NONE;
 
     ret.begin = strstr(input, delim_start);
@@ -246,12 +247,12 @@ static Mustache NextTag(const char *input,
         ret.content++;
         break;
     case '=':
-        extra_end = "=";
+        extra_end = strdup("=");
         ret.type = TAG_TYPE_DELIM;
         ret.content++;
         break;
     case '{':
-        extra_end = "}";
+        extra_end = strdup("}");
         // fall through
     case '&':
         ret.type = TAG_TYPE_VAR_UNESCAPED;
@@ -277,6 +278,7 @@ static Mustache NextTag(const char *input,
         {
             Log(LOG_LEVEL_ERR, "Broken mustache template, couldn't find end tag for quoted begin tag at '%20s'...", input);
             ret.type = TAG_TYPE_ERR;
+            free(extra_end);
             return ret;
         }
 
@@ -290,12 +292,14 @@ static Mustache NextTag(const char *input,
         {
             Log(LOG_LEVEL_ERR, "Broken Mustache template, could not find end delimiter after reading start delimiter at '%20s'...", input);
             ret.type = TAG_TYPE_ERR;
+            free(extra_end);
             return ret;
         }
 
         ret.content_len = ret.end - ret.content;
         ret.end += delim_end_len;
     }
+    free(extra_end);
 
     while (*ret.content == ' ' || *ret.content == '\t')
     {
@@ -449,7 +453,7 @@ static bool RenderVariable(Buffer *out,
 
     if (item_mode || key_mode)
     {
-        var = SeqAt(hash_stack, SeqLength(hash_stack) - 1);
+        var = (JsonElement *) SeqAt(hash_stack, SeqLength(hash_stack) - 1);
 
         // Leave this in, it's really useful when debugging here but useless otherwise
         // for (int i=1; i < SeqLength(hash_stack); i++)

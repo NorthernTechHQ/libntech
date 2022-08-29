@@ -90,8 +90,10 @@
 /* We now require a pthreads implementation. */
 #include <pthread.h>
 
+#ifndef __cplusplus
 #ifndef _GETOPT_H
 # include <../libcompat/getopt.h>
+#endif
 #endif
 
 #ifdef HAVE_STDLIB_H
@@ -575,9 +577,15 @@ void endnetgrent(void);
 #endif
 
 #if !HAVE_DECL_STRSTR
+#ifdef __cplusplus
+const
+#endif
 char *strstr(const char *haystack, const char *needle);
 #endif
 #if !HAVE_DECL_STRCASESTR
+#ifdef __cplusplus
+const
+#endif
 char *strcasestr(const char *haystack, const char *needle);
 #endif
 #if !HAVE_DECL_STRCASECMP
@@ -593,6 +601,9 @@ char *strsignal(int sig);
 char *strdup(const char *str);
 #endif
 #if !HAVE_DECL_MEMRCHR
+#ifdef __cplusplus
+const
+#endif
 void *memrchr(const void *s, int c, size_t n);
 #endif
 #if !HAVE_DECL_MEMDUP
@@ -650,6 +661,9 @@ int rpl_asprintf(char **, const char *, ...);
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 #endif
 #if !HAVE_DECL_STRCHRNUL
+#ifdef __cplusplus
+const
+#endif
 char *strchrnul(const char *s, int c);
 #endif
 #if !HAVE_DECL_GMTIME_R

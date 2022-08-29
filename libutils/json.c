@@ -59,12 +59,12 @@ struct JsonElement_
 
     union
     {
-        struct JsonContainer
+        struct
         {
             JsonContainerType type;
             Seq *children;
         } container;
-        struct JsonPrimitive
+        struct
         {
             JsonPrimitiveType type;
             const char *value;
@@ -122,14 +122,14 @@ static JsonElement *JsonElementCreateContainer(
     const char *const propertyName,
     const size_t initialCapacity)
 {
-    JsonElement *element = xcalloc(1, sizeof(JsonElement));
+    JsonElement *element = (JsonElement *) xcalloc(1, sizeof(JsonElement));
 
     element->type = JSON_ELEMENT_TYPE_CONTAINER;
 
     JsonElementSetPropertyName(element, propertyName);
 
     element->container.type = containerType;
-    element->container.children = SeqNew(initialCapacity, JsonDestroy);
+    element->container.children = SeqNew(initialCapacity, (void (*)(void *)) JsonDestroy);
 
     return element;
 }
@@ -137,7 +137,7 @@ static JsonElement *JsonElementCreateContainer(
 static JsonElement *JsonElementCreatePrimitive(
     JsonPrimitiveType primitiveType, const char *value)
 {
-    JsonElement *element = xcalloc(1, sizeof(JsonElement));
+    JsonElement *element = (JsonElement *) xcalloc(1, sizeof(JsonElement));
 
     element->type = JSON_ELEMENT_TYPE_PRIMITIVE;
 
@@ -579,7 +579,7 @@ JsonElement *JsonIteratorNextValue(JsonIterator *const iter)
     }
 
     Seq *const children = iter->container->container.children;
-    return SeqAt(children, iter->index++);
+    return (JsonElement *) SeqAt(children, iter->index++);
 }
 
 JsonElement *JsonIteratorNextValueByType(
@@ -614,7 +614,7 @@ JsonElement *JsonIteratorCurrentValue(const JsonIterator *const iter)
     }
 
     Seq *const children = iter->container->container.children;
-    return SeqAt(children, iter->index - 1);
+    return (JsonElement *) SeqAt(children, iter->index - 1);
 }
 
 const char *JsonIteratorCurrentKey(const JsonIterator *const iter)
@@ -820,7 +820,7 @@ JsonElement *JsonAt(const JsonElement *container, const size_t index)
     assert(container->type == JSON_ELEMENT_TYPE_CONTAINER);
     assert(index < JsonLength(container));
 
-    return SeqAt(container->container.children, index);
+    return (JsonElement *) SeqAt(container->container.children, index);
 }
 
 JsonElement *JsonSelect(
@@ -995,7 +995,7 @@ void Json5EscapeDataWriter(const Slice unescaped_data, Writer *const writer)
 {
     // See: https://spec.json5.org/#strings
 
-    const char *const data = unescaped_data.data;
+    const char *const data = (char *) unescaped_data.data;
     assert(data != NULL);
 
     const size_t size = unescaped_data.size;
@@ -1141,11 +1141,11 @@ static int JsonElementHasProperty(
 {
     assert(propertyName != NULL);
 
-    const JsonElement *element = jsonElement;
+    const JsonElement *element = (const JsonElement *) jsonElement;
 
     assert(element->propertyName != NULL);
 
-    if (strcmp(propertyName, element->propertyName) == 0)
+    if (strcmp((const char *) propertyName, element->propertyName) == 0)
     {
         return 0;
     }
@@ -1156,8 +1156,8 @@ static int CompareKeyToPropertyName(
     const void *const a, const void *const b, ARG_UNUSED void *const user_data)
 {
     assert(b != NULL);
-    const char *const key_a = a;
-    const JsonElement *const json_b = b;
+    const char *const key_a = (const char *) a;
+    const JsonElement *const json_b = (const JsonElement *) b;
     return StringSafeCompare(key_a, json_b->propertyName);
 }
 
@@ -1203,7 +1203,7 @@ JsonElement *JsonObjectDetachKey(
     if (index != -1)
     {
         Seq *const children = object->container.children;
-        detached = SeqLookup(children, key, JsonElementHasProperty);
+        detached = (JsonElement *) SeqLookup(children, key, JsonElementHasProperty);
         SeqSoftRemove(children, index);
     }
 
@@ -1219,7 +1219,7 @@ const char *JsonObjectGetAsString(
     assert(key != NULL);
 
     JsonElement *childPrimitive =
-        SeqLookup(object->container.children, key, JsonElementHasProperty);
+        (JsonElement *) SeqLookup(object->container.children, key, JsonElementHasProperty);
 
     if (childPrimitive != NULL)
     {
@@ -1257,7 +1257,7 @@ JsonElement *JsonObjectGetAsObject(
     assert(key != NULL);
 
     JsonElement *childPrimitive =
-        SeqLookup(object->container.children, key, JsonElementHasProperty);
+        (JsonElement *) SeqLookup(object->container.children, key, JsonElementHasProperty);
 
     if (childPrimitive != NULL)
     {
@@ -1278,7 +1278,7 @@ JsonElement *JsonObjectGetAsArray(
     assert(key != NULL);
 
     JsonElement *childPrimitive =
-        SeqLookup(object->container.children, key, JsonElementHasProperty);
+        (JsonElement *) SeqLookup(object->container.children, key, JsonElementHasProperty);
 
     if (childPrimitive != NULL)
     {
@@ -1298,7 +1298,7 @@ JsonElement *JsonObjectGet(
     assert(object->container.type == JSON_CONTAINER_TYPE_OBJECT);
     assert(key != NULL);
 
-    return SeqLookup(object->container.children, key, JsonElementHasProperty);
+    return (JsonElement *) SeqLookup(object->container.children, key, JsonElementHasProperty);
 }
 
 // *******************************************************************************************
@@ -1408,7 +1408,7 @@ const char *JsonArrayGetAsString(JsonElement *const array, const size_t index)
     assert(array->container.type == JSON_CONTAINER_TYPE_ARRAY);
     assert(index < SeqLength(array->container.children));
 
-    JsonElement *childPrimitive = SeqAt(array->container.children, index);
+    JsonElement *childPrimitive = (JsonElement *) SeqAt(array->container.children, index);
 
     if (childPrimitive != NULL)
     {
@@ -1427,7 +1427,7 @@ JsonElement *JsonArrayGetAsObject(JsonElement *const array, const size_t index)
     assert(array->container.type == JSON_CONTAINER_TYPE_ARRAY);
     assert(index < SeqLength(array->container.children));
 
-    JsonElement *child = SeqAt(array->container.children, index);
+    JsonElement *child = (JsonElement *) SeqAt(array->container.children, index);
 
     if (child != NULL)
     {
@@ -1512,7 +1512,7 @@ JsonElement *JsonRealCreate(double value)
         value = 0.0;
     }
 
-    char *buffer = xcalloc(32, sizeof(char));
+    char *buffer = (char *) xcalloc(32, sizeof(char));
     snprintf(buffer, 32, "%.4f", value);
 
     return JsonElementCreatePrimitive(JSON_PRIMITIVE_TYPE_REAL, buffer);
@@ -1612,7 +1612,7 @@ static void JsonArrayWrite(
     const size_t length = SeqLength(children);
     for (size_t i = 0; i < length; i++)
     {
-        JsonElement *const child = SeqAt(children, i);
+        JsonElement *const child = (JsonElement *) SeqAt(children, i);
 
         switch (child->type)
         {
@@ -1667,7 +1667,7 @@ static bool all_children_have_keys(const JsonElement *const object)
     const size_t length = SeqLength(children);
     for (size_t i = 0; i < length; i++)
     {
-        const JsonElement *const child = SeqAt(children, i);
+        const JsonElement *const child = (JsonElement *) SeqAt(children, i);
         if (child->propertyName == NULL)
         {
             return false;
@@ -1700,7 +1700,7 @@ void JsonObjectWrite(
     const size_t length = SeqLength(children);
     for (size_t i = 0; i < length; i++)
     {
-        JsonElement *child = SeqAt(children, i);
+        JsonElement *child = (JsonElement *) SeqAt(children, i);
 
         PrintIndent(writer, indent_level + 1);
 
@@ -1793,7 +1793,7 @@ static void JsonArrayWriteCompact(
     const size_t length = SeqLength(children);
     for (size_t i = 0; i < length; i++)
     {
-        JsonElement *const child = SeqAt(children, i);
+        JsonElement *const child = (JsonElement *) SeqAt(children, i);
         assert(child != NULL);
 
         switch (child->type)
@@ -1838,7 +1838,7 @@ static void JsonObjectWriteCompact(
     const size_t length = SeqLength(children);
     for (size_t i = 0; i < length; i++)
     {
-        JsonElement *child = SeqAt(children, i);
+        JsonElement *child = (JsonElement *) SeqAt(children, i);
 
         WriterWriteF(writer, "\"%s\":", child->propertyName);
 
@@ -2014,13 +2014,13 @@ const char *JsonParseErrorToString(const JsonParseError error)
 
         [JSON_PARSE_ERROR_INVALID_START] =
             "Unwilling to parse json data starting with invalid character",
-        [JSON_PARSE_ERROR_TRUNCATED] =
-            "Unable to parse JSON without truncating",
         [JSON_PARSE_ERROR_NO_LIBYAML] =
             "CFEngine was not built with libyaml support",
         [JSON_PARSE_ERROR_LIBYAML_FAILURE] = "libyaml internal failure",
         [JSON_PARSE_ERROR_NO_SUCH_FILE] = "No such file or directory",
-        [JSON_PARSE_ERROR_NO_DATA] = "No data"};
+        [JSON_PARSE_ERROR_NO_DATA] = "No data",
+        [JSON_PARSE_ERROR_TRUNCATED] =
+            "Unable to parse JSON without truncating"};
 
     return parse_errors[error];
 }
@@ -2884,8 +2884,8 @@ JsonElement *StringCaptureData(
 
     for (size_t i = 1; i < length; i += 2)
     {
-        Buffer *key = SeqAt(s, i - 1);
-        Buffer *value = SeqAt(s, i);
+        Buffer *key = (Buffer *) SeqAt(s, i - 1);
+        Buffer *value = (Buffer *) SeqAt(s, i);
 
         JsonObjectAppendString(json, BufferData(key), BufferData(value));
     }

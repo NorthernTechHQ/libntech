@@ -64,7 +64,7 @@ void RegisterCleanupFunction(CleanupFn fn)
 {
     pthread_mutex_lock(&cleanup_functions_mutex);
 
-    CleanupList *p = xmalloc(sizeof(CleanupList));
+    CleanupList *p = (CleanupList *) xmalloc(sizeof(CleanupList));
     p->fn = fn;
     p->next = cleanup_functions;
 

@@ -32,7 +32,7 @@ typedef struct
 
 bool KeyNumericParserCallback(const char *field, const char *value, void *param)
 {
-    KeyNumericParserInfo *info = param;
+    KeyNumericParserInfo *info = (KeyNumericParserInfo *) param;
     long long numeric_value;
 
     if (sscanf(value,

@@ -29,7 +29,7 @@
 
 Stack *StackNew(size_t initial_capacity, void (ItemDestroy) (void *item))
 {
-    Stack *stack = xmalloc(sizeof(Stack));
+    Stack *stack = (Stack *) xmalloc(sizeof(Stack));
 
     StackInit(stack, initial_capacity, ItemDestroy);
 
@@ -101,7 +101,7 @@ static void ExpandIfNecessary(Stack *stack)
     if (stack->size == stack->capacity)
     {
         stack->capacity *= EXPAND_FACTOR;
-        stack->data = xrealloc(stack->data, sizeof(void *) * stack->capacity);
+        stack->data = (void **) xrealloc(stack->data, sizeof(void *) * stack->capacity);
     }
 }
 
@@ -155,8 +155,8 @@ Stack *StackCopy(Stack const *stack)
 {
     assert(stack != NULL);
 
-    Stack *new_stack = xmemdup(stack, sizeof(Stack));
-    new_stack->data = xmalloc(sizeof(void *) * stack->capacity);
+    Stack *new_stack = (Stack *) xmemdup(stack, sizeof(Stack));
+    new_stack->data = (void **) xmalloc(sizeof(void *) * stack->capacity);
     memcpy(new_stack->data, stack->data, sizeof(void *) * stack->size);
 
     return new_stack;

@@ -58,7 +58,7 @@ static void ExpandIfNecessary(ThreadedQueue *queue);
 ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
                                 void (ItemDestroy) (void *item))
 {
-    ThreadedQueue *queue = xcalloc(1, sizeof(ThreadedQueue));
+    ThreadedQueue *queue = (ThreadedQueue *) xcalloc(1, sizeof(ThreadedQueue));
 
     if (initial_capacity == 0)
     {
@@ -78,7 +78,7 @@ ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
-    queue->lock = xmalloc(sizeof(pthread_mutex_t));
+    queue->lock = (pthread_mutex_t *) xmalloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(queue->lock, &attr);
     if (ret != 0)
     {
@@ -93,7 +93,7 @@ ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
 
     pthread_mutexattr_destroy(&attr);
 
-    queue->cond_non_empty = xmalloc(sizeof(pthread_cond_t));
+    queue->cond_non_empty = (pthread_cond_t *) xmalloc(sizeof(pthread_cond_t));
     ret = pthread_cond_init(queue->cond_non_empty, NULL);
     if (ret != 0)
     {
@@ -106,7 +106,7 @@ ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
         return NULL;
     }
 
-    queue->cond_empty = xmalloc(sizeof(pthread_cond_t));
+    queue->cond_empty = (pthread_cond_t *) xmalloc(sizeof(pthread_cond_t));
     ret = pthread_cond_init(queue->cond_empty, NULL);
     if (ret != 0)
     {
@@ -125,7 +125,7 @@ ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
     queue->head = 0;
     queue->tail = 0;
     queue->size = 0;
-    queue->data = xmalloc(sizeof(void *) * initial_capacity);
+    queue->data = (void **) xmalloc(sizeof(void *) * initial_capacity);
     queue->ItemDestroy = ItemDestroy;
 
     return queue;
@@ -252,7 +252,7 @@ size_t ThreadedQueuePopN(ThreadedQueue *queue,
 
     if (size > 0)
     {
-        data = xcalloc(size, sizeof(void *));
+        data = (void **) xcalloc(size, sizeof(void *));
         size_t head = queue->head;
 
         for (size_t i = 0; i < size; i++)
@@ -394,8 +394,8 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
 
     ThreadLock(queue->lock);
 
-    ThreadedQueue *new_queue = xmemdup(queue, sizeof(ThreadedQueue));
-    new_queue->data = xmalloc(sizeof(void *) * queue->capacity);
+    ThreadedQueue *new_queue = (ThreadedQueue *) xmemdup(queue, sizeof(ThreadedQueue));
+    new_queue->data = (void **) xmalloc(sizeof(void *) * queue->capacity);
     memcpy(new_queue->data, queue->data,
            sizeof(void *) * new_queue->capacity);
 
@@ -414,7 +414,7 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
-    new_queue->lock = xmalloc(sizeof(pthread_mutex_t));
+    new_queue->lock = (pthread_mutex_t *) xmalloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(new_queue->lock, &attr);
     if (ret != 0)
     {
@@ -427,7 +427,7 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
         return NULL;
     }
 
-    new_queue->cond_non_empty = xmalloc(sizeof(pthread_cond_t));
+    new_queue->cond_non_empty = (pthread_cond_t *) xmalloc(sizeof(pthread_cond_t));
     ret = pthread_cond_init(new_queue->cond_non_empty, NULL);
     if (ret != 0)
     {
@@ -441,7 +441,7 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
         return NULL;
     }
 
-    new_queue->cond_empty = xmalloc(sizeof(pthread_cond_t));
+    new_queue->cond_empty = (pthread_cond_t *) xmalloc(sizeof(pthread_cond_t));
     ret = pthread_cond_init(new_queue->cond_empty, NULL);
     if (ret != 0)
     {
@@ -556,8 +556,8 @@ static void ExpandIfNecessary(ThreadedQueue *queue)
             size_t old_capacity = queue->capacity;
 
             queue->capacity *= EXPAND_FACTOR;
-            queue->data = xrealloc(queue->data,
-                                   sizeof(void *) * queue->capacity);
+            queue->data = (void **) xrealloc(queue->data,
+                                             sizeof(void *) * queue->capacity);
 
             memmove(queue->data + old_capacity, queue->data,
                     sizeof(void *) * queue->tail);
@@ -567,8 +567,8 @@ static void ExpandIfNecessary(ThreadedQueue *queue)
         else
         {
             queue->capacity *= EXPAND_FACTOR;
-            queue->data = xrealloc(queue->data,
-                                   sizeof(void *) * queue->capacity);
+            queue->data = (void **) xrealloc(queue->data,
+                                             sizeof(void *) * queue->capacity);
         }
     }
 

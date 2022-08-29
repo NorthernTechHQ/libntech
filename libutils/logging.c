@@ -69,10 +69,10 @@ static void LoggingInitializeOnce(void)
 LoggingContext *GetCurrentThreadContext(void)
 {
     pthread_once(&log_context_init_once, &LoggingInitializeOnce);
-    LoggingContext *lctx = pthread_getspecific(log_context_key);
+    LoggingContext *lctx = (LoggingContext *) pthread_getspecific(log_context_key);
     if (lctx == NULL)
     {
-        lctx = xcalloc(1, sizeof(LoggingContext));
+        lctx = (LoggingContext *) xcalloc(1, sizeof(LoggingContext));
         lctx->log_level = (global_system_log_level != LOG_LEVEL_NOTHING ?
                            global_system_log_level :
                            global_level);
@@ -85,7 +85,7 @@ LoggingContext *GetCurrentThreadContext(void)
 void LoggingFreeCurrentThreadContext(void)
 {
     pthread_once(&log_context_init_once, &LoggingInitializeOnce);
-    LoggingContext *lctx = pthread_getspecific(log_context_key);
+    LoggingContext *lctx = (LoggingContext *) pthread_getspecific(log_context_key);
     if (lctx == NULL)
     {
         return;
@@ -381,7 +381,7 @@ static void VLogNoFormat(LogLevel level, const char *fmt_msg, va_list ap, bool n
                 "Attempt to log a message to an unitialized log buffer, discarding the message");
         }
 
-        LogEntry *entry = xmalloc(sizeof(LogEntry));
+        LogEntry *entry = (LogEntry *) xmalloc(sizeof(LogEntry));
         entry->level = level;
         entry->msg = msg;
 
@@ -445,7 +445,7 @@ void LogRaw(LogLevel level, const char *prefix, const void *buf, size_t buflen)
     LoggingContext *lctx = GetCurrentThreadContext();
     if (level <= lctx->report_level || level <= lctx->log_level)
     {
-        const unsigned char *src = buf;
+        const unsigned char *src = (unsigned char *) buf;
         unsigned char dst[CF_BUFSIZE+1];
         assert(buflen < sizeof(dst));
         size_t i;
@@ -508,11 +508,11 @@ static const char *log_modules[LOG_MOD_MAX] =
 
 static enum LogModule LogModuleFromString(const char *s)
 {
-    for (enum LogModule i = 0; i < LOG_MOD_MAX; i++)
+    for (int i = 0; i < LOG_MOD_MAX; i++)
     {
         if (strcmp(log_modules[i], s) == 0)
         {
-            return i;
+            return (enum LogModule) i;
         }
     }
 
@@ -531,7 +531,7 @@ void LogModuleHelp(void)
     printf("\n--log-modules accepts a comma separated list of one or more of the following:\n\n");
     printf("    help\n");
     printf("    all\n");
-    for (enum LogModule i = LOG_MOD_NONE + 1;  i < LOG_MOD_MAX;  i++)
+    for (int i = LOG_MOD_NONE + 1;  i < LOG_MOD_MAX;  i++)
     {
         printf("    %s\n", log_modules[i]);
     }
@@ -553,7 +553,7 @@ bool LogEnableModulesFromString(char *s)
 {
     bool retval = true;
 
-    const char *token = s;
+    char *token = s;
     char saved_sep = ',';                     /* any non-NULL value will do */
     while (saved_sep != '\0' && retval != false)
     {
@@ -569,9 +569,9 @@ bool LogEnableModulesFromString(char *s)
         }
         else if (strcmp(token, "all") == 0)
         {
-            for (enum LogModule j = LOG_MOD_NONE + 1; j < LOG_MOD_MAX; j++)
+            for (int j = LOG_MOD_NONE + 1; j < LOG_MOD_MAX; j++)
             {
-                LogEnableModule(j);
+                LogEnableModule((enum LogModule) j);
             }
         }
         else
@@ -758,7 +758,7 @@ void StartLoggingIntoBuffer(LogLevel min_level, LogLevel max_level)
         DiscardLogBuffer();
     }
 
-    log_buffer = SeqNew(16, LogEntryDestroy);
+    log_buffer = SeqNew(16, (void (*)(void *)) LogEntryDestroy);
     logging_into_buffer = true;
     min_log_into_buffer_level = min_level;
     max_log_into_buffer_level = max_level;
@@ -789,7 +789,7 @@ void CommitLogBuffer()
     const size_t n_entries = SeqLength(log_buffer);
     for (size_t i = 0; i < n_entries; i++)
     {
-        LogEntry *entry = SeqAt(log_buffer, i);
+        LogEntry *entry = (LogEntry *) SeqAt(log_buffer, i);
         LogNoFormat(entry->level, entry->msg);
     }
 

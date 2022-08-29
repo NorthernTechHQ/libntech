@@ -75,7 +75,7 @@ void *SetIteratorNext(SetIterator *i);
                                                                         \
     Prefix##Set *Prefix##SetNew(void)                                   \
     {                                                                   \
-        Prefix##Set *set = xcalloc(1, sizeof(Prefix##Set));             \
+        Prefix##Set *set = (Prefix##Set *) xcalloc(1, sizeof(Prefix##Set));             \
         set->impl = SetNew(hash_fn, equal_fn, destroy_fn);              \
         return set;                                                     \
     }                                                                   \
@@ -131,7 +131,7 @@ void *SetIteratorNext(SetIterator *i);
                                                                         \
     ElementType Prefix##SetIteratorNext(Prefix##SetIterator *iter)      \
     {                                                                   \
-        return SetIteratorNext(iter);                                   \
+        return (ElementType) SetIteratorNext((SetIterator *) iter);                                   \
     }                                                                   \
 
 

@@ -100,14 +100,14 @@ static pcre_wrap_substitute *pcre_wrap_compile_replacement(const char *replaceme
 
     size_t length = strlen(replacement);
 
-    rstruct = calloc(1, sizeof(pcre_wrap_substitute));
+    rstruct = (pcre_wrap_substitute *) calloc(1, sizeof(pcre_wrap_substitute));
     if (rstruct == NULL)
     {
         *errptr = PCRE_WRAP_ERR_NOMEM;
         return NULL;
     }
 
-    text = calloc(1, length + 1);
+    text = (char *) calloc(1, length + 1);
     if (text == NULL)
     {
         free(rstruct);
@@ -119,7 +119,7 @@ static pcre_wrap_substitute *pcre_wrap_compile_replacement(const char *replaceme
 
     if (trivialflag)
     {
-        text = memcpy(text, replacement, length + 1);
+        text = (char *) memcpy(text, replacement, length + 1);
         textpos = length;
     }
     else // non-trivial search and replace
@@ -298,7 +298,7 @@ pcre_wrap_job *pcre_wrap_compile(const char *pattern, const char *substitute, co
         substitute = "";
     }
 
-    pcre_wrap_job *newjob = calloc(1, sizeof(pcre_wrap_job));
+    pcre_wrap_job *newjob = (pcre_wrap_job *) calloc(1, sizeof(pcre_wrap_job));
     if (newjob == NULL)
     {
         *errptr = PCRE_WRAP_ERR_NOMEM;
@@ -356,7 +356,7 @@ int pcre_wrap_execute(pcre_wrap_job *job, char *subject, size_t subject_length, 
         return(PCRE_WRAP_ERR_BADJOB);
     }
 
-    pcre_wrap_match *matches = calloc(max_matches, sizeof(pcre_wrap_match));
+    pcre_wrap_match *matches = (pcre_wrap_match *) calloc(max_matches, sizeof(pcre_wrap_match));
     if (matches == NULL)
     {
         *result = NULL;
@@ -407,7 +407,7 @@ int pcre_wrap_execute(pcre_wrap_job *job, char *subject, size_t subject_length, 
         {
             max_matches = (int)(max_matches * PCRE_WRAP_MAX_MATCH_GROW);
 
-            pcre_wrap_match *temp = realloc(matches, max_matches * sizeof(pcre_wrap_match));
+            pcre_wrap_match *temp = (pcre_wrap_match *) realloc(matches, max_matches * sizeof(pcre_wrap_match));
             if (temp == NULL)
             {
                 free(matches);
@@ -448,7 +448,7 @@ int pcre_wrap_execute(pcre_wrap_job *job, char *subject, size_t subject_length, 
     }
     matches_found = current_match;
 
-    *result = malloc(newsize + 1); // caller will free this
+    *result = (char *) malloc(newsize + 1); // caller will free this
     if (*result == NULL)
     {
         free(matches);

@@ -75,7 +75,7 @@ size_t SeqLength(const Seq *seq);
   @param [in] ItemDestroy Optional item destructor to clean up memory when needed.
   @return A pointer to the created Sequence
   */
-Seq *SeqNew(size_t initial_capacity, void (*ItemDestroy) ());
+Seq *SeqNew(size_t initial_capacity, void (*ItemDestroy) (void *item));
 
 /**
   @brief Destroy an existing Sequence

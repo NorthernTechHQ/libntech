@@ -34,10 +34,10 @@
 
 Buffer *BufferNewWithCapacity(size_t initial_capacity)
 {
-    Buffer *buffer = xmalloc(sizeof(Buffer));
+    Buffer *buffer = (Buffer *) xmalloc(sizeof(Buffer));
 
     buffer->capacity = initial_capacity;
-    buffer->buffer = xmalloc(buffer->capacity);
+    buffer->buffer = (char *) xmalloc(buffer->capacity);
     buffer->buffer[0] = '\0';
     buffer->mode = BUFFER_BEHAVIOR_CSTRING;
     buffer->used = 0;
@@ -56,7 +56,7 @@ static void ExpandIfNeeded(Buffer *buffer, size_t needed)
     if (needed >= buffer->capacity)
     {
         size_t new_capacity = UpperPowerOfTwo(needed + 1);
-        buffer->buffer = xrealloc(buffer->buffer, new_capacity);
+        buffer->buffer = (char *) xrealloc(buffer->buffer, new_capacity);
         buffer->capacity = new_capacity;
     }
 }

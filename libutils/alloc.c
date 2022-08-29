@@ -55,12 +55,12 @@ void *xrealloc(void *ptr, size_t size)
 
 char *xstrdup(const char *str)
 {
-    return CheckResult(strdup(str), "xstrdup", true);
+    return (char *) CheckResult(strdup(str), "xstrdup", true);
 }
 
 char *xstrndup(const char *str, size_t n)
 {
-    return CheckResult(strndup(str, n), "xstrndup", true);
+    return (char *) CheckResult(strndup(str, n), "xstrndup", true);
 }
 
 void *xmemdup(const void *data, size_t size)

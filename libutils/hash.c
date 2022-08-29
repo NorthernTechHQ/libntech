@@ -79,8 +79,8 @@ struct Hash {
  */
 Hash *HashBasicInit(HashMethod method)
 {
-    Hash *hash = xcalloc (1, sizeof(Hash));
-    hash->size = CF_DIGEST_SIZES[method];
+    Hash *hash = (Hash *) xcalloc(1, sizeof(Hash));
+    hash->size = (HashSize) CF_DIGEST_SIZES[method];
     hash->method = method;
     return hash;
 }
@@ -297,7 +297,7 @@ int HashCopy(Hash *origin, Hash **destination)
     {
         return -1;
     }
-    *destination = xmalloc(sizeof(Hash));
+    *destination = (Hash *) xmalloc(sizeof(Hash));
     memcpy((*destination)->digest, origin->digest, origin->size);
     strlcpy((*destination)->printable, origin->printable, (EVP_MAX_MD_SIZE * 4));
     (*destination)->method = origin->method;
@@ -394,7 +394,7 @@ const EVP_MD *HashDigestFromId(HashMethod type)
 HashSize HashSizeFromId(HashMethod hash_id)
 {
     assert(hash_id >= 0);
-    return (hash_id >= HASH_METHOD_NONE) ? CF_NO_HASH : CF_DIGEST_SIZES[hash_id];
+    return (hash_id >= HASH_METHOD_NONE) ? CF_NO_HASH : (HashSize) CF_DIGEST_SIZES[hash_id];
 }
 
 static void HashFile_Stream(

@@ -41,7 +41,7 @@ struct Queue_ {
 
 Queue *QueueNew(QueueItemDestroy *item_destroy)
 {
-    Queue *queue = xcalloc(1, sizeof(Queue));
+    Queue *queue = (Queue *) xcalloc(1, sizeof(Queue));
 
     queue->destroy = item_destroy;
 
@@ -70,7 +70,7 @@ void QueueDestroy(Queue *q)
 
 static QueueNode *QueueNodeNew(void *element)
 {
-    QueueNode *node = xmalloc(sizeof(QueueNode));
+    QueueNode *node = (QueueNode *) xmalloc(sizeof(QueueNode));
 
     node->data = element;
     node->previous = NULL;

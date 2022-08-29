@@ -47,12 +47,12 @@ RingBuffer *RingBufferNew(size_t capacity, void *(*copy)(const void *), void (*d
 {
     assert(capacity > 0);
 
-    RingBuffer *buf = xmalloc(sizeof(RingBuffer));
+    RingBuffer *buf = (RingBuffer *) xmalloc(sizeof(RingBuffer));
 
     buf->copy = copy;
     buf->destroy = destroy;
 
-    buf->data = xcalloc(capacity, sizeof(void *));
+    buf->data = (void **) xcalloc(capacity, sizeof(void *));
     buf->capacity = MAX(capacity, 1);
     buf->len = 0;
     buf->end = 0;
@@ -123,7 +123,7 @@ const void *RingBufferHead(const RingBuffer *buf)
 
 RingBufferIterator *RingBufferIteratorNew(const RingBuffer *buf)
 {
-    RingBufferIterator *iter = xmalloc(sizeof(RingBufferIterator));
+    RingBufferIterator *iter = (RingBufferIterator *) xmalloc(sizeof(RingBufferIterator));
 
     iter->buf = buf;
     iter->num_read = 0;

@@ -47,7 +47,7 @@ struct ThreadedStack_ {
 
 ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (ItemDestroy) (void *item))
 {
-    ThreadedStack *stack = xmalloc(sizeof(ThreadedStack));
+    ThreadedStack *stack = (ThreadedStack *) xmalloc(sizeof(ThreadedStack));
 
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
@@ -61,7 +61,7 @@ ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (ItemDestroy) (voi
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
-    stack->lock = xmalloc(sizeof(pthread_mutex_t));
+    stack->lock = (pthread_mutex_t *) xmalloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(stack->lock, &attr);
     if (ret != 0)
     {
@@ -176,8 +176,8 @@ ThreadedStack *ThreadedStackCopy(ThreadedStack const *stack)
 
     ThreadLock(stack->lock);
 
-    ThreadedStack *new_stack = xmemdup(stack, sizeof(ThreadedStack));
-    new_stack->base.data = xmalloc(sizeof(void *) * stack->base.capacity);
+    ThreadedStack *new_stack = (ThreadedStack *) xmemdup(stack, sizeof(ThreadedStack));
+    new_stack->base.data = (void **) xmalloc(sizeof(void *) * stack->base.capacity);
     memcpy(new_stack->base.data, stack->base.data, sizeof(void *) * stack->base.size);
 
     pthread_mutexattr_t attr;
@@ -192,7 +192,7 @@ ThreadedStack *ThreadedStackCopy(ThreadedStack const *stack)
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
-    new_stack->lock = xmalloc(sizeof(pthread_mutex_t));
+    new_stack->lock = (pthread_mutex_t *) xmalloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(new_stack->lock, &attr);
     if (ret != 0)
     {

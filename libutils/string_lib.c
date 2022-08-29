@@ -112,7 +112,7 @@ unsigned int StringHash(const char *str, unsigned int seed)
 
 unsigned int StringHash_untyped(const void *str, unsigned int seed)
 {
-    return StringHash(str, seed);
+    return StringHash((const char *) str, seed);
 }
 
 char ToLower(char ch)
@@ -311,7 +311,7 @@ bool StringEqualN_IgnoreCase(const char *const a, const char *const b, const siz
 
 bool StringEqual_untyped(const void *a, const void *b)
 {
-    return StringEqual(a, b);
+    return StringEqual((const char *) a, (const char *) b);
 }
 
 /*********************************************************************/
@@ -372,7 +372,7 @@ char *StringConcatenate(size_t count, const char *first, ...)
     }
     va_end(args);
 
-    char *result = xcalloc(total_length + 1, sizeof(char));
+    char *result = (char *) xcalloc(total_length + 1, sizeof(char));
     if (first)
     {
         strcat(result, first);
@@ -423,7 +423,7 @@ char *StringSubstring(const char *source, size_t source_len, int start, int len)
         return NULL;
     }
 
-    char *result = xcalloc(end - start + 2, sizeof(char));
+    char *result = (char *) xcalloc(end - start + 2, sizeof(char));
 
     memcpy(result, source + start, end - start + 1);
     return result;
@@ -876,7 +876,7 @@ long StringToLongUnsafe(const char *str)
 
 char *StringFromLong(long number)
 {
-    char *str = xcalloc(32, sizeof(char));
+    char *str = (char *) xcalloc(32, sizeof(char));
     snprintf(str, 32, "%ld", number);
     return str;
 }
@@ -906,7 +906,7 @@ char *NULLStringToEmpty(char *str)
 {
     if(!str)
     {
-        return "";
+        return strdup("");
     }
 
     return str;
@@ -1235,7 +1235,7 @@ char **String2StringArray(const char *str, char separator)
             len = strlen(sp);
         }
 
-        arr[i] = xcalloc(len + 1, sizeof(char));
+        arr[i] = (char *) xcalloc(len + 1, sizeof(char));
         memcpy(arr[i], sp, len);
 
         sp = esp;
@@ -1281,7 +1281,7 @@ char *EscapeCharCopy(const char *str, char to_escape, char escape_with)
 
     size_t out_size = in_size + CountChar(str, to_escape) + 1;
 
-    char *out = xcalloc(1, out_size);
+    char *out = (char *) xcalloc(1, out_size);
 
     const char *in_pos = str;
     char *out_pos = out;
@@ -1539,7 +1539,7 @@ bool StringStartsWith(const char *str, const char *prefix)
  */
 void *memcchr(const void *buf, int c, size_t buf_size)
 {
-    const char *cbuf = buf;
+    const char *cbuf = (const char *) buf;
     for (size_t i = 0; i < buf_size; i++)
     {
         if (cbuf[i] != c)

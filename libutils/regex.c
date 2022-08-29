@@ -166,7 +166,7 @@ Seq *StringMatchCapturesWithPrecompiledRegex(const pcre *pattern, const char *st
         pcre_fullinfo(pattern, NULL, PCRE_INFO_NAMEENTRYSIZE, &name_entry_size);
     }
 
-    int *ovector = xmalloc(sizeof(int) * (captures + 1) * 3);
+    int *ovector = (int *) xmalloc(sizeof(int) * (captures + 1) * 3);
 
     int result = pcre_exec(pattern, NULL, str, strlen(str),
                            0, 0, ovector, (captures + 1) * 3);
@@ -177,7 +177,7 @@ Seq *StringMatchCapturesWithPrecompiledRegex(const pcre *pattern, const char *st
         return NULL;
     }
 
-    Seq *ret = SeqNew(captures + 1, BufferDestroy);
+    Seq *ret = SeqNew(captures + 1, (void (*)(void *)) BufferDestroy);
     for (int i = 0; i <= captures; ++i)
     {
         Buffer *capture = NULL;

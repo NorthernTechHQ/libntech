@@ -33,11 +33,11 @@ ArrayMap *ArrayMapNew(MapKeyEqualFn equal_fn,
                       MapDestroyDataFn destroy_key_fn,
                       MapDestroyDataFn destroy_value_fn)
 {
-    ArrayMap *map = xcalloc(1, sizeof(ArrayMap));
+    ArrayMap *map = (ArrayMap *) xcalloc(1, sizeof(ArrayMap));
     map->equal_fn = equal_fn;
     map->destroy_key_fn = destroy_key_fn;
     map->destroy_value_fn = destroy_value_fn;
-    map->values = xcalloc(1, sizeof(MapKeyValue) * TINY_LIMIT);
+    map->values = (MapKeyValue *) xcalloc(1, sizeof(MapKeyValue) * TINY_LIMIT);
     return map;
 }
 

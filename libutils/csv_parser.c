@@ -81,7 +81,7 @@ static csv_parser_error LaunchCsvAutomata(const char *str, Seq **newlist)
         return CSV_ERR_INVALID_INPUT;
     }
 
-    char *snatched = xmalloc(strlen(str) + 1);
+    char *snatched = (char *) xmalloc(strlen(str) + 1);
     snatched[0] = '\0';
     char *sn = snatched;
 
@@ -313,7 +313,7 @@ clean:
 
 Seq *SeqParseCsvString(const char *string)
 {
-    Seq *newlist = SeqNew(16, free);
+    Seq *newlist = SeqNew(16, (void (*)(void *)) free);
 
     if (LaunchCsvAutomata(string, &newlist) != CSV_ERR_OK)
     {

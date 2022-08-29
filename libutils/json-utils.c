@@ -197,7 +197,7 @@ bool JsonParseEnvFile(const char *input_path, size_t size_max, JsonElement **jso
 
     JsonElement *json = JsonObjectCreate(10);
 
-    char *raw_line = xmalloc(line_size);
+    char *raw_line = (char *) xmalloc(line_size);
     while (CfReadLine(&raw_line, &line_size, fin) != -1)
     {
         ++linenumber;
@@ -286,7 +286,7 @@ bool JsonParseCsvFile(const char *input_path, size_t size_max, JsonElement **jso
 
             for (size_t i = 0; i < SeqLength(list); i++)
             {
-                JsonArrayAppendString(line_arr, SeqAt(list, i));
+                JsonArrayAppendString(line_arr, (char *) SeqAt(list, i));
             }
 
             SeqDestroy(list);

@@ -207,14 +207,14 @@ static bool VisitJsonArrayFirst(ARG_UNUSED JsonElement *element, void *data)
      * in the string set yet. This doesn't fail if there is a nested array as
      * the first item in the top-level array, but let's just live with that for
      * the sake of simplicity. */
-    StringSet *set = data;
+    StringSet *set = (StringSet *) data;
     return (StringSetSize(set) == 0);
 }
 
 static bool AddArrayItemToStringSet(JsonElement *element, void *data)
 {
     char *element_str = JsonPrimitiveToString(element);
-    StringSet *set = data;
+    StringSet *set = (StringSet *) data;
     if ((element_str != NULL) && (set != NULL))
     {
         StringSetAdd(set, element_str);

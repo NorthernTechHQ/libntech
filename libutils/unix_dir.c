@@ -40,7 +40,7 @@ static size_t GetDirentBufferSize(size_t path_len);
 
 Dir *DirOpen(const char *dirname)
 {
-    Dir *ret = xcalloc(1, sizeof(Dir));
+    Dir *ret = (Dir *) xcalloc(1, sizeof(Dir));
     int safe_fd;
 
     safe_fd = safe_open(dirname, O_RDONLY);
@@ -79,7 +79,7 @@ Dir *DirOpen(const char *dirname)
 
     size_t dirent_buf_size = GetDirentBufferSize(GetNameMax(ret->dirh));
 
-    ret->entrybuf = xcalloc(1, dirent_buf_size);
+    ret->entrybuf = (struct dirent *) xcalloc(1, dirent_buf_size);
 
     return ret;
 }
@@ -201,7 +201,7 @@ static size_t GetDirentBufferSize(size_t name_len)
 struct dirent *AllocateDirentForFilename(const char *filename)
 {
     int length = strlen(filename);
-    struct dirent *entry = xcalloc(1, GetDirentBufferSize(length));
+    struct dirent *entry = (struct dirent *) xcalloc(1, GetDirentBufferSize(length));
 
     // d_name is fixed length, but we have allocated extra space using xcalloc
     // cast is to silence the compiler warning which checks length of d_name:

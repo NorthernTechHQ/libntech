@@ -55,7 +55,7 @@ struct Writer_
 
 Writer *FileWriter(FILE *file)
 {
-    Writer *writer = xcalloc(1, sizeof(Writer));
+    Writer *writer = (Writer *) xcalloc(1, sizeof(Writer));
 
     writer->type = WT_FILE;
     writer->file = file;
@@ -66,7 +66,7 @@ Writer *FileWriter(FILE *file)
 
 Writer *StringWriter(void)
 {
-    Writer *writer = xcalloc(1, sizeof(Writer));
+    Writer *writer = (Writer *) xcalloc(1, sizeof(Writer));
 
     writer->type = WT_STRING;
     writer->string.data = xstrdup("");
@@ -81,7 +81,7 @@ static void StringWriterReallocate(Writer *writer, size_t extra_length)
 {
     assert(writer != NULL);
     writer->string.allocated = MAX(writer->string.allocated * 2, writer->string.len + extra_length + 1);
-    writer->string.data = xrealloc(writer->string.data, writer->string.allocated);
+    writer->string.data = (char *) xrealloc(writer->string.data, writer->string.allocated);
 }
 
 static size_t StringWriterWriteChar(Writer *writer, char c)

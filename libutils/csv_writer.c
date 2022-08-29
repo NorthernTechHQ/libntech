@@ -42,7 +42,7 @@ static void CsvWriterFieldVF(CsvWriter * csvw, const char *fmt, va_list ap) FUNC
 
 CsvWriter *CsvWriterOpenSpecifyTerminate(Writer *w, bool terminate_last_line)
 {
-    CsvWriter *csvw = xmalloc(sizeof(CsvWriter));
+    CsvWriter *csvw = (CsvWriter *) xmalloc(sizeof(CsvWriter));
 
     csvw->w = w;
     csvw->beginning_of_line = true;

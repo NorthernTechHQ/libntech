@@ -136,7 +136,7 @@ void MapPrintStats(const Map *map, FILE *f);
                                                                         \
     Prefix##Map *Prefix##MapNew(void)                                   \
     {                                                                   \
-        Prefix##Map *map = xcalloc(1, sizeof(Prefix##Map));             \
+        Prefix##Map *map = (Prefix##Map *) xcalloc(1, sizeof(Prefix##Map));             \
         map->impl = MapNew(hash_fn, equal_fn,                           \
                            destroy_key_fn, destroy_value_fn);           \
         return map;                                                     \
@@ -157,7 +157,7 @@ void MapPrintStats(const Map *map, FILE *f);
     ValueType Prefix##MapGet(const Prefix##Map *map, const KeyType key) \
     {                                                                   \
         assert(map);                                                    \
-        return MapGet(map->impl, key);                                  \
+        return (ValueType) MapGet(map->impl, key);                                  \
     }                                                                   \
                                                                         \
     bool Prefix##MapRemove(const Prefix##Map *map, const KeyType key)   \

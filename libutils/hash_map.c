@@ -37,7 +37,7 @@ HashMap *HashMapNew(MapHashFn hash_fn, MapKeyEqualFn equal_fn,
                     MapDestroyDataFn destroy_value_fn,
                     size_t init_size)
 {
-    HashMap *map = xcalloc(1, sizeof(HashMap));
+    HashMap *map = (HashMap *) xcalloc(1, sizeof(HashMap));
     map->hash_fn = hash_fn;
     map->equal_fn = equal_fn;
     map->destroy_key_fn = destroy_key_fn;
@@ -55,7 +55,7 @@ HashMap *HashMapNew(MapHashFn hash_fn, MapKeyEqualFn equal_fn,
         map->size = UpperPowerOfTwo(init_size);
     }
     map->init_size = map->size;
-    map->buckets = xcalloc(map->size, sizeof(BucketListItem *));
+    map->buckets = (BucketListItem **) xcalloc(map->size, sizeof(BucketListItem *));
     map->load = 0;
     map->max_threshold = (size_t) map->size * MAX_LOAD_FACTOR;
     map->min_threshold = (size_t) map->size * MIN_LOAD_FACTOR;
@@ -83,7 +83,7 @@ static void HashMapResize(HashMap *map, size_t new_size)
     /* map->load stays the same */
     map->max_threshold = (size_t) map->size * MAX_LOAD_FACTOR;
     map->min_threshold = (size_t) map->size * MIN_LOAD_FACTOR;
-    map->buckets = xcalloc(map->size, sizeof(BucketListItem *));
+    map->buckets = (BucketListItem **) xcalloc(map->size, sizeof(BucketListItem *));
 
     for (size_t i = 0; i < old_size; ++i)
     {
@@ -125,7 +125,7 @@ bool HashMapInsert(HashMap *map, void *key, void *value)
         }
     }
 
-    BucketListItem *i = xcalloc(1, sizeof(BucketListItem));
+    BucketListItem *i = (BucketListItem *) xcalloc(1, sizeof(BucketListItem));
     i->value.key = key;
     i->value.value = value;
     i->next = map->buckets[bucket];
@@ -261,7 +261,7 @@ void HashMapPrintStats(const HashMap *hmap, FILE *f)
     size_t *bucket_lengths;
     size_t num_el = 0;
     size_t num_buckets = 0;
-    bucket_lengths = xcalloc(hmap->size, sizeof(size_t));
+    bucket_lengths = (size_t *) xcalloc(hmap->size, sizeof(size_t));
 
     for (size_t i = 0; i < hmap->size; i++)
     {

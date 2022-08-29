@@ -58,7 +58,7 @@ static void ExpandIfNecessary(ThreadedDeque *deque);
 ThreadedDeque *ThreadedDequeNew(size_t initial_capacity,
                                 void (ItemDestroy) (void *item))
 {
-    ThreadedDeque *deque = xcalloc(1, sizeof(ThreadedDeque));
+    ThreadedDeque *deque = (ThreadedDeque *) xcalloc(1, sizeof(ThreadedDeque));
 
     if (initial_capacity == 0)
     {
@@ -78,7 +78,7 @@ ThreadedDeque *ThreadedDequeNew(size_t initial_capacity,
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
-    deque->lock = xmalloc(sizeof(pthread_mutex_t));
+    deque->lock = (pthread_mutex_t *) xmalloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(deque->lock, &attr);
     if (ret != 0)
     {
@@ -93,7 +93,7 @@ ThreadedDeque *ThreadedDequeNew(size_t initial_capacity,
 
     pthread_mutexattr_destroy(&attr);
 
-    deque->cond_non_empty = xmalloc(sizeof(pthread_cond_t));
+    deque->cond_non_empty = (pthread_cond_t *) xmalloc(sizeof(pthread_cond_t));
     ret = pthread_cond_init(deque->cond_non_empty, NULL);
     if (ret != 0)
     {
@@ -106,7 +106,7 @@ ThreadedDeque *ThreadedDequeNew(size_t initial_capacity,
         return NULL;
     }
 
-    deque->cond_empty = xmalloc(sizeof(pthread_cond_t));
+    deque->cond_empty = (pthread_cond_t *) xmalloc(sizeof(pthread_cond_t));
     ret = pthread_cond_init(deque->cond_empty, NULL);
     if (ret != 0)
     {
@@ -125,7 +125,7 @@ ThreadedDeque *ThreadedDequeNew(size_t initial_capacity,
     deque->left = 0;
     deque->right = 0;
     deque->size = 0;
-    deque->data = xmalloc(sizeof(void *) * initial_capacity);
+    deque->data = (void **) xmalloc(sizeof(void *) * initial_capacity);
     deque->ItemDestroy = ItemDestroy;
 
     return deque;
@@ -304,7 +304,7 @@ size_t ThreadedDequePopLeftN(ThreadedDeque *deque,
 
     if (size > 0)
     {
-        data = xcalloc(size, sizeof(void *));
+        data = (void **) xcalloc(size, sizeof(void *));
         size_t left = deque->left;
 
         for (size_t i = 0; i < size; i++)
@@ -363,7 +363,7 @@ size_t ThreadedDequePopRightN(ThreadedDeque *deque,
 
     if (size > 0)
     {
-        data = xcalloc(size, sizeof(void *));
+        data = (void **) xcalloc(size, sizeof(void *));
         size_t right = deque->right;
 
         for (size_t i = 0; i < size; i++)
@@ -504,8 +504,8 @@ ThreadedDeque *ThreadedDequeCopy(ThreadedDeque *deque)
 
     ThreadLock(deque->lock);
 
-    ThreadedDeque *new_deque = xmemdup(deque, sizeof(ThreadedDeque));
-    new_deque->data = xmalloc(sizeof(void *) * deque->capacity);
+    ThreadedDeque *new_deque = (ThreadedDeque *) xmemdup(deque, sizeof(ThreadedDeque));
+    new_deque->data = (void **) xmalloc(sizeof(void *) * deque->capacity);
     memcpy(new_deque->data, deque->data,
            sizeof(void *) * new_deque->capacity);
 
@@ -524,7 +524,7 @@ ThreadedDeque *ThreadedDequeCopy(ThreadedDeque *deque)
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
-    new_deque->lock = xmalloc(sizeof(pthread_mutex_t));
+    new_deque->lock = (pthread_mutex_t *) xmalloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(new_deque->lock, &attr);
     if (ret != 0)
     {
@@ -537,7 +537,7 @@ ThreadedDeque *ThreadedDequeCopy(ThreadedDeque *deque)
         return NULL;
     }
 
-    new_deque->cond_non_empty = xmalloc(sizeof(pthread_cond_t));
+    new_deque->cond_non_empty = (pthread_cond_t *) xmalloc(sizeof(pthread_cond_t));
     ret = pthread_cond_init(new_deque->cond_non_empty, NULL);
     if (ret != 0)
     {
@@ -551,7 +551,7 @@ ThreadedDeque *ThreadedDequeCopy(ThreadedDeque *deque)
         return NULL;
     }
 
-    new_deque->cond_empty = xmalloc(sizeof(pthread_cond_t));
+    new_deque->cond_empty = (pthread_cond_t *) xmalloc(sizeof(pthread_cond_t));
     ret = pthread_cond_init(new_deque->cond_empty, NULL);
     if (ret != 0)
     {
@@ -620,7 +620,7 @@ static void ExpandIfNecessary(ThreadedDeque *deque)
             size_t old_capacity = deque->capacity;
 
             deque->capacity *= EXPAND_FACTOR;
-            deque->data = xrealloc(deque->data,
+            deque->data = (void **) xrealloc(deque->data,
                                    sizeof(void *) * deque->capacity);
 
             /* Move the data that has wrapped around to the newly allocated
@@ -635,7 +635,7 @@ static void ExpandIfNecessary(ThreadedDeque *deque)
         else
         {
             deque->capacity *= EXPAND_FACTOR;
-            deque->data = xrealloc(deque->data,
+            deque->data = (void **) xrealloc(deque->data,
                                    sizeof(void *) * deque->capacity);
         }
     }

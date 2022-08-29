@@ -66,7 +66,10 @@ static void VerifyTree_(RBTree *tree);
 
 static int PointerCompare_(const void *a, const void *b)
 {
-    return a - b;
+    // In C sizeof(void) is 1. Semantically speeking sizeof(void) should be
+    // zero, thus the C++ compiler complains. Casting it to a char pointer
+    // (where sizeof(char) is also 1) makes the C++ compiler relax.
+    return (char *) a - (char *) b;
 }
 
 static void NoopDestroy_(ARG_UNUSED void *a)
@@ -81,7 +84,7 @@ static void *NoopCopy_(const void *a)
 
 static RBNode *NodeNew_(RBTree *tree, RBNode *parent, bool red, const void *key, const void *value)
 {
-    RBNode *node = xmalloc(sizeof(RBNode));
+    RBNode *node = (RBNode *) xmalloc(sizeof(RBNode));
 
     node->parent = parent;
     node->red = red;
@@ -126,7 +129,7 @@ RBTree *RBTreeNew(void *(*KeyCopy)(const void *key),
     assert(!(KeyCopy && KeyDestroy) || (KeyCopy && KeyDestroy));
     assert(!(ValueCopy && ValueDestroy) || (ValueCopy && ValueDestroy));
 
-    RBTree *t = xmalloc(sizeof(RBTree));
+    RBTree *t = (RBTree *) xmalloc(sizeof(RBTree));
 
     t->KeyCopy = KeyCopy ? KeyCopy : NoopCopy_;
     t->KeyCompare = KeyCompare ? KeyCompare : PointerCompare_;
@@ -136,8 +139,8 @@ RBTree *RBTreeNew(void *(*KeyCopy)(const void *key),
     t->ValueCompare = ValueCompare ? ValueCompare : PointerCompare_;
     t->ValueDestroy = ValueDestroy ? ValueDestroy : NoopDestroy_;
 
-    t->nil = xcalloc(1, sizeof(RBNode));
-    t->root = xcalloc(1, sizeof(RBNode));
+    t->nil = (RBNode *) xcalloc(1, sizeof(RBNode));
+    t->root = (RBNode *) xcalloc(1, sizeof(RBNode));
 
     Reset_(t);
 
@@ -156,7 +159,7 @@ static void TreeDestroy_(RBTree *tree, RBNode *x)
 
 RBTree *RBTreeCopy(const RBTree *tree, RBTreePredicate *filter, void *user_data)
 {
-    RBNode **nodes = xmalloc(tree->size * sizeof(RBNode *));
+    RBNode **nodes = (RBNode **) xmalloc(tree->size * sizeof(RBNode *));
     size_t node_count = 0;
 
     {
@@ -209,7 +212,7 @@ RBTree *RBTreeCopy(const RBTree *tree, RBTreePredicate *filter, void *user_data)
 
 bool RBTreeEqual(const void *_a, const void *_b)
 {
-    const RBTree *a = _a, *b = _b;
+    const RBTree *a = (const RBTree *) _a, *b = (const RBTree *) _b;
 
     if (a == b)
     {
@@ -252,7 +255,7 @@ bool RBTreeEqual(const void *_a, const void *_b)
 
 void RBTreeDestroy(void *rb_tree)
 {
-    RBTree *tree = rb_tree;
+    RBTree *tree = (RBTree *) rb_tree;
     if (tree)
     {
         TreeDestroy_(tree, tree->root->left);
@@ -647,7 +650,7 @@ void RBTreeClear(RBTree *tree)
     assert(tree);
 
     ClearRecursive_(tree, tree->root);
-    tree->root = xcalloc(1, sizeof(RBNode));
+    tree->root = (RBNode *) xcalloc(1, sizeof(RBNode));
 
     Reset_(tree);
 }
@@ -659,7 +662,7 @@ size_t RBTreeSize(const RBTree *tree)
 
 RBTreeIterator *RBTreeIteratorNew(const RBTree *tree)
 {
-    RBTreeIterator *iter = xmalloc(sizeof(RBTreeIterator));
+    RBTreeIterator *iter = (RBTreeIterator *) xmalloc(sizeof(RBTreeIterator));
 
     iter->tree = tree;
     for (iter->curr = iter->tree->root; iter->curr->left != tree->nil; iter->curr = iter->curr->left);

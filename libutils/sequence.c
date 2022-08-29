@@ -30,7 +30,7 @@ static const size_t EXPAND_FACTOR = 2;
 
 Seq *SeqNew(size_t initialCapacity, void (ItemDestroy) (void *item))
 {
-    Seq *seq = xmalloc(sizeof(Seq));
+    Seq *seq = (Seq *) xmalloc(sizeof(Seq));
 
     if (initialCapacity <= 0)
     {
@@ -39,7 +39,7 @@ Seq *SeqNew(size_t initialCapacity, void (ItemDestroy) (void *item))
 
     seq->capacity = initialCapacity;
     seq->length = 0;
-    seq->data = xcalloc(sizeof(void *), initialCapacity);
+    seq->data = (void **) xcalloc(sizeof(void *), initialCapacity);
     seq->ItemDestroy = ItemDestroy;
 
     return seq;
@@ -86,14 +86,14 @@ static void ExpandIfNeccessary(Seq *seq)
     if (seq->length == seq->capacity)
     {
         seq->capacity *= EXPAND_FACTOR;
-        seq->data = xrealloc(seq->data, sizeof(void *) * seq->capacity);
+        seq->data = (void **) xrealloc(seq->data, sizeof(void *) * seq->capacity);
     }
 }
 
 int StrCmpWrapper(const void *s1, const void *s2, void *user_data)
 {
     UNUSED(user_data);
-    return strcmp(s1, s2);
+    return strcmp((const char *) s1, (const char *) s2);
 }
 
 void SeqSet(Seq *seq, size_t index, void *item)

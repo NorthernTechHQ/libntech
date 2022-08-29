@@ -62,7 +62,7 @@ static void StackInit(Stack *stack, size_t initial_capacity, void (ItemDestroy) 
 
     stack->capacity = initial_capacity;
     stack->size = 0;
-    stack->data = xcalloc(initial_capacity, sizeof(void *));
+    stack->data = (void **) xcalloc(initial_capacity, sizeof(void *));
     stack->ItemDestroy = ItemDestroy;
 }
 

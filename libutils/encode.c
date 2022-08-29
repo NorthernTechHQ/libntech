@@ -43,7 +43,7 @@ char *StringEncodeBase64(const char *str, size_t len)
 
     if (len == 0)
     {
-        return xcalloc(1, sizeof(char));
+        return (char *) xcalloc(1, sizeof(char));
     }
 
     BIO *b64 = BIO_new(BIO_f_base64());
@@ -58,7 +58,7 @@ char *StringEncodeBase64(const char *str, size_t len)
 
     BUF_MEM *buffer = NULL;
     BIO_get_mem_ptr(b64, &buffer);
-    char *out = xcalloc(1, buffer->length);
+    char *out = (char *) xcalloc(1, buffer->length);
     memcpy(out, buffer->data, buffer->length - 1);
     out[buffer->length - 1] = '\0';
 

@@ -103,7 +103,7 @@ Map *MapNew(MapHashFn hash_fn,
         destroy_value_fn = &NopDestroyFn;
     }
 
-    Map *map = xcalloc(1, sizeof(Map));
+    Map *map = (Map *) xcalloc(1, sizeof(Map));
     map->arraymap = ArrayMapNew(equal_fn, destroy_key_fn, destroy_value_fn);
     map->hash_fn = hash_fn;
     return map;

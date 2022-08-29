@@ -60,7 +60,7 @@ bool SeqStringContains(const Seq *const seq, const char *const str)
     size_t length = SeqLength(seq);
     for (size_t i = 0; i < length; ++i)
     {
-        if (StringEqual(str, SeqAt(seq, i)))
+        if (StringEqual(str, (char *) SeqAt(seq, i)))
         {
             return true;
         }
@@ -76,7 +76,7 @@ int SeqStringLength(Seq *seq)
     size_t seq_length = SeqLength(seq);
     for (size_t i = 0; i < seq_length; i++)
     {
-        total_length += SafeStringLength(SeqAt(seq, i));
+        total_length += SafeStringLength((char *) SeqAt(seq, i));
     }
 
     return total_length;
@@ -128,7 +128,7 @@ static long GetLengthPrefix(const char *data)
 static char *ValidDuplicate(const char *src, size_t n)
 {
     assert(src != NULL);
-    char *dst = xcalloc(n + 1, sizeof(char));
+    char *dst = (char *) xcalloc(n + 1, sizeof(char));
 
     size_t len = StringCopy(src, dst, n + 1);
     // If string was too long, len >= n+1, this is OKAY, there's more data.
@@ -160,7 +160,7 @@ bool SeqStringWrite(Seq *seq, Writer *w)
     const size_t length = SeqLength(seq);
     for (size_t i = 0; i < length; ++i)
     {
-        const char *const s = SeqAt(seq, i);
+        const char *const s = (char *) SeqAt(seq, i);
         bool success = WriteLenPrefixedString(w, s);
         if (!success)
         {
@@ -257,7 +257,7 @@ int ReadLenPrefixedString(int fd, char **string)
 
     // Read data, followed by a '\n' which we replace with '\0':
     const long size = length + 1;
-    char *const data = xmalloc(size);
+    char *const data = (char *) xmalloc(size);
     bytes_read = FullRead(fd, data, size);
     if (bytes_read != size || data[length] != '\n')
     {

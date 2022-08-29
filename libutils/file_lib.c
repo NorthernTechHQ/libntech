@@ -476,7 +476,7 @@ Seq *ListDir(const char *dir, const char *extension)
         return NULL;
     }
 
-    Seq *contents = SeqNew(10, free);
+    Seq *contents = SeqNew(10, (void (*)(void *)) free);
 
     const struct dirent *dirp;
 
@@ -995,7 +995,7 @@ static int safe_open_true_parent_dir(const char *path,
 
         // Add one byte for '\0', and one byte to make sure size doesn't change
         // in between calls.
-        char *link = xmalloc(statbuf.st_size + 2);
+        char *link = (char *) xmalloc(statbuf.st_size + 2);
         ret = readlinkat(dirfd, leaf, link, statbuf.st_size + 1);
         if (ret < 0 || ret > statbuf.st_size)
         {
@@ -1131,6 +1131,7 @@ int safe_chmod(const char *path, mode_t mode)
     char *leaf = basename(leaf_alloc);
     struct stat statbuf;
     uid_t olduid = 0;
+    int file_fd;
 
     if ((dirfd = safe_open_true_parent_dir(path, 0, 0, 0, false, SYMLINK_MAX_DEPTH)) == -1)
     {
@@ -1172,7 +1173,7 @@ int safe_chmod(const char *path, mode_t mode)
         goto cleanup;
     }
 
-    int file_fd = safe_open(path, 0);
+    file_fd = safe_open(path, 0);
     if (file_fd < 0)
     {
         ret = -1;
@@ -1331,7 +1332,7 @@ bool FileSparseWrite(int fd, const void *buf, size_t count,
     }
     else                                              /* write normally */
     {
-        ssize_t w_ret = FullWrite(fd, buf, count);
+        ssize_t w_ret = FullWrite(fd, (const char *) buf, count);
         if (w_ret < 0)
         {
             Log(LOG_LEVEL_ERR,
@@ -1374,7 +1375,7 @@ bool FileSparseCopy(int sd, const char *src_name,
 
     while (true)
     {
-        ssize_t n_read = FullRead(sd, buf, buf_size);
+        ssize_t n_read = FullRead(sd, (char *) buf, buf_size);
         if (n_read < 0)
         {
             Log(LOG_LEVEL_ERR,

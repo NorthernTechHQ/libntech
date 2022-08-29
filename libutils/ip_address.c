@@ -1257,7 +1257,7 @@ bool IPAddressCompareLess(IPAddress *a, IPAddress *b)
     }
 
     assert(a->type == b->type);
-    IPAddressVersion type = a->type;
+    IPAddressVersion type = (IPAddressVersion) a->type;
 
     if (type == IP_ADDRESS_TYPE_IPV4)
     {

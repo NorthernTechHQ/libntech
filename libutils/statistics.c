@@ -43,22 +43,22 @@ double GAverage(double anew, double aold, double p)
 
 QPoint QAverage(QPoint old, double new_q, double p)
 {
-    QPoint new = {
+    QPoint _new = {
         .q = new_q,
     };
 
-    double devsquare = (new.q - old.expect) * (new.q - old.expect);
+    double devsquare = (_new.q - old.expect) * (_new.q - old.expect);
 
-    new.dq = new.q - old.q;
-    new.expect = GAverage(new.q, old.expect, p);
-    new.var = GAverage(devsquare, old.var, p);
+    _new.dq = _new.q - old.q;
+    _new.expect = GAverage(_new.q, old.expect, p);
+    _new.var = GAverage(devsquare, old.var, p);
 
-    return new;
+    return _new;
 }
 
 /**********************************************************************/
 
 QPoint QDefinite(double q)
 {
-    return (QPoint) { .q = q, .dq = 0.0, .expect = q, .var = 0.0 };
+    return (QPoint) { .q = q, .expect = q, .var = 0.0, .dq = 0.0 };
 }
