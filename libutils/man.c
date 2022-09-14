@@ -78,9 +78,9 @@ static void WriteAvailability(Writer *out, const char *program)
         ".SH AVAILABILITY\n"
         "%s is part of CFEngine.\n"
         ".br\n"
-        "Binary packages may be downloaded from http://cfengine.com/downloads/.\n"
+        "Binary packages may be downloaded from https://cfengine.com/download/.\n"
         ".br\n"
-        "The source code is available at http://github.com/cfengine/\n";
+        "The source code is available at https://github.com/cfengine/\n";
 
     WriterWriteF(out, availability, program);
 }
@@ -184,9 +184,9 @@ static void WriteBugs(Writer *out)
 {
     static const char *const bugs =
             ".SH BUGS\n"
-            "Please see the public bug-tracker at http://bug.cfengine.com/.\n"
+            "Please see the public bug-tracker at https://tracker.mender.io/projects/CFE/.\n"
             ".br\n"
-            "GitHub pull-requests may be submitted to http://github.com/cfengine/core/.\n";
+            "GitHub pull-requests may be submitted to https://github.com/cfengine/core/.\n";
 
     WriterWrite(out, bugs);
 }
@@ -201,7 +201,7 @@ static void WriteCFEngine(Writer *out)
             "\\fBcf-agent\\fR from a \\fBcf-serverd\\fR daemon. The daemon \\fBcf-execd\\fR is responsible for running "
             "\\fBcf-agent\\fR periodically.\n"
             ".br\n"
-            "Documentation for CFEngine is available at http://cfengine.com/documentation/.\n";
+            "Documentation for CFEngine is available at https://docs.cfengine.com/.\n";
 
     WriterWrite(out, cfengine);
 }
