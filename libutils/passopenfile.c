@@ -401,7 +401,7 @@ bool PassOpenFile_Put(int uds, int descriptor, const char *text)
     control_message->cmsg_level = SOL_SOCKET;
     control_message->cmsg_type = SCM_RIGHTS;
     control_message->cmsg_len = CMSG_LEN(sizeof(descriptor));
-    *(int*)CMSG_DATA(control_message) = descriptor;
+    memcpy(CMSG_DATA(control_message), &descriptor, sizeof(int));
     message.msg_controllen = control_message->cmsg_len;
 #elif HAVE_MSGHDR_ACCRIGHTS
     message.msg_accrights  = (char *)&descriptor;
@@ -480,7 +480,7 @@ int PassOpenFile_Get(int uds, char **text)
            /* i.e. we only have *one* descriptor here; otherwise, we
             * need to close() all but the first. */
            (char *)CMSG_DATA(control_message) + sizeof(int));
-    received_descriptor = *(int*)CMSG_DATA(control_message);
+    memcpy(&received_descriptor, CMSG_DATA(control_message), sizeof(int));
 #elif HAVE_MSGHDR_ACCRIGHTS
     if (message.msg_accrightslen <= 0)
     {
