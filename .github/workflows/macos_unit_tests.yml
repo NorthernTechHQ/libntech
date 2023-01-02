@@ -1,7 +1,10 @@
 name: MacOS Unit Tests
 
 on:
-  workflow_call
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   macos_unit_tests:
