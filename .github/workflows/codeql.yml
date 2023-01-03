@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "master" ]
   schedule:
-    - cron: "13 2 * * 4"
+    - cron: "40 18 * * 6"
 
 jobs:
   analyze:
@@ -25,10 +25,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: After Prepare (cpp)
-        if: ${{ matrix.language == 'cpp' }}
-        run: git fetch --all --tags
+        with:
+          submodules: recursive
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -36,8 +34,17 @@ jobs:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
 
-      - name: Autobuild
+      - name: Autobuild (Python)
+        if: ${{ matrix.language == 'python' }}
         uses: github/codeql-action/autobuild@v2
+        
+      - name: Install dependencies (C)
+        if: ${{ matrix.language == 'cpp' }}
+        run: sudo apt-get update -y && sudo apt-get install -y libssl-dev libpam0g-dev liblmdb-dev byacc curl
+
+      - name: Build (C)
+        if: ${{ matrix.language == 'cpp' }}
+        run: ./autogen.sh && make
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
