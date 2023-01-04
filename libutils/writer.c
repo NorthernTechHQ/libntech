@@ -346,7 +346,6 @@ void WriterWriteHelp(Writer *w, const char *component,
     {
         WriterWriteCommands(w, commands);
     }
-    WriterWriteF(w, "\nWebsite: http://www.cfengine.com\n");
-    WriterWriteF(w, "This software is Copyright (C) "
-                    "2008,2010-present Northern.tech AS.\n");
+    WriterWriteF(w, "\nWebsite: https://cfengine.com\n");
+    WriterWriteF(w, "This software is Copyright 2023 Northern.tech AS.\n ");
 }
