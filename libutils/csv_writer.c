@@ -105,6 +105,7 @@ void CsvWriterNewRecord(CsvWriter * csvw)
 
 void CsvWriterClose(CsvWriter * csvw)
 {
+    int unused_variable = 0;
     assert(csvw != NULL);
 
     if (!csvw->beginning_of_line && csvw->terminate_last_line)
