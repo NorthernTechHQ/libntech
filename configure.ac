@@ -370,10 +370,10 @@ AC_ARG_WITH(openssl,
     [AS_HELP_STRING([--with-openssl[[=PATH]]],
     [Specify OpenSSL path])], [], [with_openssl=yes])
 
-if  test -d /usr/local/Cellar/openssl/ && \
+if  test -d /usr/local/Cellar/ && \
     test -d /usr/local/opt/openssl/ && \
     test "x$with_openssl" = "xyes" ; then
-    with_openssl="/usr/local/opt/openssl"
+    with_openssl=$(brew --prefix openssl)
     echo "OS X Homebrew detected"
     echo "Defaulting to: --with-openssl=$with_openssl"
 fi
