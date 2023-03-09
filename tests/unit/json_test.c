@@ -771,6 +771,38 @@ static void test_parse_primitives(void)
     JsonDestroy(pri);
 }
 
+static void test_bogus_traling_data(void)
+{
+    JsonElement *element = NULL;
+    const char *data;
+
+    data = "\"some\": [ \"json\" ] }";
+    assert_int_equal(JsonParse(&data, &element), JSON_PARSE_ERROR_INVALID_END);
+    assert_true(element == NULL);
+
+    data = "   \"some\"       : [ \"json\" ] }";
+    assert_int_equal(JsonParse(&data, &element), JSON_PARSE_ERROR_INVALID_END);
+    assert_true(element == NULL);
+
+
+    data = "[\"some\"]: [ \"json\" ] }";
+    assert_int_equal(JsonParse(&data, &element), JSON_PARSE_ERROR_INVALID_END);
+    assert_true(element == NULL);
+
+    data = "   [\"some\"]   : [ \"json\" ] }";
+    assert_int_equal(JsonParse(&data, &element), JSON_PARSE_ERROR_INVALID_END);
+    assert_true(element == NULL);
+
+
+    data = "{\"some\": \"json\"}: [ \"json\" ] }";
+    assert_int_equal(JsonParse(&data, &element), JSON_PARSE_ERROR_INVALID_END);
+    assert_true(element == NULL);
+
+    data = "     {\"some\": \"json\"}     : [ \"json\" ] }";
+    assert_int_equal(JsonParse(&data, &element), JSON_PARSE_ERROR_INVALID_END);
+    assert_true(element == NULL);
+}
+
 static void test_parse_array_simple(void)
 {
     const char *data = ARRAY_SIMPLE;
@@ -1287,9 +1319,9 @@ static void test_parse_array_extra_closing(void)
 {
     const char *data = "  []]";
     JsonElement *json = NULL;
-    assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParse(&data, &json));
 
-    assert_true(json);
+    assert_true(json == NULL);
 
     JsonDestroy(json);
 }
@@ -1891,6 +1923,7 @@ int main()
         unit_test(test_string_escape),
         unit_test(test_string_escape_json5),
         unit_test(test_json_null_not_null),
+        unit_test(test_bogus_traling_data),
     };
 
     return run_tests(tests);

@@ -2014,6 +2014,8 @@ const char *JsonParseErrorToString(const JsonParseError error)
 
         [JSON_PARSE_ERROR_INVALID_START] =
             "Unwilling to parse json data starting with invalid character",
+        [JSON_PARSE_ERROR_INVALID_END] =
+            "Unwilling to parse json data ending with invalid character",
         [JSON_PARSE_ERROR_TRUNCATED] =
             "Unable to parse JSON without truncating",
         [JSON_PARSE_ERROR_NO_LIBYAML] =
@@ -2718,29 +2720,49 @@ JsonParseError JsonParseWithLookup(
         return JSON_PARSE_ERROR_NO_DATA;
     }
 
-    while (**data)
+    // Trim leading whitespace
+    while (IsWhitespace(**data))
     {
-        if (**data == '{')
-        {
-            return JsonParseAsObject(
-                lookup_context, lookup_function, data, json_out);
-        }
-        else if (**data == '[')
-        {
-            return JsonParseAsArray(
-                lookup_context, lookup_function, data, json_out);
-        }
-        else if (IsWhitespace(**data))
-        {
-            (*data)++;
-        }
-        else
-        {
-            return JsonParseAsPrimitive(data, json_out);
-        }
+        *data += 1;
     }
 
-    return JSON_PARSE_ERROR_NO_DATA;
+    if (**data == '\0')
+    {
+        return JSON_PARSE_ERROR_NO_DATA;
+    }
+
+    JsonParseError error;
+    if (**data == '{')
+    {
+        error = JsonParseAsObject(lookup_context, lookup_function, data,
+                                  json_out);
+    }
+    else if (**data == '[')
+    {
+        error = JsonParseAsArray(lookup_context, lookup_function, data,
+                                 json_out);
+    }
+    else
+    {
+        error = JsonParseAsPrimitive(data, json_out);
+    }
+    *data += 1;
+
+    // Trim trailing whitespace
+    while (IsWhitespace(**data))
+    {
+        *data += 1;
+    }
+
+    // Make sure end of string is reached
+    if (**data != '\0')
+    {
+        JsonDestroy(*json_out);
+        *json_out = NULL;
+        error = JSON_PARSE_ERROR_INVALID_END;
+    }
+
+    return error;
 }
 
 JsonParseError JsonParseAnyFile(
