@@ -111,6 +111,7 @@ typedef enum
     JSON_PARSE_ERROR_OBJECT_OPEN_LVAL,
 
     JSON_PARSE_ERROR_INVALID_START,
+    JSON_PARSE_ERROR_INVALID_END,
     JSON_PARSE_ERROR_NO_LIBYAML,
     JSON_PARSE_ERROR_LIBYAML_FAILURE,
     JSON_PARSE_ERROR_NO_SUCH_FILE,
@@ -543,6 +544,18 @@ typedef JsonElement *JsonLookup(void *ctx, const char **data);
   @returns See JsonParseError and JsonParseErrorToString
   */
 JsonParseError JsonParse(const char **data, JsonElement **json_out);
+
+/**
+  @brief Parse the whole string to create a JsonElement
+  @param data [in] Pointer to the string to parse
+  @param json_out Resulting JSON object
+  @note In contrast to JsonParse(), this function will return
+        JSON_PARSE_ERROR_INVALID_END if there are trailing non-whitespace
+        characters after termination of the JsonElement in the remainder of
+        the string.
+  @returns See JsonParseError and JsonParseErrorToString
+  */
+JsonParseError JsonParseAll(const char **data, JsonElement **json_out);
 
 /**
   @brief Parse a string to create a JsonElement

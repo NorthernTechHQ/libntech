@@ -2014,6 +2014,8 @@ const char *JsonParseErrorToString(const JsonParseError error)
 
         [JSON_PARSE_ERROR_INVALID_START] =
             "Unwilling to parse json data starting with invalid character",
+        [JSON_PARSE_ERROR_INVALID_END] =
+            "Unwilling to parse json data with trailing non-whitespace characters",
         [JSON_PARSE_ERROR_TRUNCATED] =
             "Unable to parse JSON without truncating",
         [JSON_PARSE_ERROR_NO_LIBYAML] =
@@ -2703,6 +2705,28 @@ static JsonParseError JsonParseAsObject(
 JsonParseError JsonParse(const char **const data, JsonElement **const json_out)
 {
     return JsonParseWithLookup(NULL, NULL, data, json_out);
+}
+
+JsonParseError JsonParseAll(const char **const data, JsonElement **const json_out)
+{
+    JsonParseError error = JsonParseWithLookup(NULL, NULL, data, json_out);
+    if (error == JSON_PARSE_OK && **data != '\0')
+    {
+        /* The parser has advanced the data pointer up to the last byte
+         * processed. Thus every subsequent character until the nullbyte
+         * should be whitespace. */
+        for (const char *ch = (*data) + 1; *ch != '\0'; ch++)
+        {
+            if (isspace(*ch))
+            {
+                continue;
+            }
+            JsonDestroy(*json_out);
+            *json_out = NULL;
+            return JSON_PARSE_ERROR_INVALID_END;
+        }
+    }
+    return error;
 }
 
 JsonParseError JsonParseWithLookup(
