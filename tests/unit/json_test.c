@@ -1294,6 +1294,91 @@ static void test_parse_array_extra_closing(void)
     JsonDestroy(json);
 }
 
+static void test_parse_all(void)
+{
+    const char *data = "\"\"a";
+    JsonElement *json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "\"\""; // Good
+    json = NULL;
+    assert_int_equal(JSON_PARSE_OK, JsonParseAll(&data, &json));
+    assert_true(json != NULL);
+    JsonDestroy(json);
+
+    data = "{}b";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "{}"; // Good
+    json = NULL;
+    assert_int_equal(JSON_PARSE_OK, JsonParseAll(&data, &json));
+    assert_true(json != NULL);
+    JsonDestroy(json);
+
+    data = "[]c";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "{}}";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "{\"d\": \"e\"}}";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "[]]";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "[[]]]";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "[[[]]]]";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "  []]";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "\"some\": [ \"json\" ] }";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "{ \"some\": [ \"json\" ] } [";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "[\"some\", \"json\"]!";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "    [\"some\", \"json\"]a";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+
+    data = "[\"some\", \"json\"] {\"foo\": \"var\"}   ";
+    json = NULL;
+    assert_int_equal(JSON_PARSE_ERROR_INVALID_END, JsonParseAll(&data, &json));
+    assert_true(json == NULL);
+}
+
 static void test_parse_array_diverse(void)
 {
     {
@@ -1848,6 +1933,7 @@ int main()
         unit_test(test_parse_array_diverse),
         unit_test(test_parse_array_double_and_trailing_commas),
         unit_test(test_parse_array_extra_closing),
+        unit_test(test_parse_all),
         unit_test(test_parse_array_garbage),
         unit_test(test_parse_array_nested_garbage),
         unit_test(test_parse_array_object),
