@@ -100,14 +100,14 @@ struct option
 #define optional_argument	2
 
 #if defined (__STDC__) && __STDC__
-#ifdef __GNU_LIBRARY__
+#if defined (__GNU_LIBRARY__) || defined (__APPLE__)
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
-   errors, only prototype getopt for the GNU C library.  */
+   errors, only prototype getopt for the GNU C and MacOS libraries.  */
 extern int getopt (int argc, char *const *argv, const char *shortopts);
-#else /* not __GNU_LIBRARY__ */
+#else /* not __GNU_LIBRARY__ or __APPLE__ */
 extern int getopt ();
-#endif /* __GNU_LIBRARY__ */
+#endif /* __GNU_LIBRARY__ || __APPLE__ */
 extern int getopt_long (int argc, char *const *argv, const char *shortopts,
 		        const struct option *longopts, int *longind);
 extern int getopt_long_only (int argc, char *const *argv,
