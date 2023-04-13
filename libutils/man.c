@@ -184,7 +184,7 @@ static void WriteBugs(Writer *out)
 {
     static const char *const bugs =
             ".SH BUGS\n"
-            "Please see the public bug-tracker at https://tracker.mender.io/projects/CFE/.\n"
+            "Please see the public bug-tracker at https://northerntech.atlassian.net/projects/CFE/.\n"
             ".br\n"
             "GitHub pull-requests may be submitted to https://github.com/cfengine/core/.\n";
 

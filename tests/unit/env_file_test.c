@@ -32,8 +32,8 @@ static void test_ParseEnvLine(void)
     single_line_check("ANSI_COLOR=\"37;4;65\"", "ANSI_COLOR", "37;4;65");
     single_line_check("HOME_URL=\"https://cfengine.com/\"",
                       "HOME_URL", "https://cfengine.com/");
-    single_line_check("BUG_REPORT_URL=\"https://tracker.mender.io/projects/CFE/issues\"",
-                      "BUG_REPORT_URL","https://tracker.mender.io/projects/CFE/issues");
+    single_line_check("BUG_REPORT_URL=\"https://northerntech.atlassian.net/projects/CFE/issues\"",
+                      "BUG_REPORT_URL","https://northerntech.atlassian.net/projects/CFE/issues");
 
     // COMMENTS:
     single_line_check("#COMMENTED_OUT=TRUE",      NULL, NULL);
