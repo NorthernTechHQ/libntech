@@ -79,6 +79,17 @@ size_t ThreadedQueuePopN(ThreadedQueue *queue,
                          int timeout);
 
 /**
+ * @brief Same as ThreadedQueuePopN() above, but pops into a given array.
+ * @warning The caller is responsible for making sure that up to #num items fit
+ *          into the given array.
+ * @see ThreadedQueuePopN()
+ */
+size_t ThreadedQueuePopNIntoArray(ThreadedQueue *queue,
+                                  void **data_array,
+                                  size_t num,
+                                  int timeout);
+
+/**
   @brief Pushes a new item on top of the queue, returns current size.
   @param [in] queue The queue to push to.
   @param [in] item The item to push.

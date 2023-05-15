@@ -279,6 +279,59 @@ size_t ThreadedQueuePopN(ThreadedQueue *queue,
     return size;
 }
 
+size_t ThreadedQueuePopNIntoArray(ThreadedQueue *queue,
+                                  void **data_array,
+                                  size_t num,
+                                  int timeout)
+{
+    assert(queue != NULL);
+
+    ThreadLock(queue->lock);
+
+    if (queue->size == 0 && timeout != 0)
+    {
+        int res = 0;
+        do {
+            res = ThreadWait(queue->cond_non_empty, queue->lock, timeout);
+
+            if (res != 0)
+            {
+                /* Lock is reacquired even when timed out, so it needs to be
+                   released again. */
+                ThreadUnlock(queue->lock);
+                return 0;
+            }
+        } while (queue->size == 0);
+        // Reevaluate predicate to protect against spurious wakeups
+    }
+
+    size_t size = num < queue->size ? num : queue->size;
+    if (size > 0)
+    {
+        size_t head = queue->head;
+
+        for (size_t i = 0; i < size; i++)
+        {
+            data_array[i] = queue->data[head];
+            queue->data[head++] = NULL;
+            head %= queue->capacity;
+        }
+
+        queue->head = head;
+        queue->size -= size;
+    }
+
+    if (queue->size == 0)
+    {
+        // Signals that the queue is empty for ThreadedQueueWaitEmpty
+        pthread_cond_broadcast(queue->cond_empty);
+    }
+
+    ThreadUnlock(queue->lock);
+
+    return size;
+}
+
 size_t ThreadedQueuePush(ThreadedQueue *queue, void *item)
 {
     assert(queue != NULL);
