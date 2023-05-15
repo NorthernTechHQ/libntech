@@ -276,6 +276,36 @@ static void test_popn(void)
     ThreadedQueueDestroy(queue);
 }
 
+static void test_popn_into_array(void)
+{
+    ThreadedQueue *queue = ThreadedQueueNew(0, free);
+    // Initialised with default size 16
+    // |^---------------|
+
+    char *strs[] = {"spam1", "spam2", "spam3", "spam4", "spam5"};
+
+    for (int i = 0; i < 5; i++)
+    {
+        ThreadedQueuePush(queue, xstrdup(strs[i]));
+    }
+    // |>xxxx<----------|
+
+    void *data[7] = {NULL, NULL, NULL, NULL, NULL, "test1", "test2"};
+    size_t count = ThreadedQueuePopNIntoArray(queue, data, 5, 0);
+    // |-----^----------|
+
+    assert_int_equal(count, 5);
+    for (size_t i = 0; i < count; i++)
+    {
+        assert_string_equal(data[i], strs[i]);
+        free(data[i]);
+    }
+    assert_string_equal(data[5], "test1");
+    assert_string_equal(data[6], "test2");
+
+    ThreadedQueueDestroy(queue);
+}
+
 static void test_clear(void)
 {
     ThreadedQueue *queue = ThreadedQueueNew(0, free);
@@ -535,6 +565,7 @@ int main()
         unit_test(test_push_report_count),
         unit_test(test_expand),
         unit_test(test_popn),
+        unit_test(test_popn_into_array),
         unit_test(test_pushn),
         unit_test(test_clear),
         unit_test(test_clear_and_push),
