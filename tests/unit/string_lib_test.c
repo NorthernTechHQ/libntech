@@ -868,6 +868,31 @@ static void test_safe_equal_n(void)
     assert_true(StringEqualN_IgnoreCase("123abc", "123ABC", 1000));
 }
 
+static void test_is_string_in_array(void)
+{
+    char *array[5] = {"one", "two", "three", "four", "five"};
+    assert_true(IsStringInArray("one", array, 5));
+    assert_true(IsStringInArray("two", array, 5));
+    assert_true(IsStringInArray("three", array, 5));
+    assert_true(IsStringInArray("four", array, 5));
+    assert_true(IsStringInArray("five", array, 5));
+
+    assert_false(IsStringInArray("fire", array, 5));
+    assert_false(IsStringInArray("five", array, 3));
+
+    char **new_array = calloc(3, sizeof(char*));
+    new_array[0] = "one";
+    new_array[1] = "two";
+    new_array[2] = "three";
+    assert_true(IsStringInArray("one", new_array, 3));
+    assert_true(IsStringInArray("two", new_array, 3));
+    assert_true(IsStringInArray("three", new_array, 3));
+
+    assert_false(IsStringInArray("fire", array, 3));
+    assert_false(IsStringInArray("three", array, 2));
+    free(new_array);
+}
+
 static void test_match(void)
 {
 #ifdef WITH_PCRE
@@ -1532,6 +1557,7 @@ int main()
         unit_test(test_safe_compare_ignore_case),
         unit_test(test_safe_equal_ignore_case),
         unit_test(test_safe_equal_n),
+        unit_test(test_is_string_in_array),
 
         unit_test(test_match),
         unit_test(test_match_full),
