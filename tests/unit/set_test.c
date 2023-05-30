@@ -160,6 +160,20 @@ void test_json_array_to_stringset(void)
     StringSetDestroy(expected);
 }
 
+void test_stringset_add_f(void) {
+    StringSet *set = StringSetNew();
+
+    StringSetAddF(set, "Hello %s!", "CFEngine");
+    StringSetAddF(set, "Bye CFEngine!");
+    StringSetAddF(set, "");
+
+    assert_true(StringSetContains(set, "Hello CFEngine!"));
+    assert_true(StringSetContains(set, "Bye CFEngine!"));
+    assert_true(StringSetContains(set, ""));
+
+    StringSetDestroy(set);
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -170,6 +184,7 @@ int main()
         unit_test(test_stringset_clear),
         unit_test(test_stringset_join),
         unit_test(test_json_array_to_stringset),
+        unit_test(test_stringset_add_f),
     };
 
     return run_tests(tests);
