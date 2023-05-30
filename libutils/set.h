@@ -28,6 +28,7 @@
 #include <map.h>
 #include <buffer.h>
 #include <json.h>
+#include <alloc.h> // xvasprintf
 
 typedef Map Set;
 typedef MapIterator SetIterator;
@@ -146,5 +147,27 @@ JsonElement *StringSetToJson(const StringSet *set);
  * Convert a flat JSON array into a #StringSet.
  */
 StringSet *JsonArrayToStringSet(const JsonElement *array);
+
+/**
+ * Format and add string to set.
+ * @param[in] set string set.
+ * @param[in] fmt format string.
+ * @param[in] va variable-length argument list.
+ */
+FUNC_ATTR_PRINTF(2, 3) static inline void StringSetAddF(StringSet *const set, const char *const fmt, ...)
+{
+    assert(set != NULL);
+    assert(fmt != NULL);
+
+    va_list args;
+    va_start(args, fmt);
+
+    char *str;
+    NDEBUG_UNUSED int ret = xvasprintf(&str, fmt, args);
+    assert(ret >= 0);
+
+    va_end(args);
+    StringSetAdd(set, str);
+}
 
 #endif
