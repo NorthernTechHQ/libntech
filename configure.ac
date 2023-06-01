@@ -440,6 +440,18 @@ else
   AM_CONDITIONAL(WITH_PCRE, false)
 fi
 
+dnl systemd structured logging
+
+AC_ARG_WITH([systemd-logging], [AS_HELP_STRING([--with-systemd-logging[[=PATH]]], [support systemd structured logging])], [], [with_systemd_logging=check])
+
+if test "x$with_systemd_logging" != xno
+then
+   CF3_WITH_LIBRARY(systemd_logging, [
+      AC_CHECK_LIB(systemd, sd_journal_sendv, [], [if test "x$with_systemd_logging" != xcheck; then AC_MSG_ERROR(Cannot find systemd library); fi])
+      AC_CHECK_HEADERS(systemd/sd-journal.h, [], [if test "x$with_systemd_logging" != xcheck; then AC_MSG_ERROR(Cannot find systemd headers); fi])
+   ])
+fi
+
 dnl libvirt
 
 AC_ARG_WITH([libvirt],

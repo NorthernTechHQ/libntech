@@ -128,6 +128,23 @@ void LoggingSetColor(bool enabled);
  */
 void LogToSystemLog(const char *msg, LogLevel level);
 
+/**
+ * @brief Log a message with structured data to system log.
+ * @details This function takes a variable-length argument list and expects
+ *          structured data passed as key-value pairs, where both keys and
+ *          values are C-strings. Furthermore, the last pair must contain the
+ *          "MESSAGE" key, and the corresponding value accepts a format-string
+ *          followed by its arguments. Format-strings are not accepted in the
+ *          value of any other pair. The log priority (i.e., the pair
+ *          containing the "PRIORITY" key) is automatically deduced from the
+ *          log level argument and added to the structured log message.
+ * @note Only the formatted string from the pair with the "MESSAGE" key is
+ *       logged on platforms that does not support structured logging.
+ * @param[in] level Log level.
+ * @param[in] vararg Variable-length argument containing key-value pairs.
+ */
+void LogToSystemLogStructured(LogLevel level, ...);
+
 /*
  * Portable strerror(errno)
  */
