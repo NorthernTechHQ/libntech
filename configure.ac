@@ -440,6 +440,18 @@ else
   AM_CONDITIONAL(WITH_PCRE, false)
 fi
 
+dnl systemd structured logging
+
+AC_ARG_WITH([systemd-logging], [AS_HELP_STRING([--with-systemd-logging[[=PATH]]], [support systemd structured logging])], [], [with_systemd_logging=check])
+
+if test "x$with_systemd_logging" != xno
+then
+   CF3_WITH_LIBRARY(systemd_logging, [
+      AC_CHECK_LIB(systemd, sd_journal_sendv, [SYSTEMD_LDFLAGS="-lsystemd"], [if test "x$with_systemd_logging" != xcheck; then AC_MSG_ERROR(Cannot find systemd library); fi])
+      AC_CHECK_HEADERS(systemd/sd-journal.h, [], [if test "x$with_systemd_logging" != xcheck; then AC_MSG_ERROR(Cannot find systemd headers); fi])
+   ])
+fi
+
 dnl libvirt
 
 AC_ARG_WITH([libvirt],
@@ -1468,7 +1480,7 @@ dnl ######################################################################
 
 CORE_CPPFLAGS="$PCRE_CPPFLAGS $OPENSSL_CPPFLAGS $SQLITE3_CPPFLAGS $LIBACL_CPPFLAGS $LIBCURL_CPPFLAGS $LIBYAML_CPPFLAGS $POSTGRESQL_CPPFLAGS $MYSQL_CPPFLAGS $LIBXML2_CPPFLAGS $CPPFLAGS"
 CORE_CFLAGS="$PCRE_CFLAGS $OPENSSL_CFLAGS $SQLITE3_CFLAGS $LIBACL_CFLAGS $LIBCURL_CFLAGS $LIBYAML_CFLAGS $POSTGRESQL_CFLAGS $MYSQL_CFLAGS $LIBXML2_CFLAGS $CFLAGS"
-CORE_LDFLAGS="$PCRE_LDFLAGS $OPENSSL_LDFLAGS $SQLITE3_LDFLAGS $LIBACL_LDFLAGS $LIBCURL_LDFLAGS $LIBYAML_LDFLAGS $POSTGRESQL_LDFLAGS $MYSQL_LDFLAGS $LIBXML2_LDFLAGS $LDFLAGS"
+CORE_LDFLAGS="$PCRE_LDFLAGS $OPENSSL_LDFLAGS $SQLITE3_LDFLAGS $LIBACL_LDFLAGS $LIBCURL_LDFLAGS $LIBYAML_LDFLAGS $POSTGRESQL_LDFLAGS $MYSQL_LDFLAGS $LIBXML2_LDFLAGS $SYSTEMD_LDFLAGS $LDFLAGS"
 CORE_LIBS="$PCRE_LIBS $OPENSSL_LIBS $SQLITE3_LIBS $LIBACL_LIBS $LIBCURL_LIBS $LIBYAML_LIBS $POSTGRESQL_LIBS $MYSQL_LIBS $LIBXML2_LIBS $LIBS"
 
 dnl ######################################################################
