@@ -529,6 +529,59 @@ JsonElement *JsonMerge(const JsonElement *const a, const JsonElement *const b)
     return NULL;
 }
 
+JsonElement *JsonObjectMergeDeepInplace(JsonElement *const base, const JsonElement *const extra)
+{
+    assert(base != NULL);
+    assert(extra != NULL);
+
+    assert(JsonGetType(base) == JSON_TYPE_OBJECT);
+    assert(JsonGetType(extra) == JSON_TYPE_OBJECT);
+
+    JsonIterator iter = JsonIteratorInit(extra);
+    while (JsonIteratorHasMore(&iter))
+    {
+        const char *const key = JsonIteratorNextKey(&iter);
+        assert(key != NULL);
+
+        const JsonElement *const extra_value = JsonIteratorCurrentValue(&iter);
+        assert(key != NULL);
+
+        JsonElement *const base_value = JsonObjectGet(base, key);
+        if (base_value == NULL)
+        {
+            /* Key is unique, copy element into base */
+            JsonElement *const element = JsonCopy(extra_value);
+            assert(element != NULL);
+            JsonObjectAppendElement(base, key, element);
+            continue;
+        }
+
+        const JsonType base_type = JsonGetType(base_value);
+        const JsonType extra_type = JsonGetType(extra_value);
+
+        if (base_type == JSON_TYPE_OBJECT && extra_type == JSON_TYPE_OBJECT)
+        {
+            /* Both are objects, recursively merge them */
+            JsonObjectMergeDeepInplace(base_value, extra_value);
+        }
+        else if (base_type == JSON_TYPE_ARRAY && extra_type == JSON_TYPE_ARRAY)
+        {
+            /* Both are arrays, concatenate them into base */
+            JsonElement *const element = JsonCopy(extra_value);
+            assert(element != NULL);
+            JsonArrayExtend(base_value, element);
+        }
+        else
+        {
+            /* Otherwise, overwrite value in base */
+            JsonElement *const element = JsonCopy(extra_value);
+            assert(element != NULL);
+            JsonObjectAppendElement(base, key, element);
+        }
+    }
+
+    return base;
+}
 
 size_t JsonLength(const JsonElement *const element)
 {

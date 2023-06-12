@@ -27,6 +27,7 @@
 
 #include <writer.h>
 #include <inttypes.h> // int64_t
+#include <assert.h>
 
 /**
   @brief JSON data-structure.
@@ -159,6 +160,40 @@ char *Json5EscapeData(Slice unescaped_data);
 JsonElement *JsonCopy(const JsonElement *json);
 int JsonCompare(const JsonElement *a, const JsonElement *b);
 JsonElement *JsonMerge(const JsonElement *a, const JsonElement *b);
+
+/**
+ * @brief Recursively merge one object into another
+ *
+ * @param base Object to merge data into
+ * @param extra Object to merge data from
+ * @return Pointer to base object (convenient for nested function calls)
+ *
+ * @note The function should not return NULL
+ * @warning Side effects: The base object is modified in place. If this is not
+ *          the intention, consider using JsonObjectMergeDeep
+ */
+JsonElement *JsonObjectMergeDeepInplace(JsonElement *base, const JsonElement *extra);
+
+/**
+ * @brief Recursively merge two objects into a new object
+ *
+ * @param base Object to copy and merge data into
+ * @param extra Object to merge data from
+ * @return Pointer to merged object
+ *
+ * @note The function should not return NULL
+ * @warning Performance penalty: A new object is created. If this is not the
+ *          intension, consider using JsonObjectMergeDeepInplace
+ */
+static inline JsonElement *JsonObjectMergeDeep(const JsonElement *const base, const JsonElement *const extra)
+{
+    assert(base != NULL);
+    /* This could do a little better job by constructing the JsonElement while
+     * merging base and extra. Not sure if it's worth the extra complexity,
+     * though. */
+    JsonElement *const copy = JsonCopy(base);
+    return JsonObjectMergeDeepInplace(copy, extra);
+}
 
 /**
   @brief Destroy a JSON element
