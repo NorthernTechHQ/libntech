@@ -346,6 +346,32 @@ void LogToSystemLogStructured(const int level, ...)
 }
 #endif // defined(HAVE_SYSTEMD_SD_JOURNAL_H) && defined(HAVE_LIBSYSTEMD)
 
+void __ImproperUseOfLogToSystemLogStructured(void)
+{
+    // TODO: CFE-4190
+    //  - Make sure CodeQL finds at least the reqired function calls below,
+    //    then remove this code
+    assert(false); // Do not use this function!
+
+    // Required: Missing required "MESSAGE" key.
+    LogToSystemLogStructured(LOG_LEVEL_DEBUG, "FOO", "bogus", "BAR", "doofus");
+
+    // Required: String-literal "MESSAGE" is not the same as "message".
+    LogToSystemLogStructured(LOG_LEVEL_INFO, "FOO", "bogus", "BAR", "doofus", "message", "Hello CFEngine!");
+
+    // Required: Number of format-string arguments is less than number of format specifiers.
+    LogToSystemLogStructured(LOG_LEVEL_ERR, "MESSAGE", "%s %d", "CFEngine");
+
+    // Optional: Number of format-string arguments is greated than number of format specifiers.
+    LogToSystemLogStructured(LOG_LEVEL_ERR, "MESSAGE", "%s %d", "CFEngine", 123, "ROCKS!");
+
+    // Optional: All keys must be uppercase or else they are ignored.
+    LogToSystemLogStructured(LOG_LEVEL_CRIT, "FOO", "bogus", "bar", "DOOFUS", "MESSAGE", "Hello CFEngine!");
+
+    // Optional: Pairs trailing the "MESSAGE" key are ignored.
+    LogToSystemLogStructured(LOG_LEVEL_NOTICE, "FOO", "bogus", "MESSAGE", "Hello CFEngine!", "BAR", "doofus");
+}
+
 #ifndef __MINGW32__
 const char *GetErrorStrFromCode(int error_code)
 {
