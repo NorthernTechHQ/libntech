@@ -1908,6 +1908,402 @@ static void test_json_null_not_null(void)
     JsonDestroy(json);
 }
 
+static bool compare_json_object_merge_deep(const JsonElement *a, const JsonElement *b);
+
+static bool compare_array_json_object_merge_deep(const JsonElement *const a, const JsonElement *const b)
+{
+    const size_t len = JsonLength(a);
+    if (len != JsonLength(b))
+    {
+        return false;
+    }
+
+    for (size_t i = 0; i < len; i++)
+    {
+        const JsonElement *const a_child = JsonArrayGet(a, i);
+        const JsonElement *const b_child = JsonArrayGet(b, i);
+        if (!compare_json_object_merge_deep(a_child, b_child)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool compare_object_json_object_merge_deep(const JsonElement *const a, const JsonElement *const b)
+{
+    if (JsonLength(a) != JsonLength(b))
+    {
+        return false;
+    }
+
+    JsonIterator iter = JsonIteratorInit(a);
+    while (JsonIteratorHasMore(&iter))
+    {
+        const char *const key = JsonIteratorNextKey(&iter);
+        const JsonElement *const a_child = JsonObjectGet(a, key);
+        const JsonElement *const b_child = JsonObjectGet(b, key);
+        if (b_child == NULL || !compare_json_object_merge_deep(a_child, b_child))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool compare_json_object_merge_deep(const JsonElement *const a, const JsonElement *const b)
+{
+    const JsonType type = JsonGetType(a);
+    if (type != JsonGetType(b))
+    {
+        return false;
+    }
+
+    switch (type)
+    {
+    case JSON_TYPE_OBJECT:
+        return compare_object_json_object_merge_deep(a, b);
+    case JSON_TYPE_ARRAY:
+        return compare_array_json_object_merge_deep(a, b);
+    default:
+        return JsonCompare(a, b) == 0;
+    }
+}
+
+static bool check_json_object_merge_deep(const char *base_raw, const char *extra_raw, const char *expected_raw)
+{
+    JsonElement *base = NULL;
+    if (JsonParse(&base_raw, &base) != JSON_PARSE_OK)
+    {
+        return false;
+    }
+
+    JsonElement *extra = NULL;
+    if (JsonParse(&extra_raw, &extra) != JSON_PARSE_OK)
+    {
+        return false;
+    }
+
+    JsonElement *expected = NULL;
+    if (JsonParse(&expected_raw, &expected) != JSON_PARSE_OK) {
+        return false;
+    }
+
+    JsonElement *actual = JsonObjectMergeDeep(base, extra);
+    if (actual == NULL || actual == base)
+    {
+        return false;
+    }
+
+    /* JsonCompare is naive and does not handle containers properly, thus we
+     * need a custom comparison function to test for equality. */
+    if (!compare_json_object_merge_deep(actual, expected))
+    {
+        return false;
+    }
+
+    JsonDestroy(actual);
+    actual = JsonObjectMergeDeepInplace(base, extra);
+    if (actual != base)
+    {
+        return false;
+    }
+
+    if (!compare_json_object_merge_deep(actual, expected))
+    {
+        return false;
+    }
+
+    JsonDestroy(base);
+    JsonDestroy(extra);
+    JsonDestroy(expected);
+
+    return true;
+}
+
+static void test_json_object_merge_deep()
+{
+    /* This unit test tests both JsonMergeObjectDeep and
+     * JsonMergeObjectDeepInplace */
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{}",
+        // extra
+        "{}",
+        // expected
+        "{}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{}",
+        // extra
+        "{"
+        "  \"variables\": {}"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {}"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {}"
+        "}",
+        // extra
+        "{}",
+        // expected
+        "{"
+        "  \"variables\": {}"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {}"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {}"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {}"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {}"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {}"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {}"
+        "  }"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [ \"/tmp/virus\" ],"
+        "      \"tags\": [ \"foo\", \"bar\", \"bas\" ]"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [ \"/tmp/malicious\" ],"
+        "      \"comment\": [ \"Delete dangerous files!\" ]"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [ \"/tmp/virus\", \"/tmp/malicious\" ],"
+        "      \"tags\": [ \"foo\", \"bar\", \"bas\" ],"
+        "      \"comment\": [ \"Delete dangerous files!\" ]"
+        "    }"
+        "  }"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"classes\": {"
+        "    \"cfbs_delete_files_enable\": {"
+        "      \"class_expressions\": ["
+        "        \"linux.redhat::\","
+        "        \"cfengine|linux::\""
+        "      ],"
+        "      \"tags\": [ \"bogus\", \"doofus\", \"bonkers\" ]"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [ \"/tmp/malicious\" ],"
+        "      \"comment\": [ \"Delete dangerous files!\" ]"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [ \"/tmp/malicious\" ],"
+        "      \"comment\": [ \"Delete dangerous files!\" ]"
+        "    }"
+        "  },"
+        "  \"classes\": {"
+        "    \"cfbs_delete_files_enable\": {"
+        "      \"class_expressions\": ["
+        "        \"linux.redhat::\","
+        "        \"cfengine|linux::\""
+        "      ],"
+        "      \"tags\": [ \"bogus\", \"doofus\", \"bonkers\" ]"
+        "    }"
+        "  }"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [ \"/tmp/foo\", \"/tmp/bar\" ],"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [ \"/tmp/bar\", \"/tmp/baz\" ],"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [ \"/tmp/foo\", \"/tmp/bar\", \"/tmp/bar\", \"/tmp/baz\" ],"
+        "    }"
+        "  }"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [],"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": {},"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": {},"
+        "    }"
+        "  }"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": {},"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [],"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [],"
+        "    }"
+        "  }"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": [],"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": 123,"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": 123,"
+        "    }"
+        "  }"
+        "}"
+    ));
+
+    assert(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": 123,"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": {},"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables\": {"
+        "    \"cfbs:delete_files.filenames\": {"
+        "      \"value\": {},"
+        "    }"
+        "  }"
+        "}"
+    ));
+}
+
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -1977,6 +2373,7 @@ int main()
         unit_test(test_string_escape),
         unit_test(test_string_escape_json5),
         unit_test(test_json_null_not_null),
+        unit_test(test_json_object_merge_deep),
     };
 
     return run_tests(tests);
