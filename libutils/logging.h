@@ -145,16 +145,6 @@ void LogToSystemLog(const char *msg, LogLevel level);
  */
 void LogToSystemLogStructured(LogLevel level, ...);
 
-/**
- * This function is here, in order to help implement a CodeQL query for
- * identifying improper use of LogToSystemLogStructured CFE-4185. Once a query
- * is created, this function should be removed.
- *
- * @warning Do not use!
- * @see CFE-4185
- */
-void __ImproperUseOfLogToSystemLogStructured(void);
-
 /*
  * Portable strerror(errno)
  */
