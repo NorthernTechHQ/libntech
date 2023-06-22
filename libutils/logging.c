@@ -505,7 +505,7 @@ static void VLogNoFormat(LogLevel level, const char *fmt_msg, va_list ap, bool n
     }
     if (log_to_syslog)
     {
-        LogToSystemLogStructured(level, "MESSAGE", hooked_msg);
+        LogToSystemLogStructured(level, "MESSAGE", "%s", hooked_msg);
     }
 
     if (hooked_msg != msg)
