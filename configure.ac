@@ -140,23 +140,6 @@ CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
 LIBS="$PTHREAD_LIBS $LIBS"
 
 dnl ######################################################################
-dnl Whether to build extensions as builtin extensions or a separate
-dnl plugin. The default is plugin.
-dnl --enable-builtin-extensions is the default on Windows, and can be
-dnl used on other platforms for debugging purposes, but isn't otherwise
-dnl supported.
-dnl ######################################################################
-
-AC_ARG_ENABLE([builtin-extensions], [AS_HELP_STRING([Build binaries with builtin extensions])],
-              [],
-              [
-                  AS_CASE([${target_os}], [mingw*], [enable_builtin_extensions=yes], [enable_builtin_extensions=no])
-              ])
-AM_CONDITIONAL([BUILTIN_EXTENSIONS], [test "x$enable_builtin_extensions" = "xyes"])
-AS_IF([test "x$enable_builtin_extensions" = "xyes"], [AC_DEFINE([BUILTIN_EXTENSIONS], [1], [Define if you want builtin Enterprise extensions])])
-AC_SUBST([enable_builtin_extensions])
-
-dnl ######################################################################
 dnl Configure files layout
 dnl ######################################################################
 
@@ -1253,12 +1236,6 @@ if test "x$ac_cv_lib_yaml_yaml_parser_initialize" = xyes; then
   AC_MSG_RESULT([-> libyaml: $LIBYAML_PATH])
 else
   AC_MSG_RESULT([-> libyaml: disabled])
-fi
-
-if test "x$enable_builtin_extensions" = "xyes"; then
-  AC_MSG_RESULT([-> Enterprise extensions: Built in])
-else
-  AC_MSG_RESULT([-> Enterprise extensions: Plugin or not included])
 fi
 
 AC_MSG_RESULT( )
