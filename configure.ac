@@ -1212,7 +1212,6 @@ AC_SUBST([CORE_CPPFLAGS])
 AC_SUBST([CORE_CFLAGS])
 AC_SUBST([CORE_LDFLAGS])
 AC_SUBST([CORE_LIBS])
-AC_CONFIG_FILES([configure_flags.env])
 
 #
 # Populate contents of config.post.h
