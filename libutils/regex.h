@@ -26,6 +26,7 @@
 #ifndef CFENGINE_REGEX_H
 #define CFENGINE_REGEX_H
 
+#include <platform.h>                   /* includes config.h */
 #include <stdbool.h> // bool
 
 #ifdef WITH_PCRE
