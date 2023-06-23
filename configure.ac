@@ -255,113 +255,6 @@ dnl ######################################################################
 
 dnl Now check for database connectors
 
-# TODO remove
-AC_ARG_WITH([sql],
-    [AS_HELP_STRING([--with-sql[[=PATH]]],
-        [Enable SQL database connectors (deprecated, use \
-        --with[[out]]-postgresql and --with[[out]]-mysql instead)])
-    ],
-    [with_postgresql=$with_sql; with_mysql=$with_sql],
-    [])
-
-dnl PostgreSQL
-
-AC_ARG_WITH([postgresql],
-    [AS_HELP_STRING([--with-postgresql[[=PATH]]],
-        [Enable PostgreSQL connector])
-    ],
-    [],
-    [with_postgresql=check])
-
-if test "x$with_postgresql" != "xno"
-then
-    if test "x$with_postgresql" != xyes && test "x$with_postgresql" != xcheck
-    then
-        PG_CONFIG=$with_postgresql/bin/pg_config
-    else
-        PG_CONFIG=pg_config
-    fi
-
-    # pg_config is only for native builds
-    if test "x$cross_compiling" = "xno"
-    then
-        if test x`which $PG_CONFIG` != x
-        then
-            pg_include_dir=`$PG_CONFIG --includedir`
-            if test -n "$pg_include_dir"
-            then
-                POSTGRESQL_CPPFLAGS="-I$pg_include_dir"
-            fi
-        fi
-    fi
-
-    CF3_WITH_LIBRARY(postgresql,
-        [AC_CHECK_LIB(pq, PQconnectdb,
-            [],
-            [if test "x$with_postgresql" != xcheck; then
-                AC_MSG_ERROR(Cannot find PostgreSQL client library); fi]
-         )
-         AC_CHECK_HEADERS(libpq-fe.h,
-             [],
-             [if test "x$with_postgresql" != xcheck; then
-                 AC_MSG_ERROR(Cannot find PostgreSQL client library); fi]
-         )]
-    )
-fi
-
-dnl MySQL
-
-AC_ARG_WITH([mysql],
-    [AS_HELP_STRING([--with-mysql[[=PATH]]],
-        [Enable MySQL connector])
-    ],
-    [],
-    [with_mysql=check])
-
-if test "x$with_mysql" != "xno"
-then
-    if test "x$with_mysql" != xyes &&
-       test "x$with_mysql" != xcheck
-    then
-        MYSQL_CONFIG=$with_mysql/bin/mysql_config
-    else
-        MYSQL_CONFIG=mysql_config
-    fi
-
-    # mysql_config is only for native builds
-    if test "x$cross_compiling" = "xno"
-    then
-        if test x`which $MYSQL_CONFIG` != x
-        then
-            mysql_include_dir=`$MYSQL_CONFIG --include`
-            if test -n "$mysql_include_dir"
-            then
-                MYSQL_CPPFLAGS="$mysql_include_dir"
-            fi
-        fi
-    fi
-
-    CF3_WITH_LIBRARY(mysql,
-        [AC_CHECK_LIB(mysqlclient, mysql_real_connect,
-            [],
-            [if test "x$with_mysql" != xcheck; then
-                AC_MSG_ERROR(Cannot find MySQL client library); fi]
-        )
-        AC_CHECK_HEADERS(mysql.h,
-            [],
-            [if test "x$with_mysql" != xcheck; then
-                AC_MSG_ERROR(Cannot find MySQL clientlibrary); fi]
-        )
-        AC_CHECK_LIB(mysqlclient, EVP_CIPHER_CTX_init,
-            [AC_MSG_ERROR([MySQL client library exports symbols clashing \
-                with OpenSSL. Get the update from distribution provider, \
-                recompile MySQL library or disable MySQL connector. See \
-                http://bugs.mysql.com/bug.php?id=65055 for details.])
-            ]
-        )]
-    )
-fi
-
 dnl
 dnl OpenSSL
 dnl
@@ -452,71 +345,6 @@ then
    ])
 fi
 
-dnl libvirt
-
-AC_ARG_WITH([libvirt],
-    [AS_HELP_STRING([--with-libvirt[[=PATH]]], [support virtual machine management])],
-    [], [with_libvirt=check])
-
-if test "x$with_libvirt" != xno
-then
-   CF3_WITH_LIBRARY(libvirt, [
-      AC_CHECK_LIB(virt, virConnectOpen, [], [if test "x$with_libvirt" != xcheck; then AC_MSG_ERROR(Cannot find libvirt library); fi])
-      AC_CHECK_HEADERS(libvirt/libvirt.h, [], [if test "x$with_libvirt" != xcheck; then AC_MSG_ERROR(Cannot find libvirt library headers); fi])
-   ])
-fi
-
-dnl  BIG FAT WARNING FOR AC_CHECK_LIB: *always* leave the
-dnl  "action-if-yes" parameter empty else LIBS is not changed and C
-dnl  define is not generated!  Or use AC_SEARCH_LIBS for a better
-dnl  interface.
-
-dnl libacl
-dnl It is enough for any of the header files [acl.h sys/acl.h acl/libacl.h] to be present
-
-AC_ARG_WITH([libacl],
-    [AS_HELP_STRING([--with-libacl[[=PATH]]], [Specify libacl path])], [], [with_libacl=check])
-
-if test "x$with_libacl" != xno
-then
-  CF3_WITH_LIBRARY(libacl, [
-    AC_CHECK_LIB(acl, acl_init,
-      [],
-      [if test "x$with_libacl" != xcheck; then AC_MSG_ERROR(Cannot find libacl library); fi])
-    AC_CHECK_HEADERS([acl.h sys/acl.h acl/libacl.h],
-      [libacl_header_found=yes])
-    if test "x$libacl_header_found" != "xyes" && test "x$with_libacl" != xcheck;
-    then
-      AC_MSG_ERROR(Cannot find libacl library headers);
-    fi
-  ])
-fi
-
-dnl libcurl
-
-AC_ARG_WITH([libcurl],
-    [AS_HELP_STRING([--with-libcurl[[=PATH]]], [Specify libcurl path])], [], [with_libcurl=check])
-
-if test "x$with_libcurl" != xno
-then
-  CF3_WITH_LIBRARY(libcurl, [
-    AC_CHECK_LIB(curl, curl_global_init,
-      [],
-      [  libcurl_lib_found=no;
-         if test "x$with_libcurl" != xcheck;
-         then
-             AC_MSG_ERROR(Cannot find libcurl library);
-         fi
-      ])
-    AC_CHECK_HEADERS([curl/curl.h],
-      [libcurl_header_found=yes],
-      [if test "x$with_libcurl" != xcheck; then AC_MSG_ERROR(Cannot find libcurl header files); fi])
-  ])
-fi
-
-AM_CONDITIONAL(HAVE_LIBCURL,
-        [test "x$libcurl_lib_found" != xno && test "x$libcurl_header_found" = xyes])
-
 dnl libyaml
 
 AC_ARG_WITH([libyaml],
@@ -533,75 +361,6 @@ then
       [if test "x$with_libyaml" != xcheck; then AC_MSG_ERROR(Cannot find libyaml header files); fi])
   ])
 fi
-
-dnl libxml2
-
-AC_ARG_WITH([libxml2],
-    [AS_HELP_STRING([--with-libxml2[[=PATH]]],
-        [Specify libxml2 path])
-    ],
-    [],
-    [with_libxml2=check])
-
-have_libxml2="no"
-
-if test "x$with_libxml2" != "xno"; then
-    if test -n "$PKG_CONFIG"; then
-        AC_MSG_CHECKING([for libxml2 via pkg-config])
-        if `$PKG_CONFIG --exists libxml-2.0`; then
-            LIBXML2_CFLAGS=`$PKG_CONFIG --cflags libxml-2.0`
-            LIBXML2_CPPFLAGS="$LIBXML2_CFLAGS"
-            LIBXML2_LIBS=`$PKG_CONFIG --libs libxml-2.0`
-            LIBXML2_VERSION=`$PKG_CONFIG --modversion libxml-2.0`
-            AC_MSG_RESULT([found version $LIBXML2_VERSION])
-            have_libxml2="yes"
-        else
-            AC_MSG_RESULT([not found])
-        fi
-    fi
-
-    if test "x$have_libxml2" = "xno"; then
-        if test "x$with_libxml2" != "xyes" &&
-           test "x$with_libxml2" != "xcheck" &&
-           test -x "$with_libxml2/bin/xml2-config"
-        then
-            XML2_CONFIG=$with_libxml2/bin/xml2-config
-        else
-            AC_PATH_PROG([XML2_CONFIG], [xml2-config])
-        fi
-
-        # xml2-config is only for native builds
-        if test "x$cross_compiling" = "xno" && test -n "$XML2_CONFIG"; then
-            xml2_include_dir=`$XML2_CONFIG --cflags`
-            if test -n "$xml2_include_dir"; then
-                LIBXML2_CPPFLAGS="$xml2_include_dir"
-            fi
-        else # xml2-config not found
-            # if a path, e.g. /var/cfengine was given, then we
-            # must take into account that libxml2 includes are in
-            # /var/cfengine/include/libxml2
-            LIBXML2_CPPFLAGS=-I$with_libxml2/include/libxml2
-        fi
-    fi
-
-    CF3_WITH_LIBRARY(libxml2,
-        [AC_CHECK_LIB(xml2, xmlFirstElementChild,
-        [],
-        [if test "x$with_libxml2" != xcheck; then
-            AC_MSG_ERROR(Cannot find libxml2); fi]
-        )
-        AC_CHECK_HEADERS([libxml/xmlwriter.h], [break],
-            [if test "x$with_libxml2" != xcheck; then
-                AC_MSG_ERROR(Cannot find libxml2); fi]
-        )]
-    )
-
-fi
-
-AM_CONDITIONAL([HAVE_LIBXML2],
-    [test "x$with_libxml2" != xno &&
-     test "x$ac_cv_lib_xml2_xmlFirstElementChild" = xyes])
-
 
 dnl ######################################################################
 dnl Checks for header files.
@@ -865,44 +624,6 @@ AS_IF([test "x$USERADD" != x && \
       [have_userprogs=yes],
       [have_userprogs=no]
 )
-
-
-AC_ARG_WITH([pam], AS_HELP_STRING([--with-pam], [Compile with PAM support]))
-AS_IF([test x$with_pam != xno],
-[
-  CF3_WITH_LIBRARY(pam, [
-    AC_CHECK_LIB(pam, pam_start)
-    AC_CHECK_HEADERS([security/pam_appl.h])
-  ])
-  dnl These platforms must have pam, others can have it, but not required.
-  AS_CASE([$target_os],
-          [*gnu*|*solaris*|*aix*|*hpux*|*hp-ux*], [
-              AS_IF([test "x$ac_cv_lib_pam_pam_start" != "xyes"],
-                    [AC_MSG_ERROR(Cannot find PAM library)]
-              )
-              AS_IF([test "x$ac_cv_header_security_pam_appl_h" != "xyes"],
-                    [AC_MSG_ERROR(Cannot find PAM headers)]
-          )]
-  )
-  AS_IF([test "x$ac_cv_lib_pam_pam_start" = "xyes" && \
-         test "x$ac_cv_header_security_pam_appl_h" = "xyes"],
-        [have_pam=yes],
-        [have_pam=no]
-  )
-  AC_CHECK_FUNCS(fgetpwent fgetgrent)
-  AS_IF([test "x$have_pam" = "xyes" && \
-      test "x$have_userprogs" = "xyes" && \
-      test "x$ac_cv_func_fgetpwent" = "xyes" && \
-      test "x$ac_cv_func_fgetgrent" = "xyes"],
-  [
-      users_promises_ok=yes
-  ],[
-      users_promises_ok=no
-  ])
-], [
-  users_promises_ok=no
-])
-AM_CONDITIONAL(HAVE_USERS_PROMISE_DEPS, [test "x$users_promises_ok" = "xyes"])
 
 AC_CHECK_DECLS(getnetgrent, [], [], [[#include <netdb.h>]])
 AC_CHECK_FUNCS(getnetgrent)
@@ -1478,10 +1199,10 @@ dnl ######################################################################
 dnl Collect all the options
 dnl ######################################################################
 
-CORE_CPPFLAGS="$PCRE_CPPFLAGS $OPENSSL_CPPFLAGS $SQLITE3_CPPFLAGS $LIBACL_CPPFLAGS $LIBCURL_CPPFLAGS $LIBYAML_CPPFLAGS $POSTGRESQL_CPPFLAGS $MYSQL_CPPFLAGS $LIBXML2_CPPFLAGS $CPPFLAGS"
-CORE_CFLAGS="$PCRE_CFLAGS $OPENSSL_CFLAGS $SQLITE3_CFLAGS $LIBACL_CFLAGS $LIBCURL_CFLAGS $LIBYAML_CFLAGS $POSTGRESQL_CFLAGS $MYSQL_CFLAGS $LIBXML2_CFLAGS $CFLAGS"
-CORE_LDFLAGS="$PCRE_LDFLAGS $OPENSSL_LDFLAGS $SQLITE3_LDFLAGS $LIBACL_LDFLAGS $LIBCURL_LDFLAGS $LIBYAML_LDFLAGS $POSTGRESQL_LDFLAGS $MYSQL_LDFLAGS $LIBXML2_LDFLAGS $LDFLAGS"
-CORE_LIBS="$PCRE_LIBS $OPENSSL_LIBS $SQLITE3_LIBS $LIBACL_LIBS $LIBCURL_LIBS $LIBYAML_LIBS $POSTGRESQL_LIBS $MYSQL_LIBS $LIBXML2_LIBS $LIBS"
+CORE_CPPFLAGS="$PCRE_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $CPPFLAGS"
+CORE_CFLAGS="$PCRE_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $CFLAGS"
+CORE_LDFLAGS="$PCRE_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $LDFLAGS"
+CORE_LIBS="$PCRE_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $LIBS"
 
 dnl ######################################################################
 dnl Make them available to subprojects.
@@ -1529,53 +1250,10 @@ AC_MSG_RESULT([-> OpenSSL: $OPENSSL_PATH])
 
 AC_MSG_RESULT([-> PCRE: $PCRE_PATH])
 
-if test "x$ac_cv_lib_mysqlclient_mysql_real_connect" = "xyes"; then
-  AC_MSG_RESULT([-> MySQL connector: $MYSQL_PATH])
-else
-  AC_MSG_RESULT([-> MySQL connector: disabled])
-fi
-
-if test "x$ac_cv_lib_pq_PQconnectdb" = "xyes"; then
-  AC_MSG_RESULT([-> PostgreSQL connector: $POSTGRESQL_PATH])
-else
-  AC_MSG_RESULT([-> PostgreSQL connector: disabled])
-fi
-
-
-if test "x$ac_cv_lib_virt_virConnectOpen" = xyes; then
-  AC_MSG_RESULT([-> libvirt: $LIBVIRT_PATH])
-else
-  AC_MSG_RESULT([-> libvirt: disabled])
-fi
-
-if test "x$ac_cv_lib_acl_acl_init" = xyes; then
-  AC_MSG_RESULT([-> libacl: $LIBACL_PATH])
-else
-  AC_MSG_RESULT([-> libacl: disabled])
-fi
-
-if test "x$ac_cv_lib_curl_curl_global_init" = xyes; then
-  AC_MSG_RESULT([-> libcurl: $LIBCURL_PATH])
-else
-  AC_MSG_RESULT([-> libcurl: disabled])
-fi
-
 if test "x$ac_cv_lib_yaml_yaml_parser_initialize" = xyes; then
   AC_MSG_RESULT([-> libyaml: $LIBYAML_PATH])
 else
   AC_MSG_RESULT([-> libyaml: disabled])
-fi
-
-if test "x$ac_cv_lib_xml2_xmlFirstElementChild" = xyes; then
-  AC_MSG_RESULT([-> libxml2: $LIBXML2_PATH])
-else
-  AC_MSG_RESULT([-> libxml2: disabled])
-fi
-
-if test "x$users_promises_ok" = "xyes"; then
-  AC_MSG_RESULT([-> User promises: PAM/user* tools])
-else
-  AC_MSG_RESULT([-> User promises: disabled])
 fi
 
 if test "x$enable_builtin_extensions" = "xyes"; then
@@ -1583,17 +1261,6 @@ if test "x$enable_builtin_extensions" = "xyes"; then
 else
   AC_MSG_RESULT([-> Enterprise extensions: Plugin or not included])
 fi
-
-m4_indir(incstart[]incend, [nova/config.m4])
-
-AC_MSG_RESULT([-> Workdir: $WORKDIR])
-AC_MSG_RESULT([-> Masterdir: $MASTERDIR])
-AC_MSG_RESULT([-> Inputdir: $INPUTDIR])
-AC_MSG_RESULT([-> Datadir: $DATADIR])
-AC_MSG_RESULT([-> Logdir: $LOGDIR])
-AC_MSG_RESULT([-> Piddir: $PIDDIR])
-AC_MSG_RESULT([-> Statedir: $STATEDIR])
-AC_MSG_RESULT([-> bindir: $bindir])
 
 AC_MSG_RESULT( )
 
