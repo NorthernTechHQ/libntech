@@ -27,7 +27,12 @@
 #define CFENGINE_REGEX_H
 
 #include <stdbool.h> // bool
+
+#ifdef WITH_PCRE
 #include <pcre.h>
+#else
+#error "Regex functionality requires PCRE"
+#endif
 
 #include <sequence.h>                                           /* Seq */
 
