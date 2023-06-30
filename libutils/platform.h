@@ -90,10 +90,6 @@
 /* We now require a pthreads implementation. */
 #include <pthread.h>
 
-#ifndef _GETOPT_H
-# include <../libcompat/getopt.h>
-#endif
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif

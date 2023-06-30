@@ -3,7 +3,7 @@
 #include <misc_lib.h>
 #include <alloc.h>
 #include <string_lib.h>
-
+#include <getopt.h>
 
 static void test_unsigned_modulus(void)
 {

@@ -367,6 +367,7 @@ AC_CHECK_HEADERS(net/if_arp.h, , , [AC_INCLUDES_DEFAULT
 #include <sys/socket.h>
 ])
 
+AC_CHECK_HEADERS(getopt.h)
 AC_CHECK_HEADERS(utime.h)
 AC_CHECK_HEADERS(time.h)
 AC_CHECK_HEADERS(sys/time.h)
