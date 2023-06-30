@@ -423,10 +423,6 @@ typedef int socklen_t;
 #  define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP PTHREAD_MUTEX_INITIALIZER
 #endif
 
-#if !HAVE_DECL_GETLOADAVG
-int getloadavg (double loadavg[], int nelem);
-#endif
-
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
 #endif

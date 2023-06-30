@@ -558,9 +558,6 @@ AC_CHECK_LIB([sec], [fgetspent], [
     LIBS="-lsec $LIBS"
 ])
 
-AC_CHECK_DECLS(getloadavg)
-AC_FUNC_GETLOADAVG
-
 AC_C_BIGENDIAN
 AC_CHECK_HEADERS([endian.h])
 AC_CHECK_DECLS(le32toh, [], [], [[#include <endian.h>]])
