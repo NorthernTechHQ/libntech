@@ -29,6 +29,10 @@
 #include <cleanup.h>
 #include <sequence.h>
 
+#if defined(HAVE_SYSTEMD_SD_JOURNAL_H) && defined(HAVE_LIBSYSTEMD)
+#include <systemd/sd-journal.h> /* sd_journal_sendv() */
+#endif // defined(HAVE_SYSTEMD_SD_JOURNAL_H) && defined(HAVE_LIBSYSTEMD)
+
 #include <definitions.h>        /* CF_BUFSIZE */
 
 char VPREFIX[1024] = ""; /* GLOBAL_C */
@@ -281,6 +285,93 @@ void LogToSystemLog(const char *msg, LogLevel level)
 }
 #endif  /* !__MINGW32__ */
 
+#if defined(HAVE_SYSTEMD_SD_JOURNAL_H) && defined(HAVE_LIBSYSTEMD)
+void LogToSystemLogStructured(const int level, ...)
+{
+    va_list args;
+    va_start(args, level);
+
+    // Additional pairs
+    Seq *const seq = SeqNew(2, free);
+    for (const char *key = va_arg(args, char *); !StringEqual(key, "MESSAGE");
+         key = va_arg(args, char *))
+    {
+        const char *const value = va_arg(args, char *);
+        char *const pair = StringFormat("%s=%s", key, value);
+        SeqAppend(seq, pair);
+    }
+
+    // Message pair
+    const char *const format_str = va_arg(args, char *);
+    char *const message = StringVFormat(format_str, args);
+    char *pair = StringFormat("MESSAGE=%s", message);
+    free(message);
+    SeqAppend(seq, pair);
+
+    // Priority pair
+    const int priority = LogLevelToSyslogPriority(level);
+    pair = StringFormat("PRIORITY=%i", priority);
+    SeqAppend(seq, pair);
+
+    const int num_pairs = SeqLength(seq);
+    struct iovec iov[num_pairs];
+    for (int i = 0; i < num_pairs; i++)
+    {
+        iov[i].iov_base = SeqAt(seq, i);
+        iov[i].iov_len = strlen(iov[i].iov_base);
+    }
+
+    NDEBUG_UNUSED int ret = sd_journal_sendv(iov, num_pairs);
+    assert(ret == 0);
+    SeqDestroy(seq);
+    va_end(args);
+}
+#else // defined(HAVE_SYSTEMD_SD_JOURNAL_H) && defined(HAVE_LIBSYSTEMD)
+void LogToSystemLogStructured(const int level, ...)
+{
+    va_list args;
+    va_start(args, level);
+
+    for (const char *key = va_arg(args, char *); !StringEqual(key, "MESSAGE");
+         key = va_arg(args, char *))
+    {
+        va_arg(args, char *);
+    }
+
+    const char *const format_str = va_arg(args, char *);
+    char *const message = StringVFormat(format_str, args);
+    LogToSystemLog(message, level);
+    free(message);
+    va_end(args);
+}
+#endif // defined(HAVE_SYSTEMD_SD_JOURNAL_H) && defined(HAVE_LIBSYSTEMD)
+
+void __ImproperUseOfLogToSystemLogStructured(void)
+{
+    // TODO: CFE-4190
+    //  - Make sure CodeQL finds at least the reqired function calls below,
+    //    then remove this code
+    assert(false); // Do not use this function!
+
+    // Required: Missing required "MESSAGE" key.
+    LogToSystemLogStructured(LOG_LEVEL_DEBUG, "FOO", "bogus", "BAR", "doofus");
+
+    // Required: String-literal "MESSAGE" is not the same as "message".
+    LogToSystemLogStructured(LOG_LEVEL_INFO, "FOO", "bogus", "BAR", "doofus", "message", "Hello CFEngine!");
+
+    // Required: Number of format-string arguments is less than number of format specifiers.
+    LogToSystemLogStructured(LOG_LEVEL_ERR, "MESSAGE", "%s %d", "CFEngine");
+
+    // Optional: Number of format-string arguments is greated than number of format specifiers.
+    LogToSystemLogStructured(LOG_LEVEL_ERR, "MESSAGE", "%s %d", "CFEngine", 123, "ROCKS!");
+
+    // Optional: All keys must be uppercase or else they are ignored.
+    LogToSystemLogStructured(LOG_LEVEL_CRIT, "FOO", "bogus", "bar", "DOOFUS", "MESSAGE", "Hello CFEngine!");
+
+    // Optional: Pairs trailing the "MESSAGE" key are ignored.
+    LogToSystemLogStructured(LOG_LEVEL_NOTICE, "FOO", "bogus", "MESSAGE", "Hello CFEngine!", "BAR", "doofus");
+}
+
 #ifndef __MINGW32__
 const char *GetErrorStrFromCode(int error_code)
 {
@@ -414,7 +505,7 @@ static void VLogNoFormat(LogLevel level, const char *fmt_msg, va_list ap, bool n
     }
     if (log_to_syslog)
     {
-        LogToSystemLog(hooked_msg, level);
+        LogToSystemLogStructured(level, "MESSAGE", "%s", hooked_msg);
     }
 
     if (hooked_msg != msg)
