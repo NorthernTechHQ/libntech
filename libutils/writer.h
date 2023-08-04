@@ -35,11 +35,26 @@
 
 typedef struct Writer_ Writer;
 
+#include <platform.h>
 #include <stdio.h> // FILE
 #include <stdbool.h> // bool
 #include <stdarg.h> // va_list
-#include <../libcompat/getopt.h>
 #include <compiler.h>
+
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#else
+#ifndef _GETOPT_H /* in case something included it from somewhere anyway  */
+/* We actually only need the 'struct option' type from the header here so just
+ * defined it ourselves if we cannot get it from the header. */
+struct option {
+    const char *name;
+    int has_arg;
+    int *flag;
+    int val;
+};
+#endif /* _GETOPT_H */
+#endif  /* HAVE_GETOPT_H */
 
 Writer *FileWriter(FILE *);
 Writer *StringWriter(void);

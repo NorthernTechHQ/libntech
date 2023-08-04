@@ -2,8 +2,11 @@
 #include <definitions.h>
 #include <string_lib.h>
 #include <alloc.h>
-#include <regex.h>
 #include <encode.h>
+
+#ifdef WITH_PCRE
+#include <regex.h>
+#endif
 
 #include <test.h>
 

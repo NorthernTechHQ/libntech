@@ -59,10 +59,8 @@ libtest_la_LIBADD = ../../libcompat/libcompat.la
 check_LTLIBRARIES += libstr.la
 libstr_la_SOURCES = \
 	../../libutils/buffer.c \
-	../../libutils/pcre_wrap.c \
 	../../libutils/logging.c \
 	../../libutils/misc_lib.c \
-	../../libutils/regex.c \
 	../../libutils/sequence.c \
 	../../libutils/string_lib.c \
 	../../libutils/writer.c
@@ -73,6 +71,11 @@ libstr_la_SOURCES += \
 	../../libutils/encode.c
 endif
 
+if WITH_PCRE
+libstr_la_SOURCES += \
+	../../libutils/regex.c \
+	../../libutils/pcre_wrap.c
+endif
 
 check_PROGRAMS = \
 	cleanup_test \

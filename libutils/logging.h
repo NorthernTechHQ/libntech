@@ -29,6 +29,7 @@
 
 #include <platform.h>
 #include <compiler.h>
+#include <stdarg.h>                     /* va_list */
 
 
 // Does not include timezone, since it is hard to match on Windows.

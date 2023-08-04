@@ -2,8 +2,10 @@
 #include <definitions.h>
 #include <test.h>
 #include <logging.h>
-#include <pcre.h>
 
+#ifdef WITH_PCRE
+#include <pcre.h>
+#endif
 
 static void test_timestamp_regex(void)
 {

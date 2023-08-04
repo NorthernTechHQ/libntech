@@ -28,7 +28,10 @@
 #include <ctype.h>
 #include <ip_address.h>
 #include <alloc.h>
+
+#ifdef WITH_PCRE
 #include <regex.h>
+#endif
 
 struct IPV4Address {
     uint8_t octets[4];
