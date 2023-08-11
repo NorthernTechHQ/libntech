@@ -12,9 +12,9 @@ https://github.com/cfengine/libntech_example
 
 ## License
 
-As per the [LICENSE](https://github.com/cfengine/core/blob/master/LICENSE) file, CFEngine Community is licensed under the GNU General Public License, version 3.
+As per the [LICENSE](https://github.com/cfengine/libntech/blob/master/LICENSE) file, libntech is licensed under the Apache License Version 2.0.
 
-All the files in this repository are licensed under GNU GPL version 3, unless stated otherwise in the copyright notice inside the particular file.
+All the files in this repository are licensed under Apache License Version 2.0, unless stated otherwise in the copyright notice inside the particular file.
 
 ## Contributing
 
