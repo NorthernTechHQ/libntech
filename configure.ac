@@ -3,18 +3,17 @@ dnl  Copyright 2021 Northern.tech AS
 dnl
 dnl  This file is part of CFEngine 3 - written and maintained by Northern.tech AS.
 dnl
-dnl  This program is free software; you can redistribute it and/or modify it
-dnl  under the terms of the GNU General Public License as published by the
-dnl  Free Software Foundation; version 3.
+dnl  Licensed under the Apache License, Version 2.0 (the "License");
+dnl  you may not use this file except in compliance with the License.
+dnl  You may obtain a copy of the License at
 dnl
-dnl  This program is distributed in the hope that it will be useful,
-dnl  but WITHOUT ANY WARRANTY; without even the implied warranty of
-dnl  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-dnl  GNU General Public License for more details.
+dnl      http://www.apache.org/licenses/LICENSE-2.0
 dnl
-dnl You should have received a copy of the GNU General Public License
-dnl along with this program; if not, write to the Free Software
-dnl Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+dnl  Unless required by applicable law or agreed to in writing, software
+dnl  distributed under the License is distributed on an "AS IS" BASIS,
+dnl  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+dnl  See the License for the specific language governing permissions and
+dnl  limitations under the License.
 dnl
 dnl To the extent this program is licensed as part of the Enterprise
 dnl versions of CFEngine, the applicable Commercial Open Source License
