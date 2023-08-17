@@ -1545,7 +1545,9 @@ StringSet* GlobFileList(const char *pattern)
         char *expanded = starstar ?
             SearchAndReplace(pattern, "**", candidates[pi]) :
             xstrdup(pattern);
+        Log(LOG_LEVEL_DEBUG, "Expanded '%s'", expanded);
 
+        Log(LOG_LEVEL_VERBOSE, "#1");
 #ifdef _WIN32
         if (strchr(expanded, '\\'))
         {
@@ -1553,18 +1555,26 @@ StringSet* GlobFileList(const char *pattern)
                 "Was forward slash intended?", expanded);
         }
 #endif
+        Log(LOG_LEVEL_VERBOSE, "#2");
 
         if (glob(expanded, globflags, NULL, &globbuf) == 0)
         {
+            Log(LOG_LEVEL_VERBOSE, "#3");
             for (size_t i = 0; i < globbuf.gl_pathc; i++)
             {
+                Log(LOG_LEVEL_VERBOSE, "#4");
                 StringSetAdd(set, xstrdup(globbuf.gl_pathv[i]));
+                Log(LOG_LEVEL_DEBUG, "String set add '%s'", globbuf.gl_pathv[i]);
             }
+            Log(LOG_LEVEL_VERBOSE, "#5");
 
             globfree(&globbuf);
+            Log(LOG_LEVEL_VERBOSE, "#6");
         }
+        Log(LOG_LEVEL_VERBOSE, "#7");
 
         free(expanded);
+        Log(LOG_LEVEL_VERBOSE, "#8");
     }
 
     return set;
