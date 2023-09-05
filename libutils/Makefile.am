@@ -27,7 +27,7 @@ AM_CFLAGS   = $(CORE_CFLAGS)   $(PCRE_CFLAGS)   $(OPENSSL_CFLAGS)
 AM_CPPFLAGS = $(CORE_CPPFLAGS) $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS)
 AM_LDFLAGS  = $(CORE_LDFLAGS)  $(PCRE_LDFLAGS)  $(OPENSSL_LDFLAGS)
 
-libutils_la_LIBADD = ../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS)
+libutils_la_LIBADD = ../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS)
 
 libutils_la_SOURCES = \
 	alloc.c alloc.h \
