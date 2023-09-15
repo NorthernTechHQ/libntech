@@ -20,7 +20,8 @@
   (COSL) may apply to this file if you as a licensee so wish it. See
   included file COSL.txt.
 */
-#include <passopenfile.h> /* Starts with <platform.h> */
+#include <platform.h>
+#include <passopenfile.h>
 
 #include <logging.h>
 #include <alloc.h>

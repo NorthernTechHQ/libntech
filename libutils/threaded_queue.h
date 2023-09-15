@@ -24,7 +24,7 @@
 #ifndef CFENGINE_THREADED_QUEUE_H
 #define CFENGINE_THREADED_QUEUE_H
 
-#include <platform.h>
+#include <stdbool.h>
 
 typedef struct ThreadedQueue_ ThreadedQueue;
 

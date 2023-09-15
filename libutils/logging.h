@@ -25,10 +25,11 @@
 #ifndef CFENGINE_LOGGING_H
 #define CFENGINE_LOGGING_H
 
-
-#include <platform.h>
 #include <compiler.h>
+#include <stdbool.h>
 #include <stdarg.h>                     /* va_list */
+#include <stddef.h>						/* size_t */
+#include <time.h>						/* struct tm */
 
 
 // Does not include timezone, since it is hard to match on Windows.

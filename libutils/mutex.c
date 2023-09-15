@@ -21,6 +21,7 @@
   included file COSL.txt.
 */
 
+#include <platform.h>
 #include <mutex.h>
 
 #include <logging.h>                                            /* Log */

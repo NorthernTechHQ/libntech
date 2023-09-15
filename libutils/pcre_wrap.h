@@ -3,7 +3,6 @@
 
 
 
-#include <platform.h>
 #include <regex.h>
 
 /*

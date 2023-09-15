@@ -24,8 +24,6 @@
 #ifndef CFENGINE_PATH_H
 #define CFENGINE_PATH_H
 
-#include <platform.h>
-
 // TODO: Move more functions from files_names.c here
 
 /**

@@ -34,6 +34,7 @@ libutils_la_SOURCES = \
 	array_map.c array_map_priv.h \
 	buffer.c buffer.h \
 	cleanup.c cleanup.h \
+	clockid_t.h \
 	compiler.h \
 	csv_writer.c csv_writer.h \
 	csv_parser.c csv_parser.h \
@@ -58,6 +59,7 @@ libutils_la_SOURCES = \
 	mutex.c mutex.h \
 	passopenfile.c passopenfile.h \
 	path.c path.h \
+	path_max.h \
 	platform.h condition_macros.h \
 	printsize.h \
 	proc_keyvalue.c proc_keyvalue.h \

@@ -24,7 +24,7 @@
 #ifndef CFENGINE_THREADED_DEQUE_H
 #define CFENGINE_THREADED_DEQUE_H
 
-#include <platform.h>
+#include <stdbool.h>
 
 typedef struct ThreadedDeque_ ThreadedDeque;
 

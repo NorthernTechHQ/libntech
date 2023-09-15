@@ -23,7 +23,8 @@
 #ifndef CFENGINE_RB_TREE_H
 #define CFENGINE_RB_TREE_H
 
-#include <platform.h>
+#include <stdbool.h>
+#include <stddef.h>						/* size_t */
 
 typedef struct RBTree_ RBTree;
 typedef struct RBTreeIterator_ RBTreeIterator;

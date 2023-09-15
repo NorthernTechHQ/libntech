@@ -24,7 +24,7 @@
 #ifndef CFENGINE_MUTEX_H
 #define CFENGINE_MUTEX_H
 
-#include <platform.h>
+#include <pthread.h>
 
 #define THREAD_BLOCK_INDEFINITELY  -1
 

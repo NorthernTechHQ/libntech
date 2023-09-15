@@ -21,11 +21,10 @@
   included file COSL.txt.
 */
 
-#include <platform.h>
-
 #ifndef CFENGINE_QUEUE_H
 #define CFENGINE_QUEUE_H
 
+#include <stdbool.h>
 
 typedef struct Queue_ Queue;
 
