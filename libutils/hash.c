@@ -25,7 +25,6 @@
 
 #include <openssl/evp.h>                                       /* EVP_* */
 #include <openssl/bn.h>                                        /* BN_bn2bin */
-#include <libcrypto-compat.h>
 
 #include <alloc.h>
 #include <logging.h>

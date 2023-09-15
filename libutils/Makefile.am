@@ -86,7 +86,6 @@ EXTRA_DIST = stack_base.c
 if WITH_OPENSSL
 libutils_la_SOURCES += \
 	encode.c encode.h \
-	libcrypto-compat.c libcrypto-compat.h \
 	hash.c hash.h
 endif
 
