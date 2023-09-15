@@ -164,7 +164,13 @@ struct utsname
 # endif
 #endif
 
-#include <path_max.h>
+#ifndef PATH_MAX
+# ifdef _MAX_PATH
+#  define PATH_MAX _MAX_PATH
+# else
+#  define PATH_MAX 4096
+# endif
+#endif
 
 #include <signal.h>
 
