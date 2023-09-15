@@ -53,7 +53,7 @@ libtest_la_SOURCES += \
 	../../libutils/hash.c
 endif
 
-libtest_la_LIBADD = ../../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS)
+libtest_la_LIBADD = ../../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS) $(LIBYAML_LIBS)
 
 check_LTLIBRARIES += libstr.la
 libstr_la_SOURCES = \
