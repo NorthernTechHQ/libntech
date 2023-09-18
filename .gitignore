@@ -88,6 +88,10 @@ stamp-h1
 /libutils/config.h
 /libutils/config.h.in
 /libutils/config.post.h
+/libutils/writer.h
+/libutils/clockid_t.h
+/libutils/regex.h
+/libutils/json-yaml.h
 
 # examples
 /examples/cfengine_stdlib.cf

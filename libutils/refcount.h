@@ -24,7 +24,8 @@
 #ifndef CFENGINE_REFCOUNT_H
 #define CFENGINE_REFCOUNT_H
 
-#include <platform.h>
+#include <stdbool.h>
+
 /**
   @brief Simple reference count implementation.
 

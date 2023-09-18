@@ -21,11 +21,15 @@
   included file COSL.txt.
 */
 
+#ifndef PATH_MAX_H
+#define PATH_MAX_H
 
-#ifndef CFENGINE_ENCODE_H
-#define CFENGINE_ENCODE_H
+#ifndef PATH_MAX
+# ifdef _MAX_PATH
+#  define PATH_MAX _MAX_PATH
+# else
+#  define PATH_MAX 4096
+# endif
+#endif
 
-char *StringEncodeBase64(const char *str, size_t len);
-
-
-#endif /* CFENGINE_ENCODE_H */
+#endif	/* PATH_MAX_H */

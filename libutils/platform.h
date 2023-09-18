@@ -164,13 +164,7 @@ struct utsname
 # endif
 #endif
 
-#ifndef PATH_MAX
-# ifdef _MAX_PATH
-#  define PATH_MAX _MAX_PATH
-# else
-#  define PATH_MAX 4096
-# endif
-#endif
+#include <path_max.h>
 
 #include <signal.h>
 
@@ -406,9 +400,7 @@ union mpinfou
 # define CLOCK_REALTIME 1
 #endif
 
-#ifndef HAVE_CLOCKID_T
-typedef int clockid_t;
-#endif
+#include <clockid_t.h>
 
 #ifndef HAVE_SOCKLEN_T
 typedef int socklen_t;

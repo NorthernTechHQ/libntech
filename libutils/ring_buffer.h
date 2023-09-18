@@ -23,7 +23,8 @@
 #ifndef CFENGINE_RING_BUFFER_H
 #define CFENGINE_RING_BUFFER_H
 
-#include <platform.h>
+#include <stdbool.h>
+#include <stddef.h>						/* size_t */
 
 typedef struct RingBuffer_ RingBuffer;
 typedef struct RingBufferIterator_ RingBufferIterator;

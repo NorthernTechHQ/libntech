@@ -69,7 +69,6 @@
  * transmission of a text message accompanying the descriptor).
  */
 
-#include <platform.h>
 /* Send a file descriptor to another process.
  *
  * @param uds The local communications socket.

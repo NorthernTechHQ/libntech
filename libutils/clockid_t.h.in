@@ -21,11 +21,16 @@
   included file COSL.txt.
 */
 
+#ifndef CLOCKID_T_H
+#define CLOCKID_T_H
 
-#ifndef CFENGINE_ENCODE_H
-#define CFENGINE_ENCODE_H
+/* Set by ./configure allowing us to avoid #include <config.h> here. */
+@HAVE_CLOCKID_T_DEFINE@
 
-char *StringEncodeBase64(const char *str, size_t len);
+#ifndef HAVE_CLOCKID_T
+typedef int clockid_t;
+#else
+#include <time.h>
+#endif
 
-
-#endif /* CFENGINE_ENCODE_H */
+#endif	/* CLOCKID_T_H */

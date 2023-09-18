@@ -34,11 +34,13 @@
 
 typedef struct Writer_ Writer;
 
-#include <platform.h>
 #include <stdio.h> // FILE
 #include <stdbool.h> // bool
 #include <stdarg.h> // va_list
 #include <compiler.h>
+
+/* Set by ./configure allowing us to avoid #include <config.h> here. */
+@HAVE_GETOPT_H_DEFINE@
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>

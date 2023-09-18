@@ -27,13 +27,14 @@ AM_CFLAGS   = $(CORE_CFLAGS)   $(PCRE_CFLAGS)   $(OPENSSL_CFLAGS)
 AM_CPPFLAGS = $(CORE_CPPFLAGS) $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS)
 AM_LDFLAGS  = $(CORE_LDFLAGS)  $(PCRE_LDFLAGS)  $(OPENSSL_LDFLAGS)
 
-libutils_la_LIBADD = ../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS)
+libutils_la_LIBADD = ../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS) $(LIBYAML_LIBS)
 
 libutils_la_SOURCES = \
 	alloc.c alloc.h \
 	array_map.c array_map_priv.h \
 	buffer.c buffer.h \
 	cleanup.c cleanup.h \
+	clockid_t.h \
 	compiler.h \
 	csv_writer.c csv_writer.h \
 	csv_parser.c csv_parser.h \
@@ -58,6 +59,7 @@ libutils_la_SOURCES = \
 	mutex.c mutex.h \
 	passopenfile.c passopenfile.h \
 	path.c path.h \
+	path_max.h \
 	platform.h condition_macros.h \
 	printsize.h \
 	proc_keyvalue.c proc_keyvalue.h \

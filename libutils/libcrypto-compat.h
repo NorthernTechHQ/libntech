@@ -1,7 +1,6 @@
 #ifndef LIBCRYPTO_COMPAT_H
 #define LIBCRYPTO_COMPAT_H
 
-#include <platform.h>
 #include <openssl/opensslv.h>
 
 

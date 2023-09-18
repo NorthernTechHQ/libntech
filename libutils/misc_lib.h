@@ -24,10 +24,9 @@
 #ifndef CFENGINE_MISC_LIB_H
 #define CFENGINE_MISC_LIB_H
 
-#include <platform.h>
-
 #include <compiler.h>
-
+#include <stddef.h>						/* size_t */
+#include <clockid_t.h>
 
 #define ProgrammingError(...) __ProgrammingError(__FILE__, __LINE__, __VA_ARGS__)
 

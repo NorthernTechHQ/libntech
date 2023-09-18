@@ -26,6 +26,9 @@
 
 #include <json.h>
 
+/* Set by ./configure allowing us to avoid #include <config.h> here. */
+@HAVE_LIBYAML_DEFINE@
+
 #ifdef HAVE_LIBYAML
 #include <yaml.h>
 #endif

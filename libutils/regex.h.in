@@ -25,8 +25,10 @@
 #ifndef CFENGINE_REGEX_H
 #define CFENGINE_REGEX_H
 
-#include <platform.h>                   /* includes config.h */
 #include <stdbool.h> // bool
+
+/* Set by ./configure allowing us to avoid #include <config.h> here. */
+@WITH_PCRE_DEFINE@
 
 #ifdef WITH_PCRE
 #include <pcre.h>

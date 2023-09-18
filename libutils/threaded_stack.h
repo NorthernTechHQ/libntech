@@ -24,7 +24,7 @@
 #ifndef CFENGINE_THREADED_STACK_H
 #define CFENGINE_THREADED_STACK_H
 
-#include <platform.h>
+#include <stdbool.h>
 
 typedef struct ThreadedStack_ ThreadedStack;
 

@@ -311,9 +311,12 @@ if test "x$with_pcre" != "xno"; then
   ])
   AC_DEFINE(WITH_PCRE, 1, [Define if PCRE is being used])
   AM_CONDITIONAL(WITH_PCRE, true)
+  WITH_PCRE_DEFINE="#define WITH_PCRE 1"
 else
   AM_CONDITIONAL(WITH_PCRE, false)
+  WITH_PCRE_DEFINE="// #undef WITH_PCRE"
 fi
+AC_SUBST(WITH_PCRE_DEFINE)
 
 dnl systemd structured logging
 
@@ -339,10 +342,15 @@ then
       [],
       [if test "x$with_libyaml" != xcheck; then AC_MSG_ERROR(Cannot find libyaml library); fi])
     AC_CHECK_HEADERS(yaml.h,
-      [libyaml_header_found=yes],
-      [if test "x$with_libyaml" != xcheck; then AC_MSG_ERROR(Cannot find libyaml header files); fi])
+      [libyaml_header_found=yes
+      HAVE_LIBYAML_DEFINE="#define HAVE_LIBYAML 1"],
+      [if test "x$with_libyaml" != xcheck; then AC_MSG_ERROR(Cannot find libyaml header files); fi
+      HAVE_LIBYAML_DEFINE="// #undef HAVE_LIBYAML"])
   ])
+else
+  HAVE_LIBYAML_DEFINE="// #undef HAVE_LIBYAML"
 fi
+AC_SUBST(HAVE_LIBYAML_DEFINE)
 
 dnl ######################################################################
 dnl Checks for header files.
@@ -366,7 +374,12 @@ AC_CHECK_HEADERS(net/if_arp.h, , , [AC_INCLUDES_DEFAULT
 #include <sys/socket.h>
 ])
 
-AC_CHECK_HEADERS(getopt.h)
+AC_CHECK_HEADERS(getopt.h,
+    [HAVE_GETOPT_H_DEFINE="#define HAVE_GETOPT_H 1"],
+    [HAVE_GETOPT_H_DEFINE="// #undef HAVE_GETOPT_H"]
+)
+AC_SUBST(HAVE_GETOPT_H_DEFINE)
+
 AC_CHECK_HEADERS(utime.h)
 AC_CHECK_HEADERS(time.h)
 AC_CHECK_HEADERS(sys/time.h)
@@ -411,11 +424,15 @@ AC_TYPE_MODE_T
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
 AC_TYPE_PID_T
-AC_CHECK_TYPES(clockid_t, [], [], [[
+AC_CHECK_TYPES(clockid_t,
+    [HAVE_CLOCKID_T_DEFINE="#define HAVE_CLOCKID_T 1"],
+    [HAVE_CLOCKID_T_DEFINE="// #undef HAVE_CLOCKID_T"]
+, [[
 #ifdef HAVE_TIME_H
 # include <time.h>
 #endif
 ]])
+AC_SUBST(HAVE_CLOCKID_T_DEFINE)
 
 AC_CHECK_TYPES(socklen_t, [], [], [[
 #ifdef HAVE_SYS_TYPES_H
@@ -1244,6 +1261,10 @@ dnl ######################################################################
 AC_CONFIG_FILES([Makefile
     libcompat/Makefile
     libutils/Makefile
+    libutils/writer.h
+    libutils/clockid_t.h
+    libutils/regex.h
+    libutils/json-yaml.h
     config.post.h
     tests/Makefile
     tests/unit/Makefile])
