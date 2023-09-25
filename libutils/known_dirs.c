@@ -28,6 +28,20 @@
 
 static char OVERRIDE_BINDIR[PATH_MAX] = {0};
 
+static const char *GetDefaultDir_helper(char dir[PATH_MAX], const char *root_dir,
+                                        const char *append_dir);
+
+#ifdef __MINGW32__
+
+const char *GetDefaultWorkDir(void);
+const char *GetDefaultLogDir(void);
+const char *GetDefaultDataDir(void);
+const char *GetDefaultPidDir(void);
+const char *GetDefaultMasterDir(void);
+const char *GetDefaultInputDir(void);
+
+#endif
+
 #if defined(__CYGWIN__) || defined(__ANDROID__)
 
 #define GET_DEFAULT_DIRECTORY_DEFINE(FUNC, GLOBAL)  \
@@ -49,8 +63,8 @@ GET_DEFAULT_DIRECTORY_DEFINE(State, STATEDIR)
 
 #elif !defined(__MINGW32__)
 
-const char *GetDefaultDir_helper(char dir[PATH_MAX], const char *root_dir,
-                                 const char *append_dir)
+static const char *GetDefaultDir_helper(char dir[PATH_MAX], const char *root_dir,
+                                        const char *append_dir)
 {
     assert(dir != NULL);
 

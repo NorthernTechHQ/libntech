@@ -59,7 +59,6 @@ libutils_la_SOURCES = \
 	mutex.c mutex.h \
 	passopenfile.c passopenfile.h \
 	path.c path.h \
-	path_max.h \
 	platform.h condition_macros.h \
 	printsize.h \
 	proc_keyvalue.c proc_keyvalue.h \
@@ -86,7 +85,6 @@ EXTRA_DIST = stack_base.c
 if WITH_OPENSSL
 libutils_la_SOURCES += \
 	encode.c encode.h \
-	libcrypto-compat.c libcrypto-compat.h \
 	hash.c hash.h
 endif
 
