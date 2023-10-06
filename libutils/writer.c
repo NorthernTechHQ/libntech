@@ -327,12 +327,14 @@ static void WriterWriteCommands(Writer *w, const Description *commands)
     }
 }
 
-void WriterWriteHelp(Writer *w, const char *component,
+void WriterWriteHelp(Writer *w, const Component *component,
                      const struct option options[], const char *const hints[],
                      const Description *commands, bool command_first,
                      bool accepts_file_argument)
 {
-    WriterWriteF(w, "Usage: %s%s [OPTIONS]%s%s\n", component,
+    assert (component != NULL);
+    assert (component->name != NULL);
+    WriterWriteF(w, "Usage: %s%s [OPTIONS]%s%s\n", component->name,
                  (commands && command_first) ? " COMMAND" : "",
                  (commands && !command_first) ? " COMMAND" : "",
                  accepts_file_argument ? " [FILE]" : "");
@@ -345,6 +347,10 @@ void WriterWriteHelp(Writer *w, const char *component,
     {
         WriterWriteCommands(w, commands);
     }
-    WriterWriteF(w, "\nWebsite: https://cfengine.com\n");
-    WriterWriteF(w, "This software is Copyright 2023 Northern.tech AS.\n ");
+    if (component->website != NULL) {
+        WriterWriteF(w, "\nWebsite: %s\n", component->website);
+    }
+    if (component->copyright != NULL) {
+        WriterWriteF(w, "This software is Copyright %s.\n ", component->copyright);
+    }
 }
