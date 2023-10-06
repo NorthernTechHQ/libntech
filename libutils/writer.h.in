@@ -87,7 +87,14 @@ typedef struct
     const char *usage;
 } Description;
 
-void WriterWriteHelp(Writer *w, const char *component,
+typedef struct
+{
+    const char *name;
+    const char *website;
+    const char *copyright;
+} Component;
+
+void WriterWriteHelp(Writer *w, const Component *component,
                      const struct option options[], const char *const hints[],
                      const Description *commands, bool command_first,
                      bool accepts_file_argument);
