@@ -30,7 +30,7 @@ dnl ##########################################################################
 
 AC_PREREQ(2.63)
 
-AC_INIT(libntech, 1.0.0)
+AC_INIT(libntech, 1.0.0, [], [], [https://github.com/NorthernTechHQ/libntech])
 AC_CANONICAL_TARGET
 
 dnl
