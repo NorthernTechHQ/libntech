@@ -1,5 +1,5 @@
 dnl
-dnl  Copyright 2021 Northern.tech AS
+dnl  Copyright 2023 Northern.tech AS
 dnl
 dnl  This file is part of CFEngine 3 - written and maintained by Northern.tech AS.
 dnl
@@ -30,7 +30,7 @@ dnl ##########################################################################
 
 AC_PREREQ(2.63)
 
-AC_INIT(libntech, 0.1.0)
+AC_INIT(libntech, 1.0.0, [], [], [https://github.com/NorthernTechHQ/libntech])
 AC_CANONICAL_TARGET
 
 dnl
