@@ -1,6 +1,7 @@
+#include <assert.h>     // assert()
+#include <stdio.h>      // sscanf
+#include <string_lib.h> // StringEqual()
 #include <version_comparison.h>
-#include <stdio.h> // sscanf
-#include <assert.h> // assert()
 
 VersionComparison CompareVersion(const char *a, const char *b)
 {
@@ -75,4 +76,39 @@ VersionComparison CompareVersion(const char *a, const char *b)
     assert(a_patch == b_patch);
 
     return VERSION_EQUAL;
+}
+
+BooleanOrError CompareVersionExpression(
+    const char *const a, const char *const operator, const char * const b)
+{
+    const VersionComparison r = CompareVersion(a, b);
+    if (r == VERSION_ERROR)
+    {
+        return BOOLEAN_ERROR;
+    }
+    if (StringEqual(operator, "=") || StringEqual(operator, "=="))
+    {
+        return (BooleanOrError) (r == VERSION_EQUAL);
+    }
+    if (StringEqual(operator, ">"))
+    {
+        return (BooleanOrError) (r == VERSION_GREATER);
+    }
+    if (StringEqual(operator, "<"))
+    {
+        return (BooleanOrError) (r == VERSION_SMALLER);
+    }
+    if (StringEqual(operator, ">="))
+    {
+        return (BooleanOrError) (r == VERSION_GREATER || r == VERSION_EQUAL);
+    }
+    if (StringEqual(operator, "<="))
+    {
+        return (BooleanOrError) (r == VERSION_SMALLER || r == VERSION_EQUAL);
+    }
+    if (StringEqual(operator, "!="))
+    {
+        return (BooleanOrError) (r != VERSION_EQUAL);
+    }
+    return BOOLEAN_ERROR;
 }

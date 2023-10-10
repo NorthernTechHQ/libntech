@@ -50,12 +50,33 @@ static void test_CompareVersion(void)
     assert_true(VERSION_ERROR == CompareVersion("", "3.16.0"));
 }
 
+static void test_CompareVersionExpression(void)
+{
+    assert_true(BOOLEAN_TRUE == CompareVersionExpression("1.2.3", "=", "1.2.3"));
+    assert_true(BOOLEAN_TRUE == CompareVersionExpression("1.2.3", "==", "1.2.3"));
+    assert_true(BOOLEAN_TRUE == CompareVersionExpression("1.2.3", "!=", "1.2.4"));
+    assert_true(BOOLEAN_TRUE == CompareVersionExpression("100.0.0", ">", "99.0.0"));
+    assert_true(BOOLEAN_TRUE == CompareVersionExpression("100.0.0", ">=", "99.0.0"));
+    assert_true(BOOLEAN_TRUE == CompareVersionExpression("99.88.77", "<", "999.0.0"));
+
+    assert_true(BOOLEAN_FALSE == CompareVersionExpression("1.2.3", "!=", "1.2.3"));
+    assert_true(BOOLEAN_FALSE == CompareVersionExpression("1.2.3", "=", "1.2.4"));
+    assert_true(BOOLEAN_FALSE == CompareVersionExpression("1.2.3", "==", "1.2.4"));
+    assert_true(BOOLEAN_FALSE == CompareVersionExpression("100.0.0", "<=", "99.0.0"));
+    assert_true(BOOLEAN_FALSE == CompareVersionExpression("100.0.0", "<", "99.0.0"));
+    assert_true(BOOLEAN_FALSE == CompareVersionExpression("99.88.77", ">=", "999.0.0"));
+
+    assert_true(BOOLEAN_ERROR == CompareVersionExpression("", "", ""));
+    assert_true(BOOLEAN_ERROR == CompareVersionExpression("1", "2", "3"));
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
     const UnitTest tests[] =
     {
         unit_test(test_CompareVersion),
+        unit_test(test_CompareVersionExpression),
     };
 
     return run_tests(tests);
