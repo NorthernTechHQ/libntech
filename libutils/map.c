@@ -118,15 +118,7 @@ size_t MapSize(const Map *map)
     }
     else
     {
-        MapIterator i = MapIteratorInit((Map*)map);
-        size_t size = 0;
-
-        while (MapIteratorNext(&i))
-        {
-            size++;
-        }
-
-        return size;
+        return map->hashmap->load;
     }
 }
 
