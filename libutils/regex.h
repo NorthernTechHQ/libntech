@@ -27,7 +27,8 @@
 #define CFENGINE_REGEX_H
 
 #include <stdbool.h> // bool
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 #include <sequence.h>                                           /* Seq */
 

@@ -52,14 +52,14 @@ pcre *CompileRegex(const char *regex)
     return rx;
 }
 
-bool StringMatchWithPrecompiledRegex(pcre *regex, const char *str, size_t *start, size_t *end)
+bool StringMatchWithPrecompiledRegex(pcre2_regex *code, const char *str, size_t *start, size_t *end)
 {
     assert(regex);
     assert(str);
 
-    int ovector[STRING_MATCH_OVECCOUNT] = { 0 };
-    int result = pcre_exec(regex, NULL, str, strlen(str),
-                           0, 0, ovector, STRING_MATCH_OVECCOUNT);
+    pcre2_match_data *match_data;
+    int result = pcre2_match(regex, str, strlen(str),
+                           0, 0, match_data, STRING_MATCH_OVECCOUNT);
 
     if (result)
     {
