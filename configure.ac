@@ -292,31 +292,27 @@ else
   AM_CONDITIONAL(WITH_OPENSSL, false)
 fi
 
-dnl PCRE
+dnl PCRE2
+AC_ARG_WITH([pcre2], [AS_HELP_STRING([--with-pcre2[[=PATH]]], [Specify PCRE2 path])], [], [with_pcre2=yes])
 
-AC_ARG_WITH([pcre], [AS_HELP_STRING([--with-pcre[[=PATH]]], [Specify PCRE path])], [], [with_pcre=yes])
-
-if test "x$with_pcre" != "xno"; then
-  CF3_WITH_LIBRARY(pcre, [
-    AC_CHECK_LIB(pcre, pcre_exec, [], [AC_MSG_ERROR(Cannot find PCRE)])
+if test "x$with_pcre2" != "xno"; then
+  CF3_WITH_LIBRARY(pcre2, [
+    AC_CHECK_LIB(pcre2-8, pcre2_compile_8, [], [AC_MSG_ERROR(Cannot find PCRE2)])
     AC_CHECK_HEADERS(
-      [pcre.h],
+      [pcre2.h],
       [],
-      [AC_CHECK_HEADERS(
-        [pcre/pcre.h],
-        [PCRE_CPPFLAGS="-Ipcre"],
-        AC_MSG_ERROR(Cannot find PCRE)
+      AC_MSG_ERROR(Cannot find PCRE2),
+      [#define PCRE2_CODE_UNIT_WIDTH 8]
       )]
-    )
-  ])
-  AC_DEFINE(WITH_PCRE, 1, [Define if PCRE is being used])
-  AM_CONDITIONAL(WITH_PCRE, true)
-  WITH_PCRE_DEFINE="#define WITH_PCRE 1"
+  )
+  AC_DEFINE(WITH_PCRE2, 1, [Define if PCRE2 is being used])
+  AM_CONDITIONAL(WITH_PCRE2, true)
+  WITH_PCRE2_DEFINE="#define WITH_PCRE2 1"
 else
-  AM_CONDITIONAL(WITH_PCRE, false)
-  WITH_PCRE_DEFINE="// #undef WITH_PCRE"
+  AM_CONDITIONAL(WITH_PCRE2, false)
+  WITH_PCRE2_DEFINE="// #undef WITH_PCRE2"
 fi
-AC_SUBST(WITH_PCRE_DEFINE)
+AC_SUBST(WITH_PCRE2_DEFINE)
 
 dnl systemd structured logging
 
@@ -1196,10 +1192,10 @@ dnl ######################################################################
 dnl Collect all the options
 dnl ######################################################################
 
-CORE_CPPFLAGS="$PCRE_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $CPPFLAGS"
-CORE_CFLAGS="$PCRE_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $CFLAGS"
-CORE_LDFLAGS="$PCRE_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $LDFLAGS"
-CORE_LIBS="$PCRE_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $LIBS"
+CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $CPPFLAGS"
+CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $CFLAGS"
+CORE_LDFLAGS="$PCRE2_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $LDFLAGS"
+CORE_LIBS="$PCRE2_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $LIBS"
 
 dnl ######################################################################
 dnl Make them available to subprojects.
@@ -1244,7 +1240,7 @@ AC_MSG_RESULT([> Optional libraries])
 
 AC_MSG_RESULT([-> OpenSSL: $OPENSSL_PATH])
 
-AC_MSG_RESULT([-> PCRE: $PCRE_PATH])
+AC_MSG_RESULT([-> PCRE2: $PCRE2_PATH])
 
 if test "x$ac_cv_lib_yaml_yaml_parser_initialize" = xyes; then
   AC_MSG_RESULT([-> libyaml: $LIBYAML_PATH])

@@ -4,7 +4,7 @@
 #include <alloc.h>
 #include <encode.h>
 
-#ifdef WITH_PCRE
+#ifdef WITH_PCRE2
 #include <regex.h>
 #endif
 
@@ -898,23 +898,23 @@ static void test_is_string_in_array(void)
 
 static void test_match(void)
 {
-#ifdef WITH_PCRE
+#ifdef WITH_PCRE2
     assert_true(StringMatch("^a.*$", "abc", NULL, NULL));
     assert_true(StringMatch("a", "a", NULL, NULL));
     assert_true(StringMatch("a", "ab", NULL, NULL));
     assert_false(StringMatch("^a.*$", "bac", NULL, NULL));
-#endif // WITH_PCRE
+#endif // WITH_PCRE2
 }
 
 
 static void test_match_full(void)
 {
-#ifdef WITH_PCRE
+#ifdef WITH_PCRE2
     assert_true(StringMatchFull("^a.*$", "abc"));
     assert_true(StringMatchFull("a", "a"));
     assert_false(StringMatchFull("a", "ab"));
     assert_false(StringMatchFull("^a.*$", "bac"));
-#endif // WITH_PCRE
+#endif // WITH_PCRE2
 }
 
 static void test_encode_base64(void)

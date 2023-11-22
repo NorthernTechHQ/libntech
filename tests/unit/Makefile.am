@@ -70,7 +70,7 @@ libstr_la_SOURCES += \
 	../../libutils/encode.c
 endif
 
-if WITH_PCRE
+if WITH_PCRE2
 libstr_la_SOURCES += \
 	../../libutils/regex.c \
 	../../libutils/pcre_wrap.c
@@ -171,7 +171,7 @@ file_lib_test_SOURCES = file_lib_test.c \
 	../../libutils/cleanup.c \
 	../../libutils/writer.c
 
-if WITH_PCRE
+if WITH_PCRE2
 file_lib_test_SOURCES += \
 	../../libutils/pcre_wrap.c \
 	../../libutils/regex.c
@@ -195,7 +195,7 @@ ipaddress_test_SOURCES = ipaddress_test.c \
 	../../libutils/cleanup.c \
 	../../libutils/writer.c
 
-if WITH_PCRE
+if WITH_PCRE2
 ipaddress_test_SOURCES += \
 	../../libutils/pcre_wrap.c \
 	../../libutils/regex.c

@@ -677,7 +677,7 @@ static void test_isipaddress(void)
 
 static void test_string_is_local_host_ip(void)
 {
-#ifdef WITH_PCRE
+#ifdef WITH_PCRE2
     // Test IPv6
     assert_true(StringIsLocalHostIP("0:0:0:0:0:0:0:1"));
     assert_true(StringIsLocalHostIP("0:0:0:0:0:0::1"));

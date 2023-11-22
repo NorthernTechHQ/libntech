@@ -26,10 +26,12 @@
 #include <buffer.h>
 #include <refcount.h>
 #include <misc_lib.h>
-#ifdef WITH_PCRE
-#include <pcre_wrap.h>
+#ifdef WITH_PCRE2
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #endif
 #include <string_lib.h>
+#include <logging.h>
 
 Buffer *BufferNewWithCapacity(size_t initial_capacity)
 {
@@ -436,38 +438,259 @@ int BufferVPrintf(Buffer *buffer, const char *format, va_list ap)
     return printed;
 }
 
-#ifdef WITH_PCRE
-// returns NULL on success, otherwise an error string
-const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern, const char *substitute, const char *options)
+#ifdef WITH_PCRE2
+static char *ExpandCFESpecialReplacements(const pcre2_code *regex,
+                                          const char *orig_str, size_t orig_str_len,
+                                          pcre2_match_data *md, const char *substitute)
 {
-    assert(buffer != NULL);
-    assert(pattern);
-    assert(substitute);
-    assert(options);
+    /* pcre2_substitute() supports '$n' backreferences in the substitution
+     * string, but not '\n' so we need to translate '\n' into '$n'.
+     */
+    /* And the regex_replace() CFEngine policy function needs this:
+     *   In addition, $+ is replaced with the capture count. $' (dollar sign +
+     *   single quote) is the part of the string after the regex match. $`
+     *   (dollar sign + backtick) is the part of the string before the regex
+     *   match. $& holds the entire regex match.
+     */
 
-    int err;
-
-    pcre_wrap_job *job = pcre_wrap_compile(pattern, substitute, options, &err);
-    if (job == NULL)
+    char *special_char = strpbrk(substitute, "$\\");
+    if (special_char == NULL)
     {
-        return pcre_wrap_strerror(err);
+        /* no backslashes and dollar signs => nothing to do */
+        return NULL;
+    }
+    char *backslash = (*special_char == '\\' ? special_char : strchr(substitute, '\\'));
+    if ((backslash == NULL) &&
+        !StringContains(substitute, "$+") &&
+        !StringContains(substitute, "$'") &&
+        !StringContains(substitute, "$`") &&
+        !StringContains(substitute, "$&"))
+    {
+            /* no special sequences => nothing to do */
+            return NULL;
+    }
+    /* else we probably need to do some replacements */
+    const size_t subst_len = strlen(substitute);
+    Buffer *new_subst_buf = BufferNewWithCapacity(subst_len);
+
+    /* First, let's replace the special $-sequences. */
+    uint32_t n_captures = 0;
+    NDEBUG_UNUSED int ret = pcre2_pattern_info(regex, PCRE2_INFO_CAPTURECOUNT, &n_captures);
+    assert(ret == 0); /* can't really fail */
+
+    size_t *ovec = pcre2_get_ovector_pointer(md);
+    const char *match_start = orig_str + ovec[0];
+    const char *match_end = orig_str + ovec[1];
+
+    const char *dollar = strchr(substitute, '$');
+    const char *subst_offset = substitute;
+    while (dollar != NULL)
+    {
+        if (dollar[1] == '+')
+        {
+            BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
+            BufferAppendF(new_subst_buf, "%"PRIu32, n_captures);
+            subst_offset = dollar + 2;
+        }
+        else if (dollar[1] == '`')
+        {
+            BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
+            BufferAppend(new_subst_buf, orig_str, match_start - orig_str);
+            subst_offset = dollar + 2;
+        }
+        else if (dollar[1] == '\'')
+        {
+            BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
+            BufferAppend(new_subst_buf, match_end, (orig_str + orig_str_len) - match_end);
+            subst_offset = dollar + 2;
+        }
+        else if (dollar[1] == '&')
+        {
+            BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
+            BufferAppend(new_subst_buf, match_start, match_end - match_start);
+            subst_offset = dollar + 2;
+        }
+        /* else a $-sequence we don't care about here */
+
+        dollar = strchr(dollar + 1, '$');
+    }
+    BufferAppend(new_subst_buf, subst_offset, (substitute + subst_len) - subst_offset);
+
+    /* Now, let's deal with the \n sequences (if any)*/
+    if (backslash != NULL)
+    {
+        /* start with the first backslash in the substitute copy */
+        char *buf_data = BufferGet(new_subst_buf);
+        backslash = strchr(buf_data, '\\');
+        assert(backslash != NULL); /* must still be there */
+        do
+        {
+            /* it's safe to check the byte after the backslash because it will
+             * either be the next character or the NUL byte */
+            if (isdigit(backslash[1]))
+            {
+                backslash[0] = '$';
+            }
+            backslash = strchr(backslash + 1, '\\');
+        } while (backslash != NULL);
     }
 
-    size_t length = BufferSize(buffer);
-    char *result;
-    if (0 > (err = pcre_wrap_execute(job, (char*)BufferData(buffer), length, &result, &length)))
-    {
-        return pcre_wrap_strerror(err);
-    }
-
-    BufferSet(buffer, result, length);
-    free(result);
-    pcre_wrap_free_job(job);
-
-    return NULL;
+    return BufferClose(new_subst_buf);
 }
 
-#endif // WITH_PCRE
+// returns NULL on success, otherwise an error string
+const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern,
+                                   const char *substitute, const char *options)
+{
+    assert(buffer != NULL);
+    assert(pattern != NULL);
+    assert(substitute != NULL);
+    assert(options != NULL);
+
+    static const char *replacement_error_msg = "regex replacement error (see logs for details)";
+
+    /* no default compile opts */
+    uint32_t compile_opts = 0;
+
+    /* ensure we get the needed buffer size | substitute with the first match done */
+    uint32_t subst_opts = PCRE2_SUBSTITUTE_OVERFLOW_LENGTH | PCRE2_SUBSTITUTE_MATCHED;
+
+    for (const char *opt_c = options; *opt_c != '\0'; opt_c++)
+    {
+        switch(*opt_c)
+        {
+        case 'i':
+            compile_opts |= PCRE2_CASELESS;
+            break;
+        case 'm':
+            compile_opts |= PCRE2_MULTILINE;
+            break;
+        case 's':
+            compile_opts |= PCRE2_DOTALL;
+            break;
+        case 'x':
+            compile_opts |= PCRE2_EXTENDED;
+            break;
+        case 'U':
+            compile_opts |= PCRE2_UNGREEDY;
+            break;
+        case 'g':
+            subst_opts |= PCRE2_SUBSTITUTE_GLOBAL;
+            break;
+        case 'T':
+            subst_opts |= PCRE2_SUBSTITUTE_LITERAL;
+            break;
+        default:
+            assert(false);
+            Log(LOG_LEVEL_WARNING, "Unsupported regex option '%c'", *opt_c);
+        }
+    }
+
+    int err_code;
+    PCRE2_SIZE err_offset;
+    pcre2_code *regex = pcre2_compile((PCRE2_SPTR) pattern, PCRE2_ZERO_TERMINATED,
+                                      compile_opts, &err_code, &err_offset, NULL);
+    if (regex == NULL)
+    {
+        char err_msg[128];
+        if (pcre2_get_error_message(err_code, (PCRE2_UCHAR*) err_msg, sizeof(err_msg)) !=
+            PCRE2_ERROR_BADDATA)
+        {
+            Log(LOG_LEVEL_ERR, "Failed to compile regex from pattern '%s': '%s' [offset: %zd]",
+                pattern, err_msg, err_offset);
+        }
+        else
+        {
+            Log(LOG_LEVEL_ERR, "Failed to compile regex from pattern '%s'", pattern);
+        }
+        return replacement_error_msg;
+    }
+
+    pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(regex, NULL);
+    int ret = pcre2_match(regex, (PCRE2_SPTR) BufferData(buffer), BufferSize(buffer),
+                          0, 0, match_data, NULL);
+    assert(ret != 0); /* too small ovector in match_data which should never happen */
+    if (ret < -1)
+    {
+        /* error */
+        pcre2_match_data_free(match_data);
+        pcre2_code_free(regex);
+        char err_msg[128];
+        if (pcre2_get_error_message(err_code, (PCRE2_UCHAR*) err_msg, sizeof(err_msg)) !=
+            PCRE2_ERROR_BADDATA)
+        {
+            Log(LOG_LEVEL_ERR, "Match error with pattern '%s' on '%s': '%s'",
+                pattern, BufferData(buffer), err_msg);
+        }
+        else
+        {
+            Log(LOG_LEVEL_ERR, "Unknown match error with pattern '%s' on '%s'",
+                pattern, BufferData(buffer));
+        }
+        return replacement_error_msg;
+    }
+    else if (ret == -1)
+    {
+        /* no match => no change needed in the buffer*/
+        pcre2_match_data_free(match_data);
+        pcre2_code_free(regex);
+        return NULL;
+    }
+    /* else: some match */
+
+    char *subst_copy = ExpandCFESpecialReplacements(regex, BufferData(buffer), BufferSize(buffer),
+                                                    match_data, substitute);
+    if (subst_copy != NULL)
+    {
+        substitute = subst_copy;
+    }
+
+    /* We don't know how much space we will need for the result, let's start
+     * with twice the size of the input and expand it if needed. */
+    bool had_enough_space = false;
+    size_t out_size = BufferSize(buffer) * 2;
+    char *result = xmalloc(out_size);
+    while (!had_enough_space)
+    {
+        ret = pcre2_substitute(regex, (PCRE2_SPTR) BufferData(buffer), BufferSize(buffer),
+                               0, subst_opts, match_data, NULL,
+                               (PCRE2_SPTR) substitute, PCRE2_ZERO_TERMINATED,
+                               result, &out_size);
+        if (ret == PCRE2_ERROR_NOMEMORY)
+        {
+            result = xrealloc(result, out_size);
+        }
+        had_enough_space = (ret != PCRE2_ERROR_NOMEMORY);
+    }
+
+    if (ret < 0)
+    {
+        char err_msg[128];
+        if (pcre2_get_error_message(ret, (PCRE2_UCHAR*) err_msg, sizeof(err_msg)) !=
+            PCRE2_ERROR_BADDATA)
+        {
+            Log(LOG_LEVEL_ERR,
+                "Regular expression replacement error: '%s' (replacing '%s' in '%s')",
+                err_msg, substitute, BufferData(buffer));
+        }
+        else
+        {
+            Log(LOG_LEVEL_ERR,
+                "Unknown regular expression replacement error (replacing '%s' in '%s')",
+                substitute, BufferData(buffer));
+        }
+    }
+    BufferSet(buffer, result, out_size);
+
+    pcre2_match_data_free(match_data);
+    pcre2_code_free(regex);
+    free(result);
+    free(subst_copy);
+
+    return (ret >= 0) ? NULL : replacement_error_msg;
+}
+
+#endif // WITH_PCRE2
 
 void BufferClear(Buffer *buffer)
 {

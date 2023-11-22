@@ -35,7 +35,7 @@
 #include <misc_lib.h>
 #include <file_lib.h>
 #include <printsize.h>
-#ifdef WITH_PCRE
+#ifdef WITH_PCRE2
 #include <regex.h>
 #endif
 #include <buffer.h>
@@ -2926,27 +2926,27 @@ bool JsonErrorVisitor(ARG_UNUSED JsonElement *element, ARG_UNUSED void *data)
 
 /*******************************************************************/
 
-#ifdef WITH_PCRE
+#ifdef WITH_PCRE2
 #include <json-pcre.h>
 
 // returns NULL on any failure
 // takes either a pre-compiled pattern OR a regex (one of the two shouldn't be
 // NULL)
 JsonElement *StringCaptureData(
-    pcre *const pattern, const char *const regex, const char *const data)
+    const pcre2_code *const regex, const char *const pattern, const char *const data)
 {
     assert(regex != NULL || pattern != NULL);
     assert(data != NULL);
 
     Seq *s;
 
-    if (pattern != NULL)
+    if (regex != NULL)
     {
-        s = StringMatchCapturesWithPrecompiledRegex(pattern, data, true);
+        s = StringMatchCapturesWithPrecompiledRegex(regex, data, true);
     }
     else
     {
-        s = StringMatchCaptures(regex, data, true);
+        s = StringMatchCaptures(pattern, data, true);
     }
 
     const size_t length = (s != NULL) ? SeqLength(s) : 0;
@@ -2973,4 +2973,4 @@ JsonElement *StringCaptureData(
     return json;
 }
 
-#endif // WITH_PCRE
+#endif // WITH_PCRE2
