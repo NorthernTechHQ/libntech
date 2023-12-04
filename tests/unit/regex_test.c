@@ -63,6 +63,56 @@ static void test_match_with_captures(void)
     SeqDestroy(ret);
 }
 
+void test_search_and_replace(void)
+{
+    Buffer *buf = BufferNewFrom("abcd", 4);
+    const char *err = BufferSearchAndReplace(buf, "b", "B", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "aBcd");
+
+    err = BufferSearchAndReplace(buf, "cd$", "CDef", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "aBCDef");
+
+    err = BufferSearchAndReplace(buf, "([A-Z]{2})([a-z]{2})", "$2$1", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "aBefCD");
+
+    err = BufferSearchAndReplace(buf, "([a-z]{2})([A-Z]{2})", "\\2\\1", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "aBCDef");
+
+    err = BufferSearchAndReplace(buf, "abcdef", "abcd", "i");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "abcd");
+
+    err = BufferSearchAndReplace(buf, "bc", "$`$'", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "aadd");
+
+    err = BufferSearchAndReplace(buf, "aadd", "$`$'abcd", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "abcd");
+
+    err = BufferSearchAndReplace(buf, "a([a-z])([a-z])d", "a$2$1d [$+]", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "acbd [2]");
+
+    err = BufferSearchAndReplace(buf, "a([a-z])([a-z])d", "a$2$1d [$&]", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "abcd [acbd] [2]");
+
+    err = BufferSearchAndReplace(buf, "a", "A", "g");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "Abcd [Acbd] [2]");
+
+    err = BufferSearchAndReplace(buf, "(\\w+).*", "$1", "");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "Abcd");
+
+    BufferDestroy(buf);
+}
+
 
 int main()
 {
@@ -72,6 +122,7 @@ int main()
         unit_test(test_match),
         unit_test(test_match_full),
         unit_test(test_match_with_captures),
+        unit_test(test_search_and_replace),
     };
 
     return run_tests(tests);
