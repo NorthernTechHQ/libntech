@@ -165,7 +165,7 @@ void test_stringset_add_f(void) {
 
     StringSetAddF(set, "Hello %s!", "CFEngine");
     StringSetAddF(set, "Bye CFEngine!");
-    StringSetAddF(set, "");
+    StringSetAdd(set, xstrdup(""));
 
     assert_true(StringSetContains(set, "Hello CFEngine!"));
     assert_true(StringSetContains(set, "Bye CFEngine!"));
