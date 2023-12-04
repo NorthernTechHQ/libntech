@@ -2025,7 +2025,7 @@ static void test_json_object_merge_deep()
     /* This unit test tests both JsonMergeObjectDeep and
      * JsonMergeObjectDeepInplace */
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{}",
         // extra
@@ -2034,7 +2034,7 @@ static void test_json_object_merge_deep()
         "{}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{}",
         // extra
@@ -2047,7 +2047,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {}"
@@ -2060,7 +2060,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {}"
@@ -2075,7 +2075,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {}"
@@ -2094,7 +2094,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {"
@@ -2125,7 +2125,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"classes\": {"
@@ -2167,7 +2167,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {"
@@ -2194,7 +2194,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {"
@@ -2221,7 +2221,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {"
@@ -2248,7 +2248,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {"
@@ -2275,7 +2275,7 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert(check_json_object_merge_deep(
+    assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {"
