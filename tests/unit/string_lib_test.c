@@ -4,10 +4,6 @@
 #include <alloc.h>
 #include <encode.h>
 
-#ifdef WITH_PCRE
-#include <regex.h>
-#endif
-
 #include <test.h>
 
 static const char *lo_alphabet = "abcdefghijklmnopqrstuvwxyz";
@@ -896,27 +892,6 @@ static void test_is_string_in_array(void)
     free(new_array);
 }
 
-static void test_match(void)
-{
-#ifdef WITH_PCRE
-    assert_true(StringMatch("^a.*$", "abc", NULL, NULL));
-    assert_true(StringMatch("a", "a", NULL, NULL));
-    assert_true(StringMatch("a", "ab", NULL, NULL));
-    assert_false(StringMatch("^a.*$", "bac", NULL, NULL));
-#endif // WITH_PCRE
-}
-
-
-static void test_match_full(void)
-{
-#ifdef WITH_PCRE
-    assert_true(StringMatchFull("^a.*$", "abc"));
-    assert_true(StringMatchFull("a", "a"));
-    assert_false(StringMatchFull("a", "ab"));
-    assert_false(StringMatchFull("^a.*$", "bac"));
-#endif // WITH_PCRE
-}
-
 static void test_encode_base64(void)
 {
 #ifdef WITH_OPENSSL
@@ -1561,9 +1536,6 @@ int main()
         unit_test(test_safe_equal_ignore_case),
         unit_test(test_safe_equal_n),
         unit_test(test_is_string_in_array),
-
-        unit_test(test_match),
-        unit_test(test_match_full),
 
         unit_test(test_encode_base64),
 

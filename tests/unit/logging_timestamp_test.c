@@ -3,8 +3,9 @@
 #include <test.h>
 #include <logging.h>
 
-#ifdef WITH_PCRE
-#include <pcre.h>
+#ifdef WITH_PCRE2
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #endif
 
 static void test_timestamp_regex(void)
@@ -33,14 +34,17 @@ static void test_timestamp_regex(void)
     assert_true(pipe_read_end != NULL);
     assert_true(fgets(buf, sizeof(buf), pipe_read_end) != NULL);
 
-#ifdef WITH_PCRE
-    const char *errptr;
-    int erroffset;
-    pcre *regex = pcre_compile(LOGGING_TIMESTAMP_REGEX, PCRE_MULTILINE, &errptr, &erroffset, NULL);
+#ifdef WITH_PCRE2
+    int err_code;
+    size_t err_offset;
+    pcre2_code *regex = pcre2_compile(LOGGING_TIMESTAMP_REGEX, PCRE2_ZERO_TERMINATED,
+                                      PCRE2_MULTILINE, &err_code, &err_offset, NULL);
     assert_true(regex != NULL);
-    assert_true(pcre_exec(regex, NULL, buf, strlen(buf), 0, 0, NULL, 0) >= 0);
-    pcre_free(regex);
-#endif // WITH_PCRE
+    pcre2_match_data *md = pcre2_match_data_create(0, NULL);
+    assert_true(pcre2_match(regex, (PCRE2_SPTR) buf, PCRE2_ZERO_TERMINATED, 0, 0, md, NULL) >= 1);
+    pcre2_match_data_free(md);
+    pcre2_code_free(regex);
+#endif // WITH_PCRE2
 
     fclose(pipe_read_end);
     close(pipe_fd[0]);

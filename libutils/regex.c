@@ -31,99 +31,108 @@
 
 #include <buffer.h>
 
-#define STRING_MATCH_OVECCOUNT 30
-
-pcre *CompileRegex(const char *regex)
+pcre2_code *CompileRegex(const char *pattern)
 {
-    const char *errorstr;
-    int erroffset;
+    int err_code;
+    size_t err_offset;
+    pcre2_code *regex = pcre2_compile((PCRE2_SPTR) pattern, PCRE2_ZERO_TERMINATED,
+                                      PCRE2_MULTILINE | PCRE2_DOTALL,
+                                      &err_code, &err_offset, NULL);
 
-    pcre *rx = pcre_compile(regex, PCRE_MULTILINE | PCRE_DOTALL,
-                            &errorstr, &erroffset, NULL);
-
-    if (!rx)
+    if (regex != NULL)
     {
-        Log(LOG_LEVEL_ERR,
-            "Regular expression error: pcre_compile() '%s' in expression '%s' (offset: %d)",
-            errorstr, regex, erroffset);
+        return regex;
     }
 
-    return rx;
+    char err_msg[128];
+    if (pcre2_get_error_message(err_code, (PCRE2_UCHAR*) err_msg, sizeof(err_msg)) !=
+        PCRE2_ERROR_BADDATA)
+    {
+        Log(LOG_LEVEL_ERR,
+            "Regular expression error: '%s' in expression '%s' (offset: %zd)",
+            err_msg, pattern, err_offset);
+    }
+    else
+    {
+        Log(LOG_LEVEL_ERR,
+            "Unknown regular expression error expression '%s' (offset: %zd)",
+            pattern, err_offset);
+    }
+    return NULL;
 }
 
-bool StringMatchWithPrecompiledRegex(pcre *regex, const char *str, size_t *start, size_t *end)
+bool StringMatchWithPrecompiledRegex(const pcre2_code *regex, const char *str,
+                                     size_t *start, size_t *end)
 {
-    assert(regex);
-    assert(str);
+    assert(regex != NULL);
+    assert(str != NULL);
 
-    int ovector[STRING_MATCH_OVECCOUNT] = { 0 };
-    int result = pcre_exec(regex, NULL, str, strlen(str),
-                           0, 0, ovector, STRING_MATCH_OVECCOUNT);
+    pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(regex, NULL);
+    int result = pcre2_match(regex, (PCRE2_SPTR) str, PCRE2_ZERO_TERMINATED,
+                             0, 0, match_data, NULL);
 
-    if (result)
+    if (result > 0)
     {
-        if (start)
+        size_t *ovec = pcre2_get_ovector_pointer(match_data);
+        if (start != NULL)
         {
-            *start = ovector[0];
+            *start = ovec[0];
         }
-        if (end)
+        if (end != NULL)
         {
-            *end = ovector[1];
+            *end = ovec[1];;
         }
     }
     else
     {
-        if (start)
+        if (start != NULL)
         {
             *start = 0;
         }
-        if (end)
+        if (end != NULL)
         {
             *end = 0;
         }
     }
 
-    return result >= 0;
+    pcre2_match_data_free(match_data);
+    return result > 0;
 }
 
-bool StringMatch(const char *regex, const char *str, size_t *start, size_t *end)
+bool StringMatch(const char *pattern, const char *str, size_t *start, size_t *end)
 {
-    pcre *pattern = CompileRegex(regex);
+    pcre2_code *regex = CompileRegex(pattern);
 
-    if (pattern == NULL)
+    if (regex == NULL)
     {
         return false;
     }
 
-    bool ret = StringMatchWithPrecompiledRegex(pattern, str, start, end);
-
-    pcre_free(pattern);
+    bool ret = StringMatchWithPrecompiledRegex(regex, str, start, end);
+    pcre2_code_free(regex);
     return ret;
-
 }
 
-bool StringMatchFull(const char *regex, const char *str)
+bool StringMatchFull(const char *pattern, const char *str)
 {
-    pcre *pattern = CompileRegex(regex);
-
-    if (pattern == NULL)
+    pcre2_code *regex = CompileRegex(pattern);
+    if (regex == NULL)
     {
         return false;
     }
 
-    bool ret = StringMatchFullWithPrecompiledRegex(pattern, str);
-
-    pcre_free(pattern);
+    bool ret = StringMatchFullWithPrecompiledRegex(regex, str);
+    pcre2_code_free(regex);
     return ret;
 }
 
-bool StringMatchFullWithPrecompiledRegex(pcre *pattern, const char *str)
+bool StringMatchFullWithPrecompiledRegex(const pcre2_code *regex, const char *str)
 {
-    size_t start = 0, end = 0;
-
-    if (StringMatchWithPrecompiledRegex(pattern, str, &start, &end))
+    size_t start;
+    size_t end;
+    if (StringMatchWithPrecompiledRegex(regex, str, &start, &end))
     {
-        return (start == 0U) && (end == strlen(str));
+        return (start == (size_t) 0) && (end == strlen(str));
     }
     else
     {
@@ -140,54 +149,60 @@ bool StringMatchFullWithPrecompiledRegex(pcre *pattern, const char *str)
 
 // If return_names is not set, only the captured data is returned (so
 // for N captures you can expect N elements in the Sequence).
-Seq *StringMatchCapturesWithPrecompiledRegex(const pcre *pattern, const char *str, const bool return_names)
+Seq *StringMatchCapturesWithPrecompiledRegex(const pcre2_code *regex, const char *str, const bool return_names)
 {
-    int captures;
-    int res = pcre_fullinfo(pattern, NULL, PCRE_INFO_CAPTURECOUNT, &captures);
+    pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(regex, NULL);
+    int result = pcre2_match(regex, (PCRE2_SPTR) str, PCRE2_ZERO_TERMINATED,
+                             0, 0, match_data, NULL);
+    /* pcre2_match() returns the highest capture group number + 1, i.e. 1 means
+     * a match with 0 capture groups. 0 means the vector of offsets is small,
+     * negative numbers are errors (incl. no match). */
+    if (result < 1)
+    {
+        pcre2_match_data_free(match_data);
+        return NULL;
+    }
+
+    uint32_t captures;
+    int res = pcre2_pattern_info(regex, PCRE2_INFO_CAPTURECOUNT, &captures);
     if (res != 0)
     {
+        pcre2_match_data_free(match_data);
         return NULL;
     }
 
-    // Get the table of named captures.
-    unsigned char *name_table = NULL; // Doesn't have to be freed as per docs.
-    int namecount = 0;
-    int name_entry_size = 0;
-    unsigned char *tabptr;
+    uint32_t namecount = 0;
+    res = pcre2_pattern_info(regex, PCRE2_INFO_NAMECOUNT, &namecount);
+    assert(res == 0);
 
-    pcre_fullinfo(pattern, NULL, PCRE_INFO_NAMECOUNT, &namecount);
+    const bool do_named_captures = (namecount > 0 && return_names);
 
-    const bool have_named_captures = (namecount > 0 && return_names);
-
-    if (have_named_captures)
+    // Get the table of named captures (see explanation below).
+    uint32_t name_entry_size = 0;
+    unsigned char *name_table = NULL;
+    if (do_named_captures)
     {
-        pcre_fullinfo(pattern, NULL, PCRE_INFO_NAMETABLE, &name_table);
-        pcre_fullinfo(pattern, NULL, PCRE_INFO_NAMEENTRYSIZE, &name_entry_size);
+        res = pcre2_pattern_info(regex, PCRE2_INFO_NAMEENTRYSIZE, &name_entry_size);
+        assert(res == 0);
+        res = pcre2_pattern_info(regex, PCRE2_INFO_NAMETABLE, &name_table);
+        assert(res == 0);
     }
 
-    int *ovector = xmalloc(sizeof(int) * (captures + 1) * 3);
-
-    int result = pcre_exec(pattern, NULL, str, strlen(str),
-                           0, 0, ovector, (captures + 1) * 3);
-
-    if (result <= 0)
-    {
-        free(ovector);
-        return NULL;
-    }
-
+    size_t *ovector = pcre2_get_ovector_pointer(match_data);
     Seq *ret = SeqNew(captures + 1, BufferDestroy);
-    for (int i = 0; i <= captures; ++i)
+    for (uint32_t i = 0; i <= captures; ++i)
     {
         Buffer *capture = NULL;
-
-        if (have_named_captures)
+        if (do_named_captures)
         {
-            // The overhead of doing a nested name scan is negligible.
-            tabptr = name_table;
-            for (int namepos = 0; namepos < namecount; namepos++)
+            /* The map contains $namecount entries each with:
+             * - 2 bytes representing the position of the capture group in the offset vector
+             * - followed by the name of the named group, NUL-terminated.
+             * Each entry is padded to be $name_entry_size bytes big. */
+            unsigned char *tabptr = name_table;
+            for (uint32_t namepos = 0; namepos < namecount; namepos++)
             {
-                int n = (tabptr[0] << 8) | tabptr[1];
+                uint16_t n = (tabptr[0] << 8) | tabptr[1];
                 if (n == i) // We found the position
                 {
                     capture = BufferNewFrom((char *)(tabptr + 2), name_entry_size - 3);
@@ -202,7 +217,7 @@ Seq *StringMatchCapturesWithPrecompiledRegex(const pcre *pattern, const char *st
             if (capture == NULL)
             {
                 capture = BufferNew();
-                BufferAppendF(capture, "%d", i);
+                BufferAppendF(capture, "%"PRIu32, i);
             }
 
             SeqAppend(ret, capture);
@@ -210,11 +225,14 @@ Seq *StringMatchCapturesWithPrecompiledRegex(const pcre *pattern, const char *st
 
         Buffer *data = BufferNewFrom(str + ovector[2*i],
                                      ovector[2*i + 1] - ovector[2 * i]);
-        Log(LOG_LEVEL_DEBUG, "StringMatchCaptures: return_names = %d, have_named_captures = %d, offset %d, name '%s', data '%s'", return_names, have_named_captures, i, capture == NULL ? "no_name" : BufferData(capture), BufferData(data));
+        Log(LOG_LEVEL_DEBUG,
+            "StringMatchCaptures: return_names = %d, do_named_captures = %s, offset %d, name '%s', data '%s'",
+            return_names, do_named_captures ? "true" : "false", i,
+            capture == NULL ? "no_name" : BufferData(capture), BufferData(data));
         SeqAppend(ret, data);
     }
 
-    free(ovector);
+    pcre2_match_data_free(match_data);
     return ret;
 }
 
@@ -228,26 +246,23 @@ Seq *StringMatchCapturesWithPrecompiledRegex(const pcre *pattern, const char *st
 // If return_names is not set, only the captured data is returned (so
 // for N captures you can expect N elements in the Sequence).
 
-Seq *StringMatchCaptures(const char *regex, const char *str, const bool return_names)
+Seq *StringMatchCaptures(const char *pattern, const char *str, const bool return_names)
 {
-    assert(regex);
+    assert(pattern);
     assert(str);
 
-    pcre *pattern = NULL;
-    {
-        const char *errorstr;
-        int erroffset;
-        pattern = pcre_compile(regex, PCRE_MULTILINE | PCRE_DOTALL,
-                               &errorstr, &erroffset, NULL);
-    }
-
-    if (pattern == NULL)
+    int err_code;
+    size_t err_offset;
+    pcre2_code *regex = pcre2_compile((PCRE2_SPTR) pattern, PCRE2_ZERO_TERMINATED,
+                                      PCRE2_MULTILINE | PCRE2_DOTALL,
+                                      &err_code, &err_offset, NULL);
+    if (regex == NULL)
     {
         return NULL;
     }
 
-    Seq *ret = StringMatchCapturesWithPrecompiledRegex(pattern, str, return_names);
-    pcre_free(pattern);
+    Seq *ret = StringMatchCapturesWithPrecompiledRegex(regex, str, return_names);
+    pcre2_code_free(regex);
     return ret;
 }
 
@@ -274,10 +289,14 @@ bool CompareStringOrRegex(const char *value, const char *compareTo, bool regex)
  * This is a fast partial match function. It checks that the compiled rx matches
  * anywhere inside teststring. It does not allocate or free rx!
  */
-bool RegexPartialMatch(const pcre *rx, const char *teststring)
+bool RegexPartialMatch(const pcre2_code *regex, const char *teststring)
 {
-    int ovector[STRING_MATCH_OVECCOUNT];
-    int rc = pcre_exec(rx, NULL, teststring, strlen(teststring), 0, 0, ovector, STRING_MATCH_OVECCOUNT);
+    pcre2_match_data *md = pcre2_match_data_create_from_pattern(regex, NULL);
+    int rc = pcre2_match(regex, (PCRE2_SPTR) teststring, PCRE2_ZERO_TERMINATED, 0, 0, md, NULL);
+    pcre2_match_data_free(md);
 
-    return rc >= 0;
+    /* pcre2_match() returns the highest capture group number + 1, i.e. 1 means
+     * a match with 0 capture groups. 0 means the vector of offsets is small,
+     * negative numbers are errors (incl. no match). */
+    return rc >= 1;
 }

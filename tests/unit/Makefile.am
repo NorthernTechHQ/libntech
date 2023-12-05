@@ -70,10 +70,9 @@ libstr_la_SOURCES += \
 	../../libutils/encode.c
 endif
 
-if WITH_PCRE
+if WITH_PCRE2
 libstr_la_SOURCES += \
-	../../libutils/regex.c \
-	../../libutils/pcre_wrap.c
+	../../libutils/regex.c
 endif
 
 check_PROGRAMS = \
@@ -111,6 +110,11 @@ check_PROGRAMS = \
 	ring_buffer_test \
 	libcompat_test \
 	definitions_test
+
+if WITH_PCRE2
+check_PROGRAMS += \
+	regex_test
+endif
 
 if WITH_OPENSSL
 check_PROGRAMS += \
@@ -171,9 +175,8 @@ file_lib_test_SOURCES = file_lib_test.c \
 	../../libutils/cleanup.c \
 	../../libutils/writer.c
 
-if WITH_PCRE
+if WITH_PCRE2
 file_lib_test_SOURCES += \
-	../../libutils/pcre_wrap.c \
 	../../libutils/regex.c
 endif
 
@@ -195,9 +198,8 @@ ipaddress_test_SOURCES = ipaddress_test.c \
 	../../libutils/cleanup.c \
 	../../libutils/writer.c
 
-if WITH_PCRE
+if WITH_PCRE2
 ipaddress_test_SOURCES += \
-	../../libutils/pcre_wrap.c \
 	../../libutils/regex.c
 endif
 

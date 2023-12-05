@@ -28,12 +28,13 @@
 #include <stdbool.h> // bool
 
 /* Set by ./configure allowing us to avoid #include <config.h> here. */
-@WITH_PCRE_DEFINE@
+@WITH_PCRE2_DEFINE@
 
-#ifdef WITH_PCRE
-#include <pcre.h>
+#ifdef WITH_PCRE2
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #else
-#error "Regex functionality requires PCRE"
+#error "Regex functionality requires PCRE2"
 #endif
 
 #include <sequence.h>                                           /* Seq */
@@ -41,17 +42,17 @@
 #define CFENGINE_REGEX_WHITESPACE_IN_CONTEXTS ".*[_A-Za-z0-9][ \\t]+[_A-Za-z0-9].*"
 
 /* Try to use CompileRegex() and StringMatchWithPrecompiledRegex(). */
-pcre *CompileRegex(const char *regex);
-bool StringMatch(const char *regex, const char *str, size_t *start, size_t *end);
-bool StringMatchWithPrecompiledRegex(pcre *regex, const char *str,
+pcre2_code *CompileRegex(const char *pattern);
+bool StringMatch(const char *pattern, const char *str, size_t *start, size_t *end);
+bool StringMatchWithPrecompiledRegex(const pcre2_code *regex, const char *str,
                                      size_t *start, size_t *end);
-bool StringMatchFull(const char *regex, const char *str);
-bool StringMatchFullWithPrecompiledRegex(pcre *regex, const char *str);
-Seq *StringMatchCaptures(const char *regex, const char *str, const bool return_names);
-Seq *StringMatchCapturesWithPrecompiledRegex(const pcre *pattern, const char *str, const bool return_names);
+bool StringMatchFull(const char *pattern, const char *str);
+bool StringMatchFullWithPrecompiledRegex(const pcre2_code *regex, const char *str);
+Seq *StringMatchCaptures(const char *pattern, const char *str, const bool return_names);
+Seq *StringMatchCapturesWithPrecompiledRegex(const pcre2_code *pattern, const char *str, const bool return_names);
 bool CompareStringOrRegex(const char *value, const char *compareTo, bool regex);
 
 /* Does not free rx! */
-bool RegexPartialMatch(const pcre *rx, const char *teststring);
+bool RegexPartialMatch(const pcre2_code *regex, const char *teststring);
 
 #endif  /* CFENGINE_REGEX_H */

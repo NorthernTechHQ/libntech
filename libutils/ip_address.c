@@ -28,7 +28,7 @@
 #include <ip_address.h>
 #include <alloc.h>
 
-#ifdef WITH_PCRE
+#ifdef WITH_PCRE2
 #include <regex.h>
 #endif
 
@@ -1335,7 +1335,7 @@ bool IPAddressIsIPAddress(Buffer *source, IPAddress **address)
     return true;
 }
 
-#ifdef WITH_PCRE
+#ifdef WITH_PCRE2
 bool StringIsLocalHostIP(const char *str)
 {
     const char *regex =
