@@ -293,9 +293,14 @@ else
 fi
 
 dnl PCRE2
+AC_ARG_WITH([pcre], [AS_HELP_STRING([--with-pcre=no], [Disable PCRE (only for backwards compatibility)])], [], [with_pcre=default])
+if test "x$with_pcre" != "xdefault" && test "x$with_pcre" != "xno"; then
+  AC_MSG_ERROR([PCRE no longer supported, use PCRE2]);
+fi
+
 AC_ARG_WITH([pcre2], [AS_HELP_STRING([--with-pcre2[[=PATH]]], [Specify PCRE2 path])], [], [with_pcre2=yes])
 
-if test "x$with_pcre2" != "xno"; then
+if test "x$with_pcre" != "xno" && test "x$with_pcre2" != "xno"; then
   CF3_WITH_LIBRARY(pcre2, [
     AC_CHECK_LIB(pcre2-8, pcre2_compile_8, [], [AC_MSG_ERROR(Cannot find PCRE2)])
     AC_CHECK_HEADERS(
