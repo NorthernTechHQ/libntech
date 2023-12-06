@@ -451,77 +451,104 @@ static char *ExpandCFESpecialReplacements(const pcre2_code *regex,
      *   single quote) is the part of the string after the regex match. $`
      *   (dollar sign + backtick) is the part of the string before the regex
      *   match. $& holds the entire regex match.
+     *
+     * Moreover, according to the function's acceptance tests, backreferences
+     * with no respective capture group should be replaced with empty strings.
      */
 
-    char *special_char = strpbrk(substitute, "$\\");
-    if (special_char == NULL)
+    bool has_special_seq = false;
+    bool has_backslash_bref = false;
+    int highest_bref = -1;
+    for (const char *c = substitute; *c != '\0'; c++)
     {
-        /* no backslashes and dollar signs => nothing to do */
-        return NULL;
+        if ((c[0] == '$') &&
+            ((c[1] == '+') || (c[1] == '`') || (c[1] == '\'') || (c[1] == '&')))
+        {
+            has_special_seq = true;
+        }
+        else if ((c[0] == '\\') && isdigit(c[1]))
+        {
+            has_backslash_bref = true;
+            if ((c[1] - '0') > highest_bref)
+            {
+                highest_bref = c[1] - '0';
+            }
+        }
+        else if ((c[0] == '$') && isdigit(c[1]) && ((c[1] - '0') > highest_bref))
+        {
+            highest_bref = c[1] - '0';
+        }
     }
-    char *backslash = (*special_char == '\\' ? special_char : strchr(substitute, '\\'));
-    if ((backslash == NULL) &&
-        !StringContains(substitute, "$+") &&
-        !StringContains(substitute, "$'") &&
-        !StringContains(substitute, "$`") &&
-        !StringContains(substitute, "$&"))
-    {
-            /* no special sequences => nothing to do */
-            return NULL;
-    }
-    /* else we probably need to do some replacements */
-    const size_t subst_len = strlen(substitute);
-    Buffer *new_subst_buf = BufferNewWithCapacity(subst_len);
 
-    /* First, let's replace the special $-sequences. */
-    uint32_t n_captures = 0;
-    NDEBUG_UNUSED int ret = pcre2_pattern_info(regex, PCRE2_INFO_CAPTURECOUNT, &n_captures);
+    uint32_t n_captures_info = 0;
+    NDEBUG_UNUSED int ret = pcre2_pattern_info(regex, PCRE2_INFO_CAPTURECOUNT, &n_captures_info);
     assert(ret == 0); /* can't really fail */
 
-    size_t *ovec = pcre2_get_ovector_pointer(md);
-    const char *match_start = orig_str + ovec[0];
-    const char *match_end = orig_str + ovec[1];
-
-    const char *dollar = strchr(substitute, '$');
-    const char *subst_offset = substitute;
-    while (dollar != NULL)
+    /* for signed comparisons */
+    int n_captures = n_captures_info;
+    if (!has_special_seq && !has_backslash_bref && (highest_bref <= n_captures))
     {
-        if (dollar[1] == '+')
-        {
-            BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
-            BufferAppendF(new_subst_buf, "%"PRIu32, n_captures);
-            subst_offset = dollar + 2;
-        }
-        else if (dollar[1] == '`')
-        {
-            BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
-            BufferAppend(new_subst_buf, orig_str, match_start - orig_str);
-            subst_offset = dollar + 2;
-        }
-        else if (dollar[1] == '\'')
-        {
-            BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
-            BufferAppend(new_subst_buf, match_end, (orig_str + orig_str_len) - match_end);
-            subst_offset = dollar + 2;
-        }
-        else if (dollar[1] == '&')
-        {
-            BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
-            BufferAppend(new_subst_buf, match_start, match_end - match_start);
-            subst_offset = dollar + 2;
-        }
-        /* else a $-sequence we don't care about here */
-
-        dollar = strchr(dollar + 1, '$');
+        /* nothing to do */
+        return NULL;
     }
-    BufferAppend(new_subst_buf, subst_offset, (substitute + subst_len) - subst_offset);
+    /* else we probably need to do some replacements */
+
+    size_t subst_len = strlen(substitute);
+    Buffer *new_subst_buf;
+
+    /* First, let's replace the special $-sequences. */
+    if (has_special_seq)
+    {
+        new_subst_buf = BufferNewWithCapacity(subst_len);
+        size_t *ovec = pcre2_get_ovector_pointer(md);
+        const char *match_start = orig_str + ovec[0];
+        const char *match_end = orig_str + ovec[1];
+
+        const char *dollar = strchr(substitute, '$');
+        const char *subst_offset = substitute;
+        while (dollar != NULL)
+        {
+            if (dollar[1] == '+')
+            {
+                BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
+                BufferAppendF(new_subst_buf, "%"PRIu32, n_captures);
+                subst_offset = dollar + 2;
+            }
+            else if (dollar[1] == '`')
+            {
+                BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
+                BufferAppend(new_subst_buf, orig_str, match_start - orig_str);
+                subst_offset = dollar + 2;
+            }
+            else if (dollar[1] == '\'')
+            {
+                BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
+                BufferAppend(new_subst_buf, match_end, (orig_str + orig_str_len) - match_end);
+                subst_offset = dollar + 2;
+            }
+            else if (dollar[1] == '&')
+            {
+                BufferAppend(new_subst_buf, subst_offset, dollar - subst_offset);
+                BufferAppend(new_subst_buf, match_start, match_end - match_start);
+                subst_offset = dollar + 2;
+            }
+            /* else a $-sequence we don't care about here */
+
+            dollar = strchr(dollar + 1, '$');
+        }
+        BufferAppend(new_subst_buf, subst_offset, (substitute + subst_len) - subst_offset);
+    }
+    else
+    {
+        new_subst_buf = BufferNewFrom(substitute, subst_len);
+    }
 
     /* Now, let's deal with the \n sequences (if any)*/
-    if (backslash != NULL)
+    char *buf_data = BufferGet(new_subst_buf);
+    if (has_backslash_bref)
     {
         /* start with the first backslash in the substitute copy */
-        char *buf_data = BufferGet(new_subst_buf);
-        backslash = strchr(buf_data, '\\');
+        char *backslash = strchr(buf_data, '\\');
         assert(backslash != NULL); /* must still be there */
         do
         {
@@ -533,6 +560,45 @@ static char *ExpandCFESpecialReplacements(const pcre2_code *regex,
             }
             backslash = strchr(backslash + 1, '\\');
         } while (backslash != NULL);
+    }
+
+    /* Finally, remove the backreferences with no respective capture groups */
+    if (highest_bref > n_captures)
+    {
+        subst_len = BufferSize(new_subst_buf);
+        size_t i = 0;
+
+        /* first, skip the part before the first '$' */
+        while ((i < subst_len) && (buf_data[i] != '$'))
+        {
+            i++;
+        }
+        assert(i < subst_len);  /* there must be a '$' if highest_bref > n_captures */
+
+        /* now, delete all invalid backrefs */
+        size_t offset = 0;
+        while (i < subst_len)
+        {
+            if ((buf_data[i] == '$') && isdigit(buf_data[i + 1]) && (atoi(buf_data + i + 1) > n_captures))
+            {
+                /* skip the '$' */
+                i++;
+                offset++;
+                while (isdigit(buf_data[i]))
+                {
+                    /* skip the number */
+                    i++;
+                    offset++;
+                }
+            }
+            else
+            {
+                /* just copy the character and move to the next one */
+                buf_data[i - offset] = buf_data[i];
+                i++;
+            }
+        }
+        BufferTrimToMaxLength(new_subst_buf, subst_len - offset);
     }
 
     return BufferClose(new_subst_buf);
