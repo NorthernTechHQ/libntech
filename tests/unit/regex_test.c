@@ -16,6 +16,27 @@ static void test_match(void)
     assert_true(StringMatch("a", "a", NULL, NULL));
     assert_true(StringMatch("a", "ab", NULL, NULL));
     assert_false(StringMatch("^a.*$", "bac", NULL, NULL));
+
+    size_t start, end;
+    bool ret = StringMatch("[a-z]{3}", "abc", &start, &end);
+    assert_true(ret);
+    assert_int_equal(start, 0);
+    assert_int_equal(end, 3);
+
+    ret = StringMatch("^[a-z]{3}$", "abc", &start, &end);
+    assert_true(ret);
+    assert_int_equal(start, 0);
+    assert_int_equal(end, 3);
+
+    ret = StringMatch("^[a-z]{3}.*$", "abcdef", &start, &end);
+    assert_true(ret);
+    assert_int_equal(start, 0);
+    assert_int_equal(end, 6);
+
+    ret = StringMatch("[a-z]{3}.*", "0abcdef", &start, &end);
+    assert_true(ret);
+    assert_int_equal(start, 1);
+    assert_int_equal(end, 7);
 }
 
 
