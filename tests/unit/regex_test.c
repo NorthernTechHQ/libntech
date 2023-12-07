@@ -134,6 +134,29 @@ void test_search_and_replace(void)
     BufferDestroy(buf);
 }
 
+void test_search_and_replace_bad_backrefs(void)
+{
+    /* According to 01_vars/02_functions/regex_replace.cf test in CFEngine core
+     * repo, backrefs that don't have their respective capture groups should not
+     * cause errors but should be replaced with empty strings */
+    Buffer *buf = BufferNewFrom("abcdefghij", 10);
+    const char *err = BufferSearchAndReplace(buf, "...", "[cap=\\1\\2\\3\\4\\5\\6\\7\\8\\9]", "g");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "[cap=][cap=][cap=]j");
+    BufferDestroy(buf);
+
+    buf = BufferNewFrom("abcdefghij", 10);
+    err = BufferSearchAndReplace(buf, "(.)(.)(.)", "[cap=\\1\\2\\3\\4\\5\\6\\7\\8\\9]", "g");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "[cap=abc][cap=def][cap=ghi]j");
+    BufferDestroy(buf);
+
+    buf = BufferNewFrom("abcdefghij", 10);
+    err = BufferSearchAndReplace(buf, "(.)(.)(.)", "[cap=$1$2$3$4$5$6$7$8$9$10$11$888]", "g");
+    assert_false(err);
+    assert_string_equal(BufferData(buf), "[cap=abc][cap=def][cap=ghi]j");
+    BufferDestroy(buf);
+}
 
 int main()
 {
@@ -144,6 +167,7 @@ int main()
         unit_test(test_match_full),
         unit_test(test_match_with_captures),
         unit_test(test_search_and_replace),
+        unit_test(test_search_and_replace_bad_backrefs),
     };
 
     return run_tests(tests);
