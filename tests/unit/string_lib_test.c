@@ -1470,6 +1470,43 @@ static void test_StringMatchesOption(void)
     assert_true(StringMatchesOption("--host", "--hosts", "-H"));
 }
 
+static void test_StringJoin(void)
+{
+    const char *argv[] = { "one", "two", "three" };
+    const int argc = sizeof(argv) / sizeof(argv[0]);
+
+    Seq *seq = SeqFromArgv(argc, argv);
+
+    char *actual = StringJoin(seq, NULL);
+    assert_string_equal(actual, "onetwothree");
+    free(actual);
+
+    actual = StringJoin(seq, "");
+    assert_string_equal(actual, "onetwothree");
+    free(actual);
+
+    actual = StringJoin(seq, ", ");
+    assert_string_equal(actual, "one, two, three");
+    free(actual);
+
+    SeqDestroy(seq);
+    seq = SeqNew(0, NULL);
+
+    actual = StringJoin(seq, NULL);
+    assert_string_equal(actual, "");
+    free(actual);
+
+    actual = StringJoin(seq, "");
+    assert_string_equal(actual, "");
+    free(actual);
+
+    actual = StringJoin(seq, ", ");
+    assert_string_equal(actual, "");
+    free(actual);
+
+    SeqDestroy(seq);
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -1564,6 +1601,7 @@ int main()
         unit_test(test_StrCatDelim),
 
         unit_test(test_StringMatchesOption),
+        unit_test(test_StringJoin),
     };
 
     return run_tests(tests);
