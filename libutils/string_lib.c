@@ -1781,3 +1781,23 @@ bool StringMatchesOption(
     }
     return StringEqualN_IgnoreCase(supplied, longopt, length);
 }
+
+char *StringJoin(const Seq *const seq, const char *sep)
+{
+    assert(seq != NULL);
+
+    Writer *const writer = StringWriter();
+    const size_t len = SeqLength(seq);
+    for (size_t i = 0; i < len; i++)
+    {
+        if (i != 0 && sep != NULL)
+        {
+            WriterWrite(writer, sep);
+        }
+        const char *const str = SeqAt(seq, i);
+        WriterWrite(writer, str);
+    }
+
+    char *const data = StringWriterClose(writer);
+    return data;
+}

@@ -322,4 +322,14 @@ void CanonifyNameInPlace(char *str);
 bool StringMatchesOption(
     const char *supplied, const char *longopt, const char *shortopt);
 
+/**
+ * @brief Join elements in sequence into a string
+ * @param[in] seq Sequence of strings to join
+ * @param[in] sep Separator between elements (can be NULL)
+ * @return The concatenation of the elements in sequence
+ * @note Sequence must contain only NUL-terminated strings, otherwise behavior
+ *       is undefined
+ */
+char *StringJoin(const Seq *seq, const char *sep);
+
 #endif
