@@ -2933,7 +2933,7 @@ bool JsonErrorVisitor(ARG_UNUSED JsonElement *element, ARG_UNUSED void *data)
 // takes either a pre-compiled pattern OR a regex (one of the two shouldn't be
 // NULL)
 JsonElement *StringCaptureData(
-    const pcre2_code *const regex, const char *const pattern, const char *const data)
+    const Regex *const regex, const char *const pattern, const char *const data)
 {
     assert(regex != NULL || pattern != NULL);
     assert(data != NULL);

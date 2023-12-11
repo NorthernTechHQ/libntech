@@ -8,6 +8,6 @@
 #include <regex.h>
 
 JsonElement *StringCaptureData(
-    const pcre2_code *regex, const char *pattern, const char *data);
+    const Regex *regex, const char *pattern, const char *data);
 
 #endif
