@@ -31,7 +31,7 @@
 
 #include <buffer.h>
 
-pcre2_code *CompileRegex(const char *pattern)
+Regex *CompileRegex(const char *pattern)
 {
     int err_code;
     size_t err_offset;
@@ -61,7 +61,11 @@ pcre2_code *CompileRegex(const char *pattern)
     return NULL;
 }
 
-bool StringMatchWithPrecompiledRegex(const pcre2_code *regex, const char *str,
+void RegexDestroy(Regex *regex) {
+    pcre2_code_free(regex);
+}
+
+bool StringMatchWithPrecompiledRegex(const Regex *regex, const char *str,
                                      size_t *start, size_t *end)
 {
     assert(regex != NULL);
@@ -101,7 +105,7 @@ bool StringMatchWithPrecompiledRegex(const pcre2_code *regex, const char *str,
 
 bool StringMatch(const char *pattern, const char *str, size_t *start, size_t *end)
 {
-    pcre2_code *regex = CompileRegex(pattern);
+    Regex *regex = CompileRegex(pattern);
 
     if (regex == NULL)
     {
@@ -109,24 +113,24 @@ bool StringMatch(const char *pattern, const char *str, size_t *start, size_t *en
     }
 
     bool ret = StringMatchWithPrecompiledRegex(regex, str, start, end);
-    pcre2_code_free(regex);
+    RegexDestroy(regex);
     return ret;
 }
 
 bool StringMatchFull(const char *pattern, const char *str)
 {
-    pcre2_code *regex = CompileRegex(pattern);
+    Regex *regex = CompileRegex(pattern);
     if (regex == NULL)
     {
         return false;
     }
 
     bool ret = StringMatchFullWithPrecompiledRegex(regex, str);
-    pcre2_code_free(regex);
+    RegexDestroy(regex);
     return ret;
 }
 
-bool StringMatchFullWithPrecompiledRegex(const pcre2_code *regex, const char *str)
+bool StringMatchFullWithPrecompiledRegex(const Regex *regex, const char *str)
 {
     size_t start;
     size_t end;
@@ -149,7 +153,7 @@ bool StringMatchFullWithPrecompiledRegex(const pcre2_code *regex, const char *st
 
 // If return_names is not set, only the captured data is returned (so
 // for N captures you can expect N elements in the Sequence).
-Seq *StringMatchCapturesWithPrecompiledRegex(const pcre2_code *regex, const char *str, const bool return_names)
+Seq *StringMatchCapturesWithPrecompiledRegex(const Regex *regex, const char *str, const bool return_names)
 {
     pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(regex, NULL);
     int result = pcre2_match(regex, (PCRE2_SPTR) str, PCRE2_ZERO_TERMINATED,
@@ -289,7 +293,7 @@ bool CompareStringOrRegex(const char *value, const char *compareTo, bool regex)
  * This is a fast partial match function. It checks that the compiled rx matches
  * anywhere inside teststring. It does not allocate or free rx!
  */
-bool RegexPartialMatch(const pcre2_code *regex, const char *teststring)
+bool RegexPartialMatch(const Regex *regex, const char *teststring)
 {
     pcre2_match_data *md = pcre2_match_data_create_from_pattern(regex, NULL);
     int rc = pcre2_match(regex, (PCRE2_SPTR) teststring, PCRE2_ZERO_TERMINATED, 0, 0, md, NULL);

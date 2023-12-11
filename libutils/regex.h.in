@@ -39,20 +39,28 @@
 
 #include <sequence.h>                                           /* Seq */
 
+/**
+ * @note: The definition of the type Regex may change in the future, so code
+ *        using this header should avoid using pcre2_code and use Regex instead
+ *        and use RegexDestroy() instead of pcre2_code_free().
+ */
+typedef pcre2_code Regex;
+
 #define CFENGINE_REGEX_WHITESPACE_IN_CONTEXTS ".*[_A-Za-z0-9][ \\t]+[_A-Za-z0-9].*"
 
 /* Try to use CompileRegex() and StringMatchWithPrecompiledRegex(). */
-pcre2_code *CompileRegex(const char *pattern);
+Regex *CompileRegex(const char *pattern);
+void RegexDestroy(Regex *regex);
 bool StringMatch(const char *pattern, const char *str, size_t *start, size_t *end);
-bool StringMatchWithPrecompiledRegex(const pcre2_code *regex, const char *str,
+bool StringMatchWithPrecompiledRegex(const Regex *regex, const char *str,
                                      size_t *start, size_t *end);
 bool StringMatchFull(const char *pattern, const char *str);
-bool StringMatchFullWithPrecompiledRegex(const pcre2_code *regex, const char *str);
+bool StringMatchFullWithPrecompiledRegex(const Regex *regex, const char *str);
 Seq *StringMatchCaptures(const char *pattern, const char *str, const bool return_names);
-Seq *StringMatchCapturesWithPrecompiledRegex(const pcre2_code *pattern, const char *str, const bool return_names);
+Seq *StringMatchCapturesWithPrecompiledRegex(const Regex *pattern, const char *str, const bool return_names);
 bool CompareStringOrRegex(const char *value, const char *compareTo, bool regex);
 
 /* Does not free rx! */
-bool RegexPartialMatch(const pcre2_code *regex, const char *teststring);
+bool RegexPartialMatch(const Regex *regex, const char *teststring);
 
 #endif  /* CFENGINE_REGEX_H */
