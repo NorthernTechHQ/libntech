@@ -1546,14 +1546,6 @@ StringSet* GlobFileList(const char *pattern)
             SearchAndReplace(pattern, "**", candidates[pi]) :
             xstrdup(pattern);
 
-#ifdef _WIN32
-        if (strchr(expanded, '\\'))
-        {
-            Log(LOG_LEVEL_VERBOSE, "Found backslash escape character in glob pattern '%s'. "
-                "Was forward slash intended?", expanded);
-        }
-#endif
-
         if (glob(expanded, globflags, NULL, &globbuf) == 0)
         {
             for (size_t i = 0; i < globbuf.gl_pathc; i++)
