@@ -1533,7 +1533,7 @@ StringSet* GlobFileList(const char *pattern)
 {
     StringSet *set = StringSetNew();
     glob_t globbuf;
-    int globflags = 0; // TODO: maybe add GLOB_BRACE later
+    int globflags = GLOB_BRACE;
 
     const char* r_candidates[] = { "*", "*/*", "*/*/*", "*/*/*/*", "*/*/*/*/*", "*/*/*/*/*/*" };
     bool starstar = ( strstr(pattern, "**") != NULL );
