@@ -272,6 +272,8 @@ int fsync(int fd);
 #define GLOB_NOSPACE 1
 #define GLOB_ABORTED 2
 #define GLOB_NOMATCH 3
+#define GLOB_APPEND (1 << 5) // Append results to previous call
+#define GLOB_BRACE (1 << 9)  // Expand brace expressions (GNU EXTENSION)
 typedef struct {
     size_t   gl_pathc;    /* Count of paths matched so far  */
     char   **gl_pathv;    /* List of matched pathnames.  */
