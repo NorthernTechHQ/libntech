@@ -109,7 +109,9 @@ check_PROGRAMS = \
 	version_comparison_test \
 	ring_buffer_test \
 	libcompat_test \
-	definitions_test
+	definitions_test \
+	proc_manager_test \
+	proc_manager_force_terminate_test
 
 if WITH_PCRE2
 check_PROGRAMS += \

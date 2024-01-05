@@ -116,6 +116,29 @@ static void test_remove(void)
     HashMapDestroy(hashmap);
 }
 
+static void test_remove_soft(void)
+{
+    HashMap *hashmap = HashMapNew(ConstHash, StringEqual_untyped, free, free,
+                                  HASH_MAP_INIT_SIZE);
+
+    char *key = xstrdup("a");
+    char *value = xstrdup("b");
+    HashMapInsert(hashmap, key, value);
+
+    MapKeyValue *item = HashMapGet(hashmap, "a");
+    assert_string_equal(item->key, "a");
+    assert_string_equal(item->value, "b");
+
+    /* Soft-remove, the value should still be available afterwards and needs to
+     * be free()'d explicitly. */
+    assert_true(HashMapRemoveSoft(hashmap, "a"));
+    assert_int_equal(HashMapGet(hashmap, "a"), NULL);
+    assert_string_equal(value, "b");
+    free(value);
+
+    HashMapDestroy(hashmap);
+}
+
 static void test_add_n_as_to_map(HashMap *hashmap, unsigned int i)
 {
     char s[i+1];
@@ -817,6 +840,7 @@ int main()
         unit_test(test_insert),
         unit_test(test_insert_jumbo),
         unit_test(test_remove),
+        unit_test(test_remove_soft),
         unit_test(test_grow),
         unit_test(test_shrink),
         unit_test(test_no_shrink_below_init_size),

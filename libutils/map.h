@@ -62,6 +62,12 @@ void *MapGet(Map *map, const void *key);
  */
 bool MapRemove(Map *map, const void *key);
 
+/*
+ * Remove key/value pair from the map without destroying the value. Returns
+ * 'true' if key was present in the map.
+ */
+bool MapRemoveSoft(Map *map, const void *key);
+
 size_t MapSize(const Map *map);
 
 /*

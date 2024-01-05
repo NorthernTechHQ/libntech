@@ -228,6 +228,20 @@ bool MapRemove(Map *map, const void *key)
     }
 }
 
+bool MapRemoveSoft(Map *map, const void *key)
+{
+    assert(map != NULL);
+
+    if (IsArrayMap(map))
+    {
+        return ArrayMapRemoveSoft(map->arraymap, key);
+    }
+    else
+    {
+        return HashMapRemoveSoft(map->hashmap, key);
+    }
+}
+
 void MapClear(Map *map)
 {
     assert(map != NULL);

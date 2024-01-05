@@ -85,6 +85,26 @@ bool ArrayMapRemove(ArrayMap *map, const void *key)
     return false;
 }
 
+bool ArrayMapRemoveSoft(ArrayMap *map, const void *key)
+{
+    assert(map != NULL);
+
+    for (int i = 0; i < map->size; ++i)
+    {
+        if (map->equal_fn(map->values[i].key, key))
+        {
+            map->destroy_key_fn(map->values[i].key);
+
+            memmove(map->values + i, map->values + i + 1,
+                    sizeof(MapKeyValue) * (map->size - i - 1));
+
+            map->size--;
+            return true;
+        }
+    }
+    return false;
+}
+
 MapKeyValue *ArrayMapGet(const ArrayMap *map, const void *key)
 {
     for (int i = 0; i < map->size; ++i)
