@@ -130,7 +130,7 @@ int SafeStringLength(const char *str);
 int  StringSafeCompare(const char *a, const char *b);
 bool StringEqual  (const char *a, const char *b);
 
-static inline bool IsStringInArray(const char *str, char *const *array, size_t n_items)
+static inline bool IsStringInArray(const char *str, const char *const *array, size_t n_items)
 {
     bool found = false;
     for (size_t i = 0; !found && (i < n_items); i++)
