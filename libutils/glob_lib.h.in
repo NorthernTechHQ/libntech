@@ -1,0 +1,102 @@
+/*
+  Copyright 2024 Northern.tech AS
+
+  This file is part of CFEngine 3 - written and maintained by Northern.tech AS.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  To the extent this program is licensed as part of the Enterprise
+  versions of CFEngine, the applicable Commercial Open Source License
+  (COSL) may apply to this file if you as a licensee so wish it. See
+  included file COSL.txt.
+*/
+
+#ifndef GLOB_LIB_H
+#define GLOB_LIB_H
+
+#include <sequence.h>
+#include <set.h>
+
+/* Set by ./configure allowing us to avoid #include <config.h> here. */
+@WITH_PCRE2_DEFINE@
+
+#ifdef WITH_PCRE2
+
+/**
+ * @brief Find files/directories matching shell pattern (glob).
+ *
+ * Patterns are UNIX shell style:
+ *
+ *   '*'          matches everything,
+ *   '?'          matches any single character,
+ *   '[seq]'      matches any character in seq,
+ *   '[!seq]'     matches any character not in seq,
+ *   '{foo,bar}'  matches foo or bar.
+ *
+ * Pattern is normalized if the operating system requires it. The double
+ * asterisk symbol does not match any subdirectories. The result is sorted in
+ * lexical order.
+ *
+ * @param pattern Glob pattern.
+ * @return Sorted sequence of matches.
+ */
+Seq *GlobFind(const char *pattern);
+
+/**
+ * @brief Test whether string (filename) matches shell pattern (glob).
+ *
+ * Patterns are UNIX shell style:
+ *
+ *   '*'          matches everything,
+ *   '?'          matches any single character,
+ *   '[seq]'      matches any character in seq,
+ *   '[!seq]'     matches any character not in seq,
+ *   '{foo,bar}'  matches foo or bar.
+ *
+ * Pattern is normalized if the operating system requires it.
+ *
+ * We don't check if filename is valid, or if it is a file or if it exists.
+ * It's treated as just a string.
+ *
+ * Modeled after the python fnmatch module (see
+ * https://github.com/python/cpython/blob/3.8/Lib/fnmatch.py)
+ *
+ * @param pattern Glob pattern.
+ * @return True if filename matches shell pattern.
+ */
+bool GlobMatch(const char *pattern, const char *filename);
+
+#endif // WITH_PCRE2
+
+/**
+ * @brief Find files/directories matching shell pattern (glob).
+ *
+ * Patterns are UNIX shell style:
+ *
+ *   '*'          matches everything,
+ *   '?'          matches any single character,
+ *   '[seq]'      matches any character in seq,
+ *   '[!seq]'     matches any character not in seq,
+ *   '{foo,bar}'  matches foo or bar,
+ *   '**'         matches any subdirectory from zero up to six levels deep. A
+ *                limit set by previous CFEngineers. TODO: remove limit in
+ *                ticket CFE-4317.
+ *
+ * Pattern is normalized if the operating system requires it.
+ *
+ * @param pattern Glob pattern.
+ * @return Set of matches.
+ */
+StringSet *GlobFileList(const char *pattern);
+
+#endif // GLOB_LIB_H

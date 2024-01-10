@@ -102,8 +102,6 @@ NewLineMode FileNewLineMode(const char *file);
 # define FILE_SEPARATOR_STR "/"
 #endif
 
-StringSet* GlobFileList(const char *pattern);
-
 bool IsAbsoluteFileName(const char *f);
 
 /**
