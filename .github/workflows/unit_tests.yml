@@ -26,6 +26,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+    - name: Investigate repos
+      run: cat /etc/apt/sources.list && ls /etc/apt/sources.list.d && cat /etc/apt/sources.list.d/*
     - name: Install dependencies
       run: sudo apt-get update -y && sudo apt-get install -y autoconf automake gcc libssl-dev libpcre2-dev libyaml-dev
     - name: Run autotools / configure
