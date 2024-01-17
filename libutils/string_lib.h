@@ -130,6 +130,13 @@ int SafeStringLength(const char *str);
 int  StringSafeCompare(const char *a, const char *b);
 bool StringEqual  (const char *a, const char *b);
 
+/**
+ * @brief Check for string in array of strings.
+ * @param str string to check for.
+ * @param array array of strings to search.
+ * @param n_items number of elements in array.
+ * @return true if string is found in array.
+ */
 static inline bool IsStringInArray(
     const char *const str, const char *const *const array, const size_t n_items)
 {
