@@ -133,8 +133,11 @@ bool StringEqual  (const char *a, const char *b);
 static inline bool IsStringInArray(
     const char *const str, const char *const *const array, const size_t n_items)
 {
+    assert(str != NULL);
+    assert(array != NULL);
     for (size_t i = 0; i < n_items; i++)
     {
+        assert(array[i] != NULL);
         if (StringEqual(array[i], str))
         {
             return true;
