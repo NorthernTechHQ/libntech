@@ -1801,3 +1801,27 @@ char *StringJoin(const Seq *const seq, const char *sep)
     char *const data = StringWriterClose(writer);
     return data;
 }
+
+Seq *StringSplit(const char *const str, const char *const charset)
+{
+    assert(str != NULL);
+    assert(charset != NULL);
+
+    Seq *seq = SeqNew(1, free);
+
+    const char *start = str;
+    const char *end = strpbrk(str, charset);
+
+    while (end != NULL)
+    {
+        char *tmp = xstrndup(start, end - start);
+        SeqAppend(seq, tmp);
+        start = end + 1;
+        end = strpbrk(start, charset);
+    }
+
+    char *tmp = xstrdup(start);
+    SeqAppend(seq, tmp);
+
+    return seq;
+}

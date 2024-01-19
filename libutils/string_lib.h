@@ -332,4 +332,16 @@ bool StringMatchesOption(
  */
 char *StringJoin(const Seq *seq, const char *sep);
 
+/**
+ * @brief Split string into a sequence based on a set of characters.
+ * @param[in] str String to split.
+ * @param[in] charset Characters to split on.
+ * @return Sequence of substrings split on characters.
+ * @note If the empty string is passed as character set, then a sequence of one
+ *       element containing the entire string is returned. This function is
+ *       similar to SeqStringFromString(). However, it splits on multiple
+ *       delimiters as opposed to one.
+ */
+Seq *StringSplit(const char *str, const char *charset);
+
 #endif
