@@ -1825,3 +1825,25 @@ Seq *StringSplit(const char *const str, const char *const charset)
 
     return seq;
 }
+
+ssize_t StringFind(
+    const char *const str,
+    const char *const sub,
+    const size_t from,
+    const size_t to)
+{
+    assert(str != NULL);
+    assert(sub != NULL);
+
+    const size_t strl = strlen(str);
+    const size_t subl = strlen(sub);
+
+    for (size_t i = from; i < MIN(strl, to); i++)
+    {
+        if (strncmp(str + i, sub, subl) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}

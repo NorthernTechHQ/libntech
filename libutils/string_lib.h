@@ -344,4 +344,19 @@ char *StringJoin(const Seq *seq, const char *sep);
  */
 Seq *StringSplit(const char *str, const char *charset);
 
+/**
+ * @brief Finds the first occurrence of substring in string.
+ * @param[in] str String to search in (not NULL).
+ * @param[in] sub Substring to search for (not NULL).
+ * @param[in] from Index to search from.
+ * @param[in] to Index to search to (but not including).
+ * @note This function never scans beyond the NUL-bytes terminating the strings.
+ *       Thus, one can safely (i.e., without risking memory access violation)
+ *       use larger indices than the strings themselves. However, then you
+ *       wouldn't find what you're looking for ;) Likewise, it's safe to search
+ *       for substrings larger than the string to search in itself.
+ * @return Index of first occurrence of sub in str, or -1 if not found.
+ */
+ssize_t StringFind(const char *str, const char *sub, size_t from, size_t to);
+
 #endif

@@ -1589,6 +1589,26 @@ static void test_StringSplit(void)
     }
 }
 
+static void test_StringFind(void)
+{
+    static const char *const str = "Hello CFEngine";
+    const size_t len = strlen(str);
+    assert_int_equal(StringFind(str, "C", 0, len), 6l);
+    assert_int_equal(StringFind(str, "C", 7, len), -1l);
+    assert_int_equal(StringFind(str, "C", 6, len), 6l);
+    assert_int_equal(StringFind(str, "C", 6, 6), -1l);
+    assert_int_equal(StringFind(str, "C", 6, 7), 6l);
+    assert_int_equal(StringFind(str, "FC", 0, len), -1l);
+    assert_int_equal(StringFind(str, "CF", 0, len), 6l);
+    assert_int_equal(StringFind(str, "H", 0, 0), -1l);
+    assert_int_equal(StringFind(str, "H", 0, 1), 0l);
+    assert_int_equal(StringFind(str, "e", len - 1, len), len - 1l);
+    assert_int_equal(StringFind(str, "e", len - 1, len - 1), -1l);
+    assert_int_equal(StringFind(str, "Hello CFEngine in the house", 0, 1), -1l);
+    assert_int_equal(StringFind(str, "CF", 0, 9999), 6l);
+    assert_int_equal(StringFind(str, "CF", 8888, 9999), -1l);
+    assert_int_equal(StringFind(str, "CF", 8888, 0), -1l);
+}
 
 int main()
 {
@@ -1686,6 +1706,7 @@ int main()
         unit_test(test_StringMatchesOption),
         unit_test(test_StringJoin),
         unit_test(test_StringSplit),
+        unit_test(test_StringFind),
     };
 
     return run_tests(tests);
