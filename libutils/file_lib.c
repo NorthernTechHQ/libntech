@@ -350,6 +350,27 @@ bool IsWindowsNetworkPath(const char *const path)
     return false;
 }
 
+bool IsWindowsDiskPath(const char *const path)
+{
+#ifdef _WIN32
+    int off = 0;
+
+    while (path[off] == '\"')
+    {
+        // Bypass quoted strings
+        off += 1;
+    }
+
+    if (isalpha(path[off]) && path[off + 1] == ':' && IsFileSep(path[off + 2]))
+    {
+        return true;
+    }
+#else // _WIN32
+    UNUSED(path);
+#endif // _WIN32
+    return false;
+}
+
 bool IsAbsoluteFileName(const char *f)
 {
     int off = 0;
@@ -364,12 +385,10 @@ bool IsAbsoluteFileName(const char *f)
     {
         return true;
     }
-#ifdef _WIN32
-    if (isalpha(f[off]) && f[off + 1] == ':' && IsFileSep(f[off + 2]))
+    if (IsWindowsDiskPath(f))
     {
         return true;
     }
-#endif
     if (IsFileSep(f[off]))
     {
         return true;

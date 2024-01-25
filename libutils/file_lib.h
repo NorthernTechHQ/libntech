@@ -115,6 +115,14 @@ bool IsAbsoluteFileName(const char *f);
  */
 bool IsWindowsNetworkPath(const char *path);
 
+/**
+ * @brief Check whether or not path is a Windows disk path.
+ * @param path Path to check.
+ * @return True if path is disk path, otherwise false.
+ * @note This function cannot return true on non-Windows platforms.
+ */
+bool IsWindowsDiskPath(const char *path);
+
 char *MapName(char *s);
 char *MapNameCopy(const char *s);
 char *MapNameForward(char *s);
