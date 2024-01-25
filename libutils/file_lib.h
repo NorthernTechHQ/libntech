@@ -105,6 +105,16 @@ NewLineMode FileNewLineMode(const char *file);
 StringSet* GlobFileList(const char *pattern);
 
 bool IsAbsoluteFileName(const char *f);
+
+/**
+ * @brief Check whether or not path is a Windows network path (i.e., paths that
+ *        starts with double slash followed by hostname or IP).
+ * @param path Path to check.
+ * @return True if path is network path, otherwise false.
+ * @note This function cannot return true on non-Windows platforms.
+ */
+bool IsWindowsNetworkPath(const char *path);
+
 char *MapName(char *s);
 char *MapNameCopy(const char *s);
 char *MapNameForward(char *s);

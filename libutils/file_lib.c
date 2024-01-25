@@ -329,6 +329,27 @@ NewLineMode FileNewLineMode(ARG_UNUSED const char *file)
 }
 #endif // !__MINGW32__
 
+bool IsWindowsNetworkPath(const char *const path)
+{
+#ifdef _WIN32
+    int off = 0;
+
+    while (path[off] == '\"')
+    {
+        // Bypass quoted strings
+        off += 1;
+    }
+
+    if (IsFileSep(path[off]) && IsFileSep(path[off + 1]))
+    {
+        return true;
+    }
+#else // _WIN32
+    UNUSED(path);
+#endif // _WIN32
+    return false;
+}
+
 bool IsAbsoluteFileName(const char *f)
 {
     int off = 0;
@@ -339,12 +360,11 @@ bool IsAbsoluteFileName(const char *f)
     {
     }
 
-#ifdef _WIN32
-    if (IsFileSep(f[off]) && IsFileSep(f[off + 1]))
+    if (IsWindowsNetworkPath(f))
     {
         return true;
     }
-
+#ifdef _WIN32
     if (isalpha(f[off]) && f[off + 1] == ':' && IsFileSep(f[off + 2]))
     {
         return true;
