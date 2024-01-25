@@ -467,6 +467,98 @@ void switch_symlink_hook();
 #define TEST_SYMLINK_SWITCH_POINT
 #endif
 
+void PathWalk(
+    const char *const path,
+    PathWalkFn callback,
+    void *const data,
+    PathWalkCopyFn copy,
+    PathWalkDestroyFn destroy)
+{
+    assert(path != NULL);
+    assert(callback != NULL);
+
+    Seq *const children = ListDir(path, NULL);
+    if (children == NULL) {
+        Log(
+            LOG_LEVEL_DEBUG,
+            "Failed to list directory '%s'. Subdirectories will not be "
+            "iterated.", path);
+        return;
+    }
+    const size_t n_children = SeqLength(children);
+
+    Seq *const dirnames = SeqNew(1, free);
+    Seq *const filenames = SeqNew(1, free);
+
+    for (size_t i = 0; i < n_children; i++)
+    {
+        /* The basename(3) function might potentially mutate the child, but we
+         * don't mind. */
+        char *const child = SeqAt(children, i);
+        const char *const b_name = basename(child);
+
+        /* We don't iterate the '.' and '..' directory entries as it would cause
+         * infinite recursion. */
+        if (StringEqual(b_name, ".") || StringEqual(b_name, ".."))
+        {
+            continue;
+        }
+
+        // Note that stat(2) follows symbolic links.
+        struct stat sb;
+        if (stat(child, &sb) == 0)
+        {
+            char *const dup = xstrdup(b_name);
+            if (sb.st_mode & S_IFDIR)
+            {
+                SeqAppend(dirnames, dup);
+            }
+            else
+            {
+                SeqAppend(filenames, dup);
+            }
+        }
+        else
+        {
+            Log(LOG_LEVEL_DEBUG,
+                "Failed to stat file '%s': %s",
+                child,
+                GetErrorStr());
+        }
+    }
+
+    SeqDestroy(children);
+    callback(path, dirnames, filenames, data);
+    SeqDestroy(filenames);
+
+    // Recursively walk through subdirectories.
+    const size_t n_dirs = SeqLength(dirnames);
+    for (size_t i = 0; i < n_dirs; i++)
+    {
+        const char *const dir = SeqAt(dirnames, i);
+        if (dir != NULL)
+        {
+            char *const duplicate = (copy != NULL) ? copy(data) : data;
+            if (StringEqual(path, "."))
+            {
+                PathWalk(dir, callback, duplicate, copy, destroy);
+            }
+            else
+            {
+                char *next = Path_JoinAlloc(path, dir);
+                PathWalk(next, callback, duplicate, copy, destroy);
+                free(next);
+            }
+            if (copy != NULL && destroy != NULL)
+            {
+                destroy(duplicate);
+            }
+        }
+    }
+
+    SeqDestroy(dirnames);
+}
+
 Seq *ListDir(const char *dir, const char *extension)
 {
     Dir *dirh = DirOpen(dir);
