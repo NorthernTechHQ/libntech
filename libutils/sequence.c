@@ -418,16 +418,19 @@ void *const *SeqGetData(const Seq *seq)
     return seq->data;
 }
 
-void SeqRemoveNulls(Seq *seq)
+Seq *SeqFilter(Seq *const seq, SeqFilterFn filter)
 {
     assert(seq != NULL);
+    assert(filter != NULL);
+
     int length = SeqLength(seq);
     int from = 0;
     int to = 0;
     while (from < length)
     {
-        if (seq->data[from] == NULL)
+        if (filter(seq->data[from]))
         {
+            seq->ItemDestroy(seq->data[from]);
             ++from; // Skip NULL elements
         }
         else
@@ -439,6 +442,18 @@ void SeqRemoveNulls(Seq *seq)
         }
     }
     seq->length = to;
+    return seq;
+}
+
+static inline bool FilterNullCallback(void *const item)
+{
+    return item == NULL;
+}
+
+void SeqRemoveNulls(Seq *const seq)
+{
+    assert(seq != NULL);
+    SeqFilter(seq, FilterNullCallback);
 }
 
 Seq *SeqFromArgv(int argc, const char *const *const argv)
