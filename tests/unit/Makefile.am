@@ -161,6 +161,9 @@ endif
 
 CLEANFILES = *.gcno *.gcda cfengine-enterprise.so
 
+clean-local:
+	rm -rf test_glob_file_list_??????
+
 file_lib_test_SOURCES = file_lib_test.c \
 	../../libutils/file_lib.c \
 	../../libutils/logging.c \

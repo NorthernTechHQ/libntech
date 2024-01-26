@@ -17,6 +17,7 @@ xml_tmp_*
 /unit/*_test
 /unit/exec-config-test
 /unit/rb-tree-test
+/unit/test_glob_file_list_??????
 
 # load tests
 /load/db_load
