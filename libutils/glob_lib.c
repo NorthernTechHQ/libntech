@@ -5,6 +5,7 @@
 #include <string_lib.h>
 #include <logging.h>
 #include <sequence.h>
+#include <string_sequence.h>
 #include <path.h>
 
 /**

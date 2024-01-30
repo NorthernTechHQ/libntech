@@ -1782,50 +1782,6 @@ bool StringMatchesOption(
     return StringEqualN_IgnoreCase(supplied, longopt, length);
 }
 
-char *StringJoin(const Seq *const seq, const char *sep)
-{
-    assert(seq != NULL);
-
-    Writer *const writer = StringWriter();
-    const size_t len = SeqLength(seq);
-    for (size_t i = 0; i < len; i++)
-    {
-        if (i != 0 && sep != NULL)
-        {
-            WriterWrite(writer, sep);
-        }
-        const char *const str = SeqAt(seq, i);
-        WriterWrite(writer, str);
-    }
-
-    char *const data = StringWriterClose(writer);
-    return data;
-}
-
-Seq *StringSplit(const char *const str, const char *const charset)
-{
-    assert(str != NULL);
-    assert(charset != NULL);
-
-    Seq *seq = SeqNew(1, free);
-
-    const char *start = str;
-    const char *end = strpbrk(str, charset);
-
-    while (end != NULL)
-    {
-        char *tmp = xstrndup(start, end - start);
-        SeqAppend(seq, tmp);
-        start = end + 1;
-        end = strpbrk(start, charset);
-    }
-
-    char *tmp = xstrdup(start);
-    SeqAppend(seq, tmp);
-
-    return seq;
-}
-
 ssize_t StringFind(
     const char *const str,
     const char *const sub,

@@ -110,7 +110,8 @@ check_PROGRAMS = \
 	ring_buffer_test \
 	libcompat_test \
 	definitions_test \
-	glob_lib_test
+	glob_lib_test \
+	string_sequence_test
 
 if WITH_PCRE2
 check_PROGRAMS += \
@@ -240,3 +241,6 @@ file_lock_test_LDADD = ../../libutils/libutils.la
 
 glob_lib_test_SOURCES = glob_lib_test.c
 glob_lib_test_LDADD = ../../libutils/libutils.la libtest.la
+
+string_sequence_test_SOURCES = string_sequence_test.c
+string_sequence_test_LDADD = ../../libutils/libutils.la libtest.la
