@@ -1046,20 +1046,12 @@ cleanup:
 
 /**
  * Implementation of safe_chown.
- * @param path Path to chown.
- * @param owner          Owner to set on path.
- * @param group          Group to set on path.
- * @param flags          Flags to use for fchownat.
- * @param link_user      If we have traversed a link already, which user was it.
- * @param link_group     If we have traversed a link already, which group was it.
- * @param traversed_link Whether we have traversed a link. If this is false the
- *                       two previus arguments are ignored. This is used enforce
- *                       the correct UID/GID combination when following links.
- *                       Initially this is false, but will be set to true in
- *                       sub invocations if we follow a link.
- * @param loop_countdown Protection against infinite loop following.
+ * @param path   Path to chown.
+ * @param owner  Owner to set on path.
+ * @param group  Group to set on path.
+ * @param flags  Flags to use for fchownat.
  */
-int safe_chown_impl(const char *path, uid_t owner, gid_t group, int flags)
+static int safe_chown_impl(const char *path, uid_t owner, gid_t group, int flags)
 {
     int dirfd = safe_open_true_parent_dir(path, flags, 0, 0, false, SYMLINK_MAX_DEPTH);
     if (dirfd < 0)
