@@ -7,6 +7,7 @@
 #include <sequence.h>
 #include <string_sequence.h>
 #include <path.h>
+#include <libgen.h>
 
 /**
  * If not compiled with PCRE2, we fallback to glob(3) implementation. Why not
@@ -351,6 +352,63 @@ static void GlobFindDataDestroy(void *const _data)
 }
 
 /**
+ * Convert long name to short name (8.3 alias). Returns NULL on failure or when
+ * the short name is equal to the long name.
+ */
+static char *ConvertLongNameToShortName(
+    const char *const dirpath, const char *const filename)
+{
+    /* When you create a long filename, Windows may also create a short form of
+     * the filename. This is often referred to as the 8.3 alias or short name.
+     * This dates back to the good old MS-DOS area where there was a limit of
+     * eight characters for the filename plus three characters for the file
+     * extension. */
+#ifdef _WIN32
+    char *const long_path = Path_JoinAlloc(dirpath, filename);
+    char short_path[PATH_MAX];
+
+    unsigned long length = GetShortPathNameA(long_path, short_path, PATH_MAX);
+    if (length == 0)
+    {
+        Log(LOG_LEVEL_DEBUG,
+            "Failed to retrieve short path from path '%s': %s",
+            long_path,
+            GetLastError());
+        free(long_path);
+        return NULL;
+    }
+
+    if (length >= PATH_MAX)
+    {
+        Log(LOG_LEVEL_DEBUG,
+            "Failed to retrieve short path of path '%s': "
+            "Path name too long (%lu >= %d)",
+            long_path,
+            length,
+            PATH_MAX);
+        free(long_path);
+        return NULL;
+    }
+
+    char *b_name = basename(short_path);
+    if (!StringEqual(b_name, filename))
+    {
+        Log(LOG_LEVEL_DEBUG,
+            "Retrieved short path '%s' from path '%s'",
+            b_name,
+            filename);
+        free(long_path);
+        return SafeStringDuplicate(b_name);
+    }
+    free(long_path);
+#else  // _WIN32
+    UNUSED(dirpath);
+    UNUSED(filename);
+#endif // _WIN32
+    return NULL;
+}
+
+/**
  * Callback function used in conjunction with PathWalk() in order to find glob
  * matches.
  */
@@ -401,38 +459,76 @@ static void PathWalkCallback(
     const size_t n_dirnames = SeqLength(dirnames);
     for (size_t i = 0; i < n_dirnames; i++)
     {
-        const char *const dirname = SeqAt(dirnames, i);
-        if (!GlobMatch(sub_pattern, dirname))
+        const char *const dir_name = SeqAt(dirnames, i);
+        char *const short_name = ConvertLongNameToShortName(dirpath, dir_name);
+        if (GlobMatch(sub_pattern, dir_name))
+        {
+            Log(LOG_LEVEL_DEBUG,
+                "Partial match! Sub pattern '%s' matches directory '%s'",
+                sub_pattern,
+                dir_name);
+            free(short_name);
+        }
+        else if (short_name != NULL && GlobMatch(sub_pattern, short_name))
+        {
+            /* We matched with the short name (i.e., 8.3 alias on Windows). We
+             * substitute the long name with the short name in dirnames, such
+             * that it will end up as the short name in the results. */
+            Log(LOG_LEVEL_DEBUG,
+                "Partial match! Sub pattern '%s' matches directory short name"
+                " '%s' (i.e., 8.3 alias).",
+                sub_pattern,
+                short_name);
+            SeqSet(dirnames, i, short_name);
+        }
+        else
         {
             /* Not a match! Make sure not to follow down this path. Setting the
              * directory name to NULL should do the trick. And it's more
              * efficient than removing it from the sequence. */
             SeqSet(dirnames, i, NULL);
+            free(short_name);
         }
     }
 
-    /* If number of remaining glob components to match is 1, it means that we
-     * can start looking for non-directory matches. */
-    if (n_components == 1)
+    if (n_components != 1)
     {
-        const size_t n_filenames = SeqLength(filenames);
-        for (size_t i = 0; i < n_filenames; i++)
+        /* Unless number of remaining glob components to match is ONE, we will
+         * not look for non-directory matches. */
+        free(sub_pattern);
+        return;
+    }
+
+    const size_t n_filenames = SeqLength(filenames);
+    for (size_t i = 0; i < n_filenames; i++)
+    {
+        const char *const filename = SeqAt(filenames, i);
+        char *const short_name = ConvertLongNameToShortName(dirpath, filename);
+        if (GlobMatch(sub_pattern, filename))
         {
-            const char *const filename = SeqAt(filenames, i);
-            if (GlobMatch(sub_pattern, filename))
-            {
-                char *match = NULL;
-                if (StringEqual(dirpath, "."))
-                {
-                    match = xstrdup(filename);
-                }
-                else
-                {
-                    match = Path_JoinAlloc(dirpath, filename);
-                }
-                SeqAppend(data->matches, match);
-            }
+            char *const match = (StringEqual(dirpath, "."))
+                                    ? xstrdup(filename)
+                                    : Path_JoinAlloc(dirpath, filename);
+            Log(LOG_LEVEL_DEBUG,
+                "Full match! Found non-directory file '%s' where '%s' "
+                "matches sub pattern '%s'",
+                match,
+                filename,
+                sub_pattern);
+            SeqAppend(data->matches, match);
         }
+        else if (short_name != NULL && GlobMatch(sub_pattern, short_name))
+        {
+            char *match = Path_JoinAlloc(dirpath, short_name);
+            Log(LOG_LEVEL_DEBUG,
+                "Full match! Found non-directory file '%s' where the short "
+                "name '%s' (8.3 alias) matches sub pattern '%s'",
+                match,
+                short_name,
+                sub_pattern);
+            SeqAppend(data->matches, match);
+        }
+        free(short_name);
     }
 
     free(sub_pattern);
