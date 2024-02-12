@@ -938,6 +938,8 @@ int safe_chdir(const char *path)
  *                       Initially this is false, but will be set to true in
  *                       sub invocations if we follow a link.
  * @param loop_countdown Protection against infinite loop following.
+ * @param true_leaf      Place to store the true leaf name (basename) *initialized
+ *                       to %NULL* or %NULL
  * @return File descriptor pointing to the parent directory of path, or -1 on
  *         error.
  */
@@ -946,8 +948,11 @@ static int safe_open_true_parent_dir(const char *path,
                                      uid_t link_user,
                                      gid_t link_group,
                                      bool traversed_link,
-                                     int loop_countdown)
+                                     int loop_countdown,
+                                     char **true_leaf)
 {
+    assert((true_leaf == NULL) || (*true_leaf == NULL));
+
     int dirfd = -1;
     int ret = -1;
 
@@ -1021,7 +1026,8 @@ static int safe_open_true_parent_dir(const char *path,
         }
 
         ret = safe_open_true_parent_dir(resolved_link, flags, statbuf.st_uid,
-                                        statbuf.st_gid, true, loop_countdown);
+                                        statbuf.st_gid, true, loop_countdown,
+                                        true_leaf);
 
         free(resolved_link);
         goto cleanup;
@@ -1034,6 +1040,14 @@ static int safe_open_true_parent_dir(const char *path,
 
 cleanup:
     free(parent_dir_alloc);
+
+    /* We only want to set this once, in the deepest recursive call of this
+     * function (see above). */
+    if ((true_leaf != NULL) && (*true_leaf == NULL))
+    {
+        *true_leaf = xstrdup(leaf);
+    }
+
     free(leaf_alloc);
 
     if (dirfd != -1)
@@ -1046,29 +1060,36 @@ cleanup:
 
 /**
  * Implementation of safe_chown.
- * @param path Path to chown.
- * @param owner          Owner to set on path.
- * @param group          Group to set on path.
- * @param flags          Flags to use for fchownat.
- * @param link_user      If we have traversed a link already, which user was it.
- * @param link_group     If we have traversed a link already, which group was it.
- * @param traversed_link Whether we have traversed a link. If this is false the
- *                       two previus arguments are ignored. This is used enforce
- *                       the correct UID/GID combination when following links.
- *                       Initially this is false, but will be set to true in
- *                       sub invocations if we follow a link.
- * @param loop_countdown Protection against infinite loop following.
+ * @param path   Path to chown.
+ * @param owner  Owner to set on path.
+ * @param group  Group to set on path.
+ * @param flags  Flags to use for fchownat.
  */
-int safe_chown_impl(const char *path, uid_t owner, gid_t group, int flags)
+static int safe_chown_impl(const char *path, uid_t owner, gid_t group, int flags)
 {
-    int dirfd = safe_open_true_parent_dir(path, flags, 0, 0, false, SYMLINK_MAX_DEPTH);
+    int dirfd;
+    char *leaf_alloc = NULL;
+    char *leaf;
+    if ((flags & AT_SYMLINK_NOFOLLOW) != 0)
+    {
+        /* SYMLINK_NOFOLLOW set, we can take leaf name from path */
+        dirfd = safe_open_true_parent_dir(path, flags, 0, 0, false, SYMLINK_MAX_DEPTH, NULL);
+        leaf_alloc = xstrdup(path);
+        leaf = basename(leaf_alloc);
+    }
+    else
+    {
+        /* no SYMLINK_NOFOLLOW -> follow symlinks, thus we need the real leaf
+         * name */
+        dirfd = safe_open_true_parent_dir(path, flags, 0, 0, false, SYMLINK_MAX_DEPTH, &leaf_alloc);
+        leaf = leaf_alloc;
+    }
     if (dirfd < 0)
     {
+        free(leaf_alloc);
         return -1;
     }
 
-    char *leaf_alloc = xstrdup(path);
-    char *leaf = basename(leaf_alloc);
 
     // We now know it either isn't a link, or we don't want to follow it if it
     // is. In either case make sure we don't try to follow it.
@@ -1126,21 +1147,20 @@ int safe_chmod(const char *path, mode_t mode)
     int dirfd = -1;
     int ret = -1;
 
-    char *leaf_alloc = xstrdup(path);
-    char *leaf = basename(leaf_alloc);
-    struct stat statbuf;
-    uid_t olduid = 0;
-
-    if ((dirfd = safe_open_true_parent_dir(path, 0, 0, 0, false, SYMLINK_MAX_DEPTH)) == -1)
+    char *leaf_alloc = NULL;
+    if ((dirfd = safe_open_true_parent_dir(path, 0, 0, 0, false, SYMLINK_MAX_DEPTH, &leaf_alloc)) == -1)
     {
         goto cleanup;
     }
 
+    char *leaf = basename(leaf_alloc);
+    struct stat statbuf;
     if ((ret = fstatat(dirfd, leaf, &statbuf, AT_SYMLINK_NOFOLLOW)) == -1)
     {
         goto cleanup;
     }
 
+    uid_t olduid = 0;
     if (S_ISFIFO(statbuf.st_mode) || S_ISSOCK(statbuf.st_mode))
     {
         /* For FIFOs/sockets we cannot resort to the method of opening the file
