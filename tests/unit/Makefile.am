@@ -109,7 +109,9 @@ check_PROGRAMS = \
 	version_comparison_test \
 	ring_buffer_test \
 	libcompat_test \
-	definitions_test
+	definitions_test \
+	glob_lib_test \
+	string_sequence_test
 
 if WITH_PCRE2
 check_PROGRAMS += \
@@ -159,6 +161,9 @@ file_writer_test_SOURCES += gcov-stub.c
 endif
 
 CLEANFILES = *.gcno *.gcda cfengine-enterprise.so
+
+clean-local:
+	rm -rf test_glob_file_list_??????
 
 file_lib_test_SOURCES = file_lib_test.c \
 	../../libutils/file_lib.c \
@@ -233,3 +238,9 @@ threaded_stack_test_SOURCES = threaded_stack_test.c
 
 file_lock_test_SOURCES = file_lock_test.c
 file_lock_test_LDADD = ../../libutils/libutils.la
+
+glob_lib_test_SOURCES = glob_lib_test.c
+glob_lib_test_LDADD = ../../libutils/libutils.la libtest.la
+
+string_sequence_test_SOURCES = string_sequence_test.c
+string_sequence_test_LDADD = ../../libutils/libutils.la libtest.la

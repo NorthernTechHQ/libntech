@@ -51,11 +51,15 @@ const char *Path_Basename(const char *path)
 
 char *Path_JoinAlloc(const char *dir, const char *leaf)
 {
-    if (StringEndsWith(dir, "/"))
+    if (StringEndsWith(dir, "/")
+#ifdef _WIN32
+        || StringEndsWith(dir, "\\")
+#endif // _WIN32
+        )
     {
         return StringConcatenate(2, dir, leaf);
     }
-    return StringConcatenate(3, dir, "/", leaf);
+    return StringConcatenate(3, dir, FILE_SEPARATOR_STR, leaf);
 }
 
 char *Path_GetQuoted(const char *path)

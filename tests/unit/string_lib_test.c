@@ -1470,41 +1470,25 @@ static void test_StringMatchesOption(void)
     assert_true(StringMatchesOption("--host", "--hosts", "-H"));
 }
 
-static void test_StringJoin(void)
+static void test_StringFind(void)
 {
-    const char *argv[] = { "one", "two", "three" };
-    const int argc = sizeof(argv) / sizeof(argv[0]);
-
-    Seq *seq = SeqFromArgv(argc, argv);
-
-    char *actual = StringJoin(seq, NULL);
-    assert_string_equal(actual, "onetwothree");
-    free(actual);
-
-    actual = StringJoin(seq, "");
-    assert_string_equal(actual, "onetwothree");
-    free(actual);
-
-    actual = StringJoin(seq, ", ");
-    assert_string_equal(actual, "one, two, three");
-    free(actual);
-
-    SeqDestroy(seq);
-    seq = SeqNew(0, NULL);
-
-    actual = StringJoin(seq, NULL);
-    assert_string_equal(actual, "");
-    free(actual);
-
-    actual = StringJoin(seq, "");
-    assert_string_equal(actual, "");
-    free(actual);
-
-    actual = StringJoin(seq, ", ");
-    assert_string_equal(actual, "");
-    free(actual);
-
-    SeqDestroy(seq);
+    static const char *const str = "Hello CFEngine";
+    const size_t len = strlen(str);
+    assert_int_equal(StringFind(str, "C", 0, len), 6l);
+    assert_int_equal(StringFind(str, "C", 7, len), -1l);
+    assert_int_equal(StringFind(str, "C", 6, len), 6l);
+    assert_int_equal(StringFind(str, "C", 6, 6), -1l);
+    assert_int_equal(StringFind(str, "C", 6, 7), 6l);
+    assert_int_equal(StringFind(str, "FC", 0, len), -1l);
+    assert_int_equal(StringFind(str, "CF", 0, len), 6l);
+    assert_int_equal(StringFind(str, "H", 0, 0), -1l);
+    assert_int_equal(StringFind(str, "H", 0, 1), 0l);
+    assert_int_equal(StringFind(str, "e", len - 1, len), len - 1l);
+    assert_int_equal(StringFind(str, "e", len - 1, len - 1), -1l);
+    assert_int_equal(StringFind(str, "Hello CFEngine in the house", 0, 1), -1l);
+    assert_int_equal(StringFind(str, "CF", 0, 9999), 6l);
+    assert_int_equal(StringFind(str, "CF", 8888, 9999), -1l);
+    assert_int_equal(StringFind(str, "CF", 8888, 0), -1l);
 }
 
 int main()
@@ -1601,7 +1585,7 @@ int main()
         unit_test(test_StrCatDelim),
 
         unit_test(test_StringMatchesOption),
-        unit_test(test_StringJoin),
+        unit_test(test_StringFind),
     };
 
     return run_tests(tests);

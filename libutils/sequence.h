@@ -28,6 +28,7 @@
 #include <sys/types.h> // ssize_t
 #include <assert.h>    // assert()
 #include <stdio.h>     // FILE
+#include <stdbool.h>
 
 /**
   @brief Sequence data-structure.
@@ -279,6 +280,25 @@ Seq *SeqGetRange(const Seq *seq, size_t start, size_t end);
  */
 void *const *SeqGetData(const Seq *seq);
 
+/**
+ * @brief Custom filter callback function used with SeqFilter.
+ * @param element Element in sequence to filter.
+ * @return True if element should be filtered, otherwise false.
+ */
+typedef bool SeqFilterFn(void *element);
+
+/**
+ * @brief Filter elements on sequence.
+ * @param seq Sequence to filter elements from.
+ * @param filter Callback filter function.
+ * @return A pointer to the sequence itself (for convenience).
+ */
+Seq *SeqFilter(Seq *seq, SeqFilterFn filter);
+
+/**
+ * @brief Filter NULL pointers from Sequence.
+ * @param seq Sequence to filter NULL pointers from.
+ */
 void SeqRemoveNulls(Seq *seq);
 
 Seq *SeqFromArgv(int argc, const char *const *argv);

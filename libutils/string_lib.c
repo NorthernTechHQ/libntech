@@ -1782,22 +1782,24 @@ bool StringMatchesOption(
     return StringEqualN_IgnoreCase(supplied, longopt, length);
 }
 
-char *StringJoin(const Seq *const seq, const char *sep)
+ssize_t StringFind(
+    const char *const str,
+    const char *const sub,
+    const size_t from,
+    const size_t to)
 {
-    assert(seq != NULL);
+    assert(str != NULL);
+    assert(sub != NULL);
 
-    Writer *const writer = StringWriter();
-    const size_t len = SeqLength(seq);
-    for (size_t i = 0; i < len; i++)
+    const size_t strl = strlen(str);
+    const size_t subl = strlen(sub);
+
+    for (size_t i = from; i < MIN(strl, to); i++)
     {
-        if (i != 0 && sep != NULL)
+        if (strncmp(str + i, sub, subl) == 0)
         {
-            WriterWrite(writer, sep);
+            return i;
         }
-        const char *const str = SeqAt(seq, i);
-        WriterWrite(writer, str);
     }
-
-    char *const data = StringWriterClose(writer);
-    return data;
+    return -1;
 }

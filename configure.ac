@@ -1265,6 +1265,7 @@ AC_CONFIG_FILES([Makefile
     libutils/writer.h
     libutils/clockid_t.h
     libutils/regex.h
+    libutils/glob_lib.h
     libutils/json-yaml.h
     config.post.h
     tests/Makefile

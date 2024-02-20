@@ -102,9 +102,25 @@ NewLineMode FileNewLineMode(const char *file);
 # define FILE_SEPARATOR_STR "/"
 #endif
 
-StringSet* GlobFileList(const char *pattern);
-
 bool IsAbsoluteFileName(const char *f);
+
+/**
+ * @brief Check whether or not path is a Windows network path (i.e., paths that
+ *        starts with double slash followed by hostname or IP).
+ * @param path Path to check.
+ * @return True if path is network path, otherwise false.
+ * @note This function cannot return true on non-Windows platforms.
+ */
+bool IsWindowsNetworkPath(const char *path);
+
+/**
+ * @brief Check whether or not path is a Windows disk path.
+ * @param path Path to check.
+ * @return True if path is disk path, otherwise false.
+ * @note This function cannot return true on non-Windows platforms.
+ */
+bool IsWindowsDiskPath(const char *path);
+
 char *MapName(char *s);
 char *MapNameCopy(const char *s);
 char *MapNameForward(char *s);
@@ -267,5 +283,56 @@ bool ExclusiveFileLockCheck(FileLock *lock)
  */
 bool ExclusiveFileLockCheck(FileLock *lock);
 #endif  /* __MINGW32__ */
+
+/**
+ * @brief Callback function prototype for PathWalk() #callback argument.
+ * @param dirpath Path to the current directory.
+ * @param dirnames List of subdirectories in dirpath (excluding '.' and '..').
+ * @param filenames List of non-directories in dirpath.
+ * @param data Arbitrary data passed to PathWalk().
+ * @note If you don't want to continue down a path, you can simply remove the
+ *       respective subdirectory from the #dirnames sequence, or set it to
+ *       %NULL. Also, if you need to walk the directory entries '.' or '..', you
+ *       can append them to dirnames sequence. However, be careful so that you
+ *       don't end up with an infinite recursion. Futhermore you are free to
+ *       reorder the #dirnames sequence, which otherwise ensures a depth-first
+ *       walk.
+ */
+typedef void PathWalkFn(const char *dirpath, Seq *dirnames, const Seq *filenames, void *data);
+
+/**
+ * @brief Callback function prototype for PathWalk() #copy argument.
+ * @param data Arbitrary data passed to PathWalk().
+ * @return Should return data fully or partially duplicated.
+ * @note Used to duplicate data before each recursive branching. Can be %NULL.
+ */
+typedef void *PathWalkCopyFn(void *data);
+
+/**
+ * @brief Callback function prototype for PathWalk() #destroy argument.
+ * @param data Arbitrary data passed to PathWalk().
+ * @note Used in conjunction with PathWalkCopyFn() in order to free duplicated
+ *       data after each recursive branching. Can be %NULL.
+ */
+typedef void PathWalkDestroyFn(void *data);
+
+/**
+ * @brief Recursively walks the directory tree.
+ * @param path Path to walk.
+ * @param callback Function to call for each visited directory.
+ * @param data Arbitrary data to pass to callback function.
+ * @param copy You might need to duplicate the arbitrary data for each recursive
+ *             branching. In that case you can add a copy callback function. If
+ *             you don't need this, you can set this parameter to NULL.
+ * @param destroy Callback function to be used in conjunction with the copy
+ *                callback in order to destroy copy. Can be set to NULL.
+ * @note This function follows symbolic links.
+ */
+void PathWalk(
+    const char *path,
+    PathWalkFn callback,
+    void *data,
+    PathWalkCopyFn copy,
+    PathWalkDestroyFn destroy);
 
 #endif

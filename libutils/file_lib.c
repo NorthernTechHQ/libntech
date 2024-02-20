@@ -34,9 +34,7 @@
 #include <string_lib.h>                                         /* memcchr */
 #include <path.h>
 
-#ifndef __MINGW32__
-#include <glob.h>
-#else
+#ifdef __MINGW32__
 #include <windows.h>            /* LockFileEx and friends */
 #endif
 
@@ -329,6 +327,48 @@ NewLineMode FileNewLineMode(ARG_UNUSED const char *file)
 }
 #endif // !__MINGW32__
 
+bool IsWindowsNetworkPath(const char *const path)
+{
+#ifdef _WIN32
+    int off = 0;
+
+    while (path[off] == '\"')
+    {
+        // Bypass quoted strings
+        off += 1;
+    }
+
+    if (IsFileSep(path[off]) && IsFileSep(path[off + 1]))
+    {
+        return true;
+    }
+#else // _WIN32
+    UNUSED(path);
+#endif // _WIN32
+    return false;
+}
+
+bool IsWindowsDiskPath(const char *const path)
+{
+#ifdef _WIN32
+    int off = 0;
+
+    while (path[off] == '\"')
+    {
+        // Bypass quoted strings
+        off += 1;
+    }
+
+    if (isalpha(path[off]) && path[off + 1] == ':' && IsFileSep(path[off + 2]))
+    {
+        return true;
+    }
+#else // _WIN32
+    UNUSED(path);
+#endif // _WIN32
+    return false;
+}
+
 bool IsAbsoluteFileName(const char *f)
 {
     int off = 0;
@@ -339,17 +379,14 @@ bool IsAbsoluteFileName(const char *f)
     {
     }
 
-#ifdef _WIN32
-    if (IsFileSep(f[off]) && IsFileSep(f[off + 1]))
+    if (IsWindowsNetworkPath(f))
     {
         return true;
     }
-
-    if (isalpha(f[off]) && f[off + 1] == ':' && IsFileSep(f[off + 2]))
+    if (IsWindowsDiskPath(f))
     {
         return true;
     }
-#endif
     if (IsFileSep(f[off]))
     {
         return true;
@@ -466,6 +503,98 @@ void switch_symlink_hook();
 #else
 #define TEST_SYMLINK_SWITCH_POINT
 #endif
+
+void PathWalk(
+    const char *const path,
+    PathWalkFn callback,
+    void *const data,
+    PathWalkCopyFn copy,
+    PathWalkDestroyFn destroy)
+{
+    assert(path != NULL);
+    assert(callback != NULL);
+
+    Seq *const children = ListDir(path, NULL);
+    if (children == NULL) {
+        Log(
+            LOG_LEVEL_DEBUG,
+            "Failed to list directory '%s'. Subdirectories will not be "
+            "iterated.", path);
+        return;
+    }
+    const size_t n_children = SeqLength(children);
+
+    Seq *const dirnames = SeqNew(1, free);
+    Seq *const filenames = SeqNew(1, free);
+
+    for (size_t i = 0; i < n_children; i++)
+    {
+        /* The basename(3) function might potentially mutate the child, but we
+         * don't mind. */
+        char *const child = SeqAt(children, i);
+        const char *const b_name = basename(child);
+
+        /* We don't iterate the '.' and '..' directory entries as it would cause
+         * infinite recursion. */
+        if (StringEqual(b_name, ".") || StringEqual(b_name, ".."))
+        {
+            continue;
+        }
+
+        // Note that stat(2) follows symbolic links.
+        struct stat sb;
+        if (stat(child, &sb) == 0)
+        {
+            char *const dup = xstrdup(b_name);
+            if (sb.st_mode & S_IFDIR)
+            {
+                SeqAppend(dirnames, dup);
+            }
+            else
+            {
+                SeqAppend(filenames, dup);
+            }
+        }
+        else
+        {
+            Log(LOG_LEVEL_DEBUG,
+                "Failed to stat file '%s': %s",
+                child,
+                GetErrorStr());
+        }
+    }
+
+    SeqDestroy(children);
+    callback(path, dirnames, filenames, data);
+    SeqDestroy(filenames);
+
+    // Recursively walk through subdirectories.
+    const size_t n_dirs = SeqLength(dirnames);
+    for (size_t i = 0; i < n_dirs; i++)
+    {
+        const char *const dir = SeqAt(dirnames, i);
+        if (dir != NULL)
+        {
+            char *const duplicate = (copy != NULL) ? copy(data) : data;
+            if (StringEqual(path, "."))
+            {
+                PathWalk(dir, callback, duplicate, copy, destroy);
+            }
+            else
+            {
+                char *next = Path_JoinAlloc(path, dir);
+                PathWalk(next, callback, duplicate, copy, destroy);
+                free(next);
+            }
+            if (copy != NULL && destroy != NULL)
+            {
+                destroy(duplicate);
+            }
+        }
+    }
+
+    SeqDestroy(dirnames);
+}
 
 Seq *ListDir(const char *dir, const char *extension)
 {
@@ -1547,47 +1676,6 @@ ssize_t CfReadLines(char **buff, size_t *size, FILE *fp, Seq *lines)
     }
 
     return appended;
-}
-
-StringSet* GlobFileList(const char *pattern)
-{
-    StringSet *set = StringSetNew();
-    glob_t globbuf;
-    int globflags = 0; // TODO: maybe add GLOB_BRACE later
-
-    const char* r_candidates[] = { "*", "*/*", "*/*/*", "*/*/*/*", "*/*/*/*/*", "*/*/*/*/*/*" };
-    bool starstar = ( strstr(pattern, "**") != NULL );
-    const char** candidates   = starstar ? r_candidates : NULL;
-    const int candidate_count = starstar ? 6 : 1;
-
-    for (int pi = 0; pi < candidate_count; pi++)
-    {
-        char *expanded = starstar ?
-            SearchAndReplace(pattern, "**", candidates[pi]) :
-            xstrdup(pattern);
-
-#ifdef _WIN32
-        if (strchr(expanded, '\\'))
-        {
-            Log(LOG_LEVEL_VERBOSE, "Found backslash escape character in glob pattern '%s'. "
-                "Was forward slash intended?", expanded);
-        }
-#endif
-
-        if (glob(expanded, globflags, NULL, &globbuf) == 0)
-        {
-            for (size_t i = 0; i < globbuf.gl_pathc; i++)
-            {
-                StringSetAdd(set, xstrdup(globbuf.gl_pathv[i]));
-            }
-
-            globfree(&globbuf);
-        }
-
-        free(expanded);
-    }
-
-    return set;
 }
 
 /*******************************************************************/
