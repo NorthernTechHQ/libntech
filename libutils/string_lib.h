@@ -29,6 +29,7 @@
 #include <string.h>  // strstr()
 #include <stdarg.h> // va_list
 #include <compiler.h>
+#include <sys/types.h> // ssize_t
 
 
 typedef struct
