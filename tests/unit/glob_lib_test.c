@@ -390,6 +390,13 @@ static void test_glob_file_list(void)
     assert_true(ret < PATH_MAX && ret >= 0);
 
     StringSet *matches = GlobFileList(pattern);
+
+    const char *filename = NULL;
+    StringSetIterator iter = StringSetIteratorInit(matches);
+    while ((filename = StringSetIteratorNext(&iter)) != NULL) {
+        printf(" -> %s\n", filename);
+    }
+
     assert_int_equal(
         StringSetSize(matches), num_test_files + num_test_subdirs);
 
