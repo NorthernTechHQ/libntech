@@ -437,7 +437,7 @@ static void PathWalkCallback(
         Log(LOG_LEVEL_DEBUG,
             "Full match! Directory '%s' has matched all previous sub patterns",
             match);
-        printf("Full match! Directory '%s' has matched all previous sub patterns", match);
+        printf("Full match! Directory '%s' has matched all previous sub patterns\n", match);
 
         // Base case is reached and recursion ends here.
         SeqClear(dirnames);
@@ -468,7 +468,7 @@ static void PathWalkCallback(
                 "Partial match! Sub pattern '%s' matches directory '%s'",
                 sub_pattern,
                 dir_name);
-            printf("Partial match! Sub pattern '%s' matches directory '%s'", sub_pattern, dir_name);
+            printf("Partial match! Sub pattern '%s' matches directory '%s'\n", sub_pattern, dir_name);
             free(short_name);
         }
         else if (short_name != NULL && GlobMatch(sub_pattern, short_name))
@@ -481,7 +481,9 @@ static void PathWalkCallback(
                 " '%s' (i.e., 8.3 alias).",
                 sub_pattern,
                 short_name);
-            printf("Partial match! Sub pattern '%s' matches directory short name '%s' (i.e., 8.3 alias).", sub_pattern, NULL_TO_EMPTY_STRING(short_name));
+
+1.             printf("Partial match! Sub pattern '%s' matches directory short name '%s' (i.e., 8.3 alias)\n", sub_pattern, NULL_TO_EMPTY_STRING(short_name));
+
             SeqSet(dirnames, i, short_name);
         }
         else
@@ -489,7 +491,7 @@ static void PathWalkCallback(
             /* Not a match! Make sure not to follow down this path. Setting the
              * directory name to NULL should do the trick. And it's more
              * efficient than removing it from the sequence. */
-            printf("Not a match! Sub pattern '%s' does not match directory '%s'", sub_pattern, dir_name);
+            printf("Not a match! Sub pattern '%s' does not match directory '%s'\n", sub_pattern, dir_name);
             SeqSet(dirnames, i, NULL);
             free(short_name);
         }
@@ -519,7 +521,7 @@ static void PathWalkCallback(
                 match,
                 filename,
                 sub_pattern);
-            printf("Full match! Found non-directory file '%s' where '%s' matches sub pattern '%s'", match, filename, sub_pattern);
+            printf("Full match! Found non-directory file '%s' where '%s' matches sub pattern '%s'\n", match, filename, sub_pattern);
             SeqAppend(data->matches, match);
         }
         else if (short_name != NULL && GlobMatch(sub_pattern, short_name))
@@ -531,11 +533,11 @@ static void PathWalkCallback(
                 match,
                 short_name,
                 sub_pattern);
-            printf("Full match! Found non-directory file '%s' where the short name '%s' (8.3 alias) matches sub pattern '%s'", match, NULL_TO_EMPTY_STRING(short_name), sub_pattern);
+            printf("Full match! Found non-directory file '%s' where the short name '%s' (8.3 alias) matches sub pattern '%s'\n", match, NULL_TO_EMPTY_STRING(short_name), sub_pattern);
             SeqAppend(data->matches, match);
         }
         else {
-            printf("Not a full match! Found non-directory file where '%s' does not match sub pattern '%s'", filename, sub_pattern);
+            printf("Not a full match! Found non-directory file where '%s' does not match sub pattern '%s'\n", filename, sub_pattern);
         }
         free(short_name);
     }
