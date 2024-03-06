@@ -283,7 +283,14 @@ static void test_glob_file_list(void)
     // Create temporary directory.
 
     char template[] = "test_glob_file_list_XXXXXX";
+#ifdef __hpux
+    /* mkdtemp() on HP-UX seems to return an empty string, but instead mutates
+     * the passed string argument with the expected content. */
+    mkdtemp(template);
+    const char *const test_dir = template;
+#else // __hpux
     const char *const test_dir = mkdtemp(template);
+#endif // __hpux
     assert_true(test_dir != NULL);
 
     // Create test subdirectories.
