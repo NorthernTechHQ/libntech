@@ -529,10 +529,21 @@ void PathWalk(
 
     for (size_t i = 0; i < n_children; i++)
     {
-        /* The basename(3) function might potentially mutate the child, but we
-         * don't mind. */
         char *const child = SeqAt(children, i);
-        const char *const b_name = basename(child);
+
+        /* The basename(3) function might potentially mutate the argument.
+         * Thus, we make a copy to pass instead. */
+        char buf[PATH_MAX];
+        const size_t ret = StringCopy(child, buf, PATH_MAX);
+        if (ret >= PATH_MAX) {
+            Log(LOG_LEVEL_ERR,
+                "Failed to copy path: Path too long (%zu >= %d)",
+                ret, PATH_MAX);
+            SeqDestroy(dirnames);
+            SeqDestroy(filenames);
+            return;
+        }
+        const char *const b_name = basename(buf);
 
         /* We don't iterate the '.' and '..' directory entries as it would cause
          * infinite recursion. */
