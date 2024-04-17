@@ -157,7 +157,16 @@ char *Json5EscapeData(Slice unescaped_data);
 //////////////////////////////////////////////////////////////////////////////
 
 JsonElement *JsonCopy(const JsonElement *json);
+
+/**
+ * @brief compare two JsonElement instances
+ *
+ * @param a JsonElement
+ * @param b JsonElement
+ * @return int like strcmp(), 0 is equal, non-zero is not equal
+ */
 int JsonCompare(const JsonElement *a, const JsonElement *b);
+
 JsonElement *JsonMerge(const JsonElement *a, const JsonElement *b);
 
 /**
@@ -228,6 +237,7 @@ const char *JsonGetPropertyAsString(const JsonElement *element);
 // JSON Primitives
 //////////////////////////////////////////////////////////////////////////////
 
+const char *JsonContainerTypeToString(JsonContainerType type);
 const char *JsonPrimitiveTypeToString(JsonPrimitiveType type);
 JsonPrimitiveType JsonGetPrimitiveType(const JsonElement *primitive);
 const char *JsonPrimitiveGetAsString(const JsonElement *primitive);

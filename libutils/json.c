@@ -76,6 +76,20 @@ struct JsonElement_
 // JsonElement Functions
 // *******************************************************************************************
 
+const char *JsonContainerTypeToString(const JsonContainerType type)
+{
+    switch (type)
+    {
+    case JSON_CONTAINER_TYPE_ARRAY:
+        return "array";
+    case JSON_CONTAINER_TYPE_OBJECT:
+        return "object";
+    default:
+        UnexpectedError("Unknown JSON container type: %d", type);
+        return "(null)";
+    }
+}
+
 const char *JsonPrimitiveTypeToString(const JsonPrimitiveType type)
 {
     switch (type)
@@ -262,11 +276,12 @@ static int JsonArrayCompare(
     int ret = JsonLength(a) - JsonLength(b);
     if (ret != 0)
     {
+        Log(LOG_LEVEL_DEBUG, "JsonArrayCompare() fails, length differs by %d", ret);
         return ret;
     }
 
     JsonIterator iter_a = JsonIteratorInit(a);
-    JsonIterator iter_b = JsonIteratorInit(a);
+    JsonIterator iter_b = JsonIteratorInit(b);
 
     for (size_t i = 0; i < JsonLength(a); i++)
     {
@@ -276,6 +291,7 @@ static int JsonArrayCompare(
         ret = JsonCompare(child_a, child_b);
         if (ret != 0)
         {
+            Log(LOG_LEVEL_DEBUG, "JsonArrayCompare() fails for index %zu, children not equal", i);
             return ret;
         }
     }
@@ -296,34 +312,32 @@ static int JsonObjectCompare(
     int ret = JsonLength(a) - JsonLength(b);
     if (ret != 0)
     {
+        Log(LOG_LEVEL_DEBUG, "JsonObjectCompare() fails, length differs by %d", ret);
         return ret;
     }
 
-    JsonIterator iter_a = JsonIteratorInit(a);
-    JsonIterator iter_b = JsonIteratorInit(a);
+    JsonIterator iter = JsonIteratorInit(a);
 
-    for (size_t i = 0; i < JsonLength(a); i++)
+    while (JsonIteratorHasMore(&iter))
     {
-        const JsonElement *child_a = JsonIteratorNextValue(&iter_a);
-        const JsonElement *child_b = JsonIteratorNextValue(&iter_b);
+        const char *const key = JsonIteratorNextKey(&iter);
+        const JsonElement *const child_a = JsonIteratorCurrentValue(&iter);
+        const JsonElement *const child_b = JsonObjectGet(b, key);
 
-        const char *const key_a = JsonIteratorCurrentKey(&iter_a);
-        const char *const key_b = JsonIteratorCurrentKey(&iter_b);
-
-        ret = strcmp(key_a, key_b);
-        if (ret != 0)
+        if (child_b == NULL)
         {
-            return ret;
+            Log(LOG_LEVEL_DEBUG, "JsonObjectCompare() fails for key '%s', not present in object b", key);
+            return 1;
         }
-
         ret = JsonCompare(child_a, child_b);
         if (ret != 0)
         {
+            Log(LOG_LEVEL_DEBUG, "JsonObjectCompare() fails for key '%s', children are not equal", key);
             return ret;
         }
     }
 
-    return ret;
+    return ret; // here ret will be 0 in the case that both objects are empty or all children are equal
 }
 
 
@@ -340,6 +354,7 @@ static int JsonContainerCompare(
 
     if (type_a != type_b)
     {
+        Log(LOG_LEVEL_DEBUG, "JsonContainerCompare() fails, container type '%s' not equal to container type '%s'", JsonContainerTypeToString(type_a), JsonContainerTypeToString(type_b));
         return type_a - type_b;
     }
 
@@ -367,6 +382,7 @@ int JsonCompare(const JsonElement *const a, const JsonElement *const b)
 
     if (type_a != type_b)
     {
+        Log(LOG_LEVEL_DEBUG, "JsonCompare() fails, type %d not equal to type %d", type_a, type_b);
         return type_a - type_b;
     }
 
@@ -376,7 +392,14 @@ int JsonCompare(const JsonElement *const a, const JsonElement *const b)
         return JsonContainerCompare(a, b);
 
     case JSON_ELEMENT_TYPE_PRIMITIVE:
-        return strcmp(a->primitive.value, b->primitive.value);
+    {
+        if (!StringEqual(a->primitive.value, b->primitive.value))
+        {
+            Log(LOG_LEVEL_DEBUG, "JsonCompare() fails, primitive '%s' not equal to '%s'", a->primitive.value, b->primitive.value);
+            return 1;
+        }
+        return 0;
+    }
 
     default:
         UnexpectedError("Unknown JSON element type: %d", type_a);
@@ -1198,7 +1221,7 @@ static int JsonElementHasProperty(
 
     assert(element->propertyName != NULL);
 
-    if (strcmp(propertyName, element->propertyName) == 0)
+    if (StringEqual(propertyName, element->propertyName))
     {
         return 0;
     }
