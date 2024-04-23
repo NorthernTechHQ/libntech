@@ -1,4 +1,5 @@
 #include <test.h>
+#include <logging.h>
 
 #include <json.h>
 #include <string_lib.h>
@@ -567,6 +568,25 @@ static void test_copy_compare(void)
 
     JsonDestroy(bench);
     JsonDestroy(copy);
+}
+
+static void test_compare_container_type_mismatch(void)
+{
+    JsonElement *object_a = JsonObjectCreate(1);
+    JsonElement *object_b = JsonObjectCreate(1);
+
+    JsonElement *child = JsonObjectCreate(1);
+    JsonObjectAppendObject(object_a, "key", child);
+
+    JsonElement *array = JsonArrayCreate(1);
+    JsonArrayAppendString(array, "first");
+    JsonArrayAppendString(array, "second");
+    JsonObjectAppendArray(object_b, "key", array);
+
+    assert_true(JsonCompare(object_a, object_b) != 0);
+
+    JsonDestroy(object_a);
+    JsonDestroy(object_b);
 }
 
 static void test_select(void)
@@ -1908,116 +1928,97 @@ static void test_json_null_not_null(void)
     JsonDestroy(json);
 }
 
-static bool compare_json_object_merge_deep(const JsonElement *a, const JsonElement *b);
-
-static bool compare_array_json_object_merge_deep(const JsonElement *const a, const JsonElement *const b)
-{
-    const size_t len = JsonLength(a);
-    if (len != JsonLength(b))
-    {
-        return false;
-    }
-
-    for (size_t i = 0; i < len; i++)
-    {
-        const JsonElement *const a_child = JsonArrayGet(a, i);
-        const JsonElement *const b_child = JsonArrayGet(b, i);
-        if (!compare_json_object_merge_deep(a_child, b_child)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-static bool compare_object_json_object_merge_deep(const JsonElement *const a, const JsonElement *const b)
-{
-    if (JsonLength(a) != JsonLength(b))
-    {
-        return false;
-    }
-
-    JsonIterator iter = JsonIteratorInit(a);
-    while (JsonIteratorHasMore(&iter))
-    {
-        const char *const key = JsonIteratorNextKey(&iter);
-        const JsonElement *const a_child = JsonObjectGet(a, key);
-        const JsonElement *const b_child = JsonObjectGet(b, key);
-        if (b_child == NULL || !compare_json_object_merge_deep(a_child, b_child))
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-static bool compare_json_object_merge_deep(const JsonElement *const a, const JsonElement *const b)
-{
-    const JsonType type = JsonGetType(a);
-    if (type != JsonGetType(b))
-    {
-        return false;
-    }
-
-    switch (type)
-    {
-    case JSON_TYPE_OBJECT:
-        return compare_object_json_object_merge_deep(a, b);
-    case JSON_TYPE_ARRAY:
-        return compare_array_json_object_merge_deep(a, b);
-    default:
-        return JsonCompare(a, b) == 0;
-    }
-}
-
 static bool check_json_object_merge_deep(const char *base_raw, const char *extra_raw, const char *expected_raw)
 {
+    LogSetGlobalLevel(LOG_LEVEL_DEBUG);
+    bool pass = true;
+    JsonElement *actual = NULL;
     JsonElement *base = NULL;
+    JsonElement *extra = NULL;
+    JsonElement *expected = NULL;
+    char *expected_string = NULL;
+    char *actual_string = NULL;
+
     if (JsonParse(&base_raw, &base) != JSON_PARSE_OK)
     {
-        return false;
+        printf("error: could not parse base: %s\n", base_raw);
+        pass = false;
+        goto finish;
     }
 
-    JsonElement *extra = NULL;
     if (JsonParse(&extra_raw, &extra) != JSON_PARSE_OK)
     {
-        return false;
+        printf("error: could not parse extra: %s\n", extra_raw);
+        pass = false;
+        goto finish;
     }
 
-    JsonElement *expected = NULL;
     if (JsonParse(&expected_raw, &expected) != JSON_PARSE_OK) {
-        return false;
+        printf("error: could not parse expected: %s\n", expected_raw);
+        pass = false;
+        goto finish;
     }
 
-    JsonElement *actual = JsonObjectMergeDeep(base, extra);
+    expected_string = JsonToString(expected);
+
+    actual = JsonObjectMergeDeep(base, extra);
     if (actual == NULL || actual == base)
     {
-        return false;
+        pass = false;
+        goto finish;
     }
 
-    /* JsonCompare is naive and does not handle containers properly, thus we
-     * need a custom comparison function to test for equality. */
-    if (!compare_json_object_merge_deep(actual, expected))
+    actual_string = JsonToString(actual);
+
+    if (JsonCompare(actual, expected) != 0)
     {
-        return false;
+        pass = false;
+        goto finish;
     }
 
-    JsonDestroy(actual);
+    DESTROY_AND_NULL(JsonDestroy,actual);
     actual = JsonObjectMergeDeepInplace(base, extra);
+
+    // JsonObjectMergeDeepInplace() returns the first parameter (base) so actual should point to base
     if (actual != base)
     {
-        return false;
+        pass = false;
+        goto finish;
     }
 
-    if (!compare_json_object_merge_deep(actual, expected))
+    if (JsonCompare(actual, expected))
     {
-        return false;
+        pass = false;
+        goto finish;
     }
 
-    JsonDestroy(base);
-    JsonDestroy(extra);
-    JsonDestroy(expected);
+    finish:
+        if (actual_string)
+        {
+            if (pass == false)
+            {
+                printf("merged json  : %s\n", actual_string);
+            }
+            free(actual_string);
+        }
+        if (expected_string)
+        {
+            if (pass == false)
+            {
+                printf("expected json: %s\n", expected_string);
+            }
+            free(expected_string);
+        }
+        // in second step of JsonObjectMergeDeepInplace() actual should point to base
+        if (actual != base)
+        {
+            JsonDestroy(actual);
+        }
+        JsonDestroy(base);
+        JsonDestroy(extra);
+        JsonDestroy(expected);
 
-    return true;
+    return pass;
 }
 
 static void test_json_object_merge_deep()
@@ -2083,13 +2084,13 @@ static void test_json_object_merge_deep()
         // extra
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {}"
+        "    \"cfbs:delete_files.filenames_one\": {}"
         "  }"
         "}",
         // expected
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {}"
+        "    \"cfbs:delete_files.filenames_one\": {}"
         "  }"
         "}"
     ));
@@ -2098,7 +2099,7 @@ static void test_json_object_merge_deep()
         // base
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_two\": {"
         "      \"value\": [ \"/tmp/virus\" ],"
         "      \"tags\": [ \"foo\", \"bar\", \"bas\" ]"
         "    }"
@@ -2107,7 +2108,7 @@ static void test_json_object_merge_deep()
         // extra
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_two\": {"
         "      \"value\": [ \"/tmp/malicious\" ],"
         "      \"comment\": [ \"Delete dangerous files!\" ]"
         "    }"
@@ -2116,10 +2117,10 @@ static void test_json_object_merge_deep()
         // expected
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
-        "      \"value\": [ \"/tmp/virus\", \"/tmp/malicious\" ],"
+        "    \"cfbs:delete_files.filenames_two\": {"
+        "      \"comment\": [ \"Delete dangerous files!\" ],"
         "      \"tags\": [ \"foo\", \"bar\", \"bas\" ],"
-        "      \"comment\": [ \"Delete dangerous files!\" ]"
+        "      \"value\": [ \"/tmp/virus\", \"/tmp/malicious\" ]"
         "    }"
         "  }"
         "}"
@@ -2141,7 +2142,7 @@ static void test_json_object_merge_deep()
         // extra
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_three\": {"
         "      \"value\": [ \"/tmp/malicious\" ],"
         "      \"comment\": [ \"Delete dangerous files!\" ]"
         "    }"
@@ -2150,9 +2151,9 @@ static void test_json_object_merge_deep()
         // expected
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
-        "      \"value\": [ \"/tmp/malicious\" ],"
-        "      \"comment\": [ \"Delete dangerous files!\" ]"
+        "    \"cfbs:delete_files.filenames_three\": {"
+        "      \"comment\": [ \"Delete dangerous files!\" ],"
+        "      \"value\": [ \"/tmp/malicious\" ]"
         "    }"
         "  },"
         "  \"classes\": {"
@@ -2167,11 +2168,12 @@ static void test_json_object_merge_deep()
         "}"
     ));
 
-    assert_true(check_json_object_merge_deep(
+    // NOTE: this assert_false() test is the same as the next one with the exception of value:/tmp/foobad to check deep compare
+    assert_false(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_bad\": {"
         "      \"value\": [ \"/tmp/foo\", \"/tmp/bar\" ],"
         "    }"
         "  }"
@@ -2179,7 +2181,7 @@ static void test_json_object_merge_deep()
         // extra
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_bad\": {"
         "      \"value\": [ \"/tmp/bar\", \"/tmp/baz\" ],"
         "    }"
         "  }"
@@ -2187,18 +2189,76 @@ static void test_json_object_merge_deep()
         // expected
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_bad\": {"
+        "      \"value\": [ \"/tmp/foobad\", \"/tmp/bar\", \"/tmp/bar\", \"/tmp/baz\" ],"
+        "    }"
+        "  }"
+        "}"
+    ));
+
+    // this second negative test checks that a mismatch of a second child of an object is found
+    // note the "badchild" in the expectation
+    // there was a bug as I was working here where only the number of children mattered if the first matched, any more than that were not compared
+    assert_false(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables_bad_two\": {"
+        "    \"cfbs:delete_files.filenames_bad_two\": {"
+        "      \"value\": [ \"/tmp/foo\", \"/tmp/bar\" ],"
+        "      \"badchild\": { \"one\": \"uno\", \"two\": \"due\" },"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables_bad_two\": {"
+        "    \"cfbs:delete_files.filenames_bad_two\": {"
+        "      \"value\": [ \"/tmp/bar\", \"/tmp/baz\" ],"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables_bad_two\": {"
+        "    \"cfbs:delete_files.filenames_bad_two\": {"
+        "      \"value\": [ \"/tmp/foo\", \"/tmp/bar\", \"/tmp/bar\", \"/tmp/baz\" ],"
+        "      \"badchild\": { \"one\": \"uno\", \"two\": \"dva\" },"
+        "    }"
+        "  }"
+        "}"
+    ));
+
+    assert_true(check_json_object_merge_deep(
+        // base
+        "{"
+        "  \"variables_four\": {"
+        "    \"cfbs:delete_files.filenames_four\": {"
+        "      \"value\": [ \"/tmp/foo\", \"/tmp/bar\" ],"
+        "    }"
+        "  }"
+        "}",
+        // extra
+        "{"
+        "  \"variables_four\": {"
+        "    \"cfbs:delete_files.filenames_four\": {"
+        "      \"value\": [ \"/tmp/bar\", \"/tmp/baz\" ],"
+        "    }"
+        "  }"
+        "}",
+        // expected
+        "{"
+        "  \"variables_four\": {"
+        "    \"cfbs:delete_files.filenames_four\": {"
         "      \"value\": [ \"/tmp/foo\", \"/tmp/bar\", \"/tmp/bar\", \"/tmp/baz\" ],"
         "    }"
         "  }"
         "}"
     ));
-
     assert_true(check_json_object_merge_deep(
         // base
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_five\": {"
         "      \"value\": [],"
         "    }"
         "  }"
@@ -2206,7 +2266,7 @@ static void test_json_object_merge_deep()
         // extra
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_five\": {"
         "      \"value\": {},"
         "    }"
         "  }"
@@ -2214,7 +2274,7 @@ static void test_json_object_merge_deep()
         // expected
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_five\": {"
         "      \"value\": {},"
         "    }"
         "  }"
@@ -2225,7 +2285,7 @@ static void test_json_object_merge_deep()
         // base
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_six\": {"
         "      \"value\": {},"
         "    }"
         "  }"
@@ -2233,7 +2293,7 @@ static void test_json_object_merge_deep()
         // extra
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_six\": {"
         "      \"value\": [],"
         "    }"
         "  }"
@@ -2241,7 +2301,7 @@ static void test_json_object_merge_deep()
         // expected
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_six\": {"
         "      \"value\": [],"
         "    }"
         "  }"
@@ -2252,7 +2312,7 @@ static void test_json_object_merge_deep()
         // base
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_seven\": {"
         "      \"value\": [],"
         "    }"
         "  }"
@@ -2260,7 +2320,7 @@ static void test_json_object_merge_deep()
         // extra
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_seven\": {"
         "      \"value\": 123,"
         "    }"
         "  }"
@@ -2268,7 +2328,7 @@ static void test_json_object_merge_deep()
         // expected
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_seven\": {"
         "      \"value\": 123,"
         "    }"
         "  }"
@@ -2279,7 +2339,7 @@ static void test_json_object_merge_deep()
         // base
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_eight\": {"
         "      \"value\": 123,"
         "    }"
         "  }"
@@ -2287,7 +2347,7 @@ static void test_json_object_merge_deep()
         // extra
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_eight\": {"
         "      \"value\": {},"
         "    }"
         "  }"
@@ -2295,7 +2355,7 @@ static void test_json_object_merge_deep()
         // expected
         "{"
         "  \"variables\": {"
-        "    \"cfbs:delete_files.filenames\": {"
+        "    \"cfbs:delete_files.filenames_eight\": {"
         "      \"value\": {},"
         "    }"
         "  }"
@@ -2374,6 +2434,7 @@ int main()
         unit_test(test_string_escape_json5),
         unit_test(test_json_null_not_null),
         unit_test(test_json_object_merge_deep),
+        unit_test(test_compare_container_type_mismatch),
     };
 
     return run_tests(tests);
