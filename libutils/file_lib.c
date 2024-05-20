@@ -34,6 +34,22 @@
 #include <string_lib.h>                                         /* memcchr */
 #include <path.h>
 
+/* below are includes for the fancy efficient file/data copying on Linux */
+#ifdef __linux__
+
+
+#ifdef HAVE_LINUX_FS_H
+#include <linux/fs.h>  /* FICLONE */
+#endif
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#ifdef HAVE_SYS_SENDFILE_H
+#include <sys/sendfile.h>
+#endif
+#include <sys/stat.h>
+#include <unistd.h>    /* copy_file_range(), lseek() */
+#endif /* __linux__ */
+
 #ifdef __MINGW32__
 #include <windows.h>            /* LockFileEx and friends */
 #endif
@@ -1505,20 +1521,30 @@ bool FileSparseWrite(int fd, const void *buf, size_t count,
 }
 
 /**
- * Copy data jumping over areas filled by '\0' greater than blk_size, so
- * files automatically become sparse if possible.
+ * Below is a basic implementation of copying sparse files shoveling data from
+ * sd to dd detecting blocks of zeroes.
  *
- * File descriptors should already be open, the filenames #source and
- * #destination are only for logging purposes.
- *
- * @NOTE Always use FileSparseClose() to close the file descriptor, to avoid
- *       losing data.
+ * On Linux, we try more fancy and efficient approaches than what is done
+ * below if any are supported.
  */
-bool FileSparseCopy(int sd, const char *src_name,
-                    int dd, const char *dst_name,
-                    size_t blk_size,
-                    size_t *total_bytes_written,
-                    bool   *last_write_was_a_hole)
+#ifdef __linux__
+#if HAVE_SENDFILE || HAVE_COPY_FILE_RANGE
+#if HAVE_DECL_SEEK_DATA && HAVE_DECL_FALLOC_FL_PUNCH_HOLE
+#define SMART_FILE_COPY_SYSCALLS_AVAILABLE 1
+#define SMART_SYSCALLS_UNUSED ARG_UNUSED
+#endif  /* HAVE_DECL_SEEK_DATA && HAVE_DECL_FALLOC_FL_PUNCH_HOLE */
+#endif  /* HAVE_SENDFILE || HAVE_COPY_FILE_RANGE */
+#endif  /* __linux__ */
+#ifndef SMART_FILE_COPY_SYSCALLS_AVAILABLE
+#define SMART_FILE_COPY_SYSCALLS_AVAILABLE 0
+#define SMART_SYSCALLS_UNUSED
+#endif
+
+SMART_SYSCALLS_UNUSED static bool FileSparseCopyShoveling(int sd, const char *src_name,
+                                                          int dd, const char *dst_name,
+                                                          size_t blk_size,
+                                                          size_t *total_bytes_written,
+                                                          bool   *last_write_was_a_hole)
 {
     assert(total_bytes_written   != NULL);
     assert(last_write_was_a_hole != NULL);
@@ -1565,6 +1591,188 @@ bool FileSparseCopy(int sd, const char *src_name,
 }
 
 /**
+ * Copy data jumping over areas filled by '\0' greater than blk_size, so
+ * files automatically become sparse if possible.
+ *
+ * File descriptors should already be open, the filenames #source and
+ * #destination are only for logging purposes.
+ *
+ * @NOTE Always use FileSparseClose() to close the file descriptor, to avoid
+ *       losing data.
+ */
+bool FileSparseCopy(int sd, const char *src_name,
+                    int dd, const char *dst_name,
+                    SMART_SYSCALLS_UNUSED size_t blk_size,
+                    size_t *total_bytes_written,
+                    bool *last_write_was_a_hole)
+{
+    assert(total_bytes_written != NULL);
+    assert(last_write_was_a_hole != NULL);
+
+#if !SMART_FILE_COPY_SYSCALLS_AVAILABLE
+    return FileSparseCopyShoveling(sd, src_name, dd, dst_name, blk_size,
+                                   total_bytes_written, last_write_was_a_hole);
+#else
+    /* We rely on the errno value below so make sure it's not spoofed by an
+     * error from outside. */
+    errno = 0;
+
+    size_t input_size;
+    struct stat in_sb;
+    if (fstat(sd, &in_sb) == 0)
+    {
+        input_size = in_sb.st_size;
+    }
+    else
+    {
+        Log(LOG_LEVEL_ERR, "Failed to stat() '%s': %m", src_name);
+        *total_bytes_written = 0;
+        return false;
+    }
+    bool same_dev = false;
+    struct stat out_sb;
+    if (fstat(dd, &out_sb) == 0)
+    {
+        same_dev = in_sb.st_dev == out_sb.st_dev;
+    }
+    else
+    {
+        Log(LOG_LEVEL_ERR, "Failed to stat() '%s': %m", dst_name);
+        *total_bytes_written = 0;
+        return false;
+    }
+#if HAVE_DECL_FICLONE
+    if (same_dev)
+    {
+        /* If they are on the same device, first try to use FICLONE
+         * (man:ioctl_ficlone(2)) if available because nothing can beat that.
+         * However, it can easily fail if the FS doesn't support it or if we are
+         * making a copy accross multiple file systems.
+         */
+        if (ioctl(dd, FICLONE, sd) == 0)
+        {
+            Log(LOG_LEVEL_VERBOSE, "'%s' copied successfully to '%s'", src_name, dst_name);
+            *total_bytes_written = input_size;
+            *last_write_was_a_hole = false;
+            return true;
+        }
+        else
+        {
+            Log(LOG_LEVEL_DEBUG, "Failed to use FICLONE to copy '%s' to '%s': %m", src_name, dst_name);
+            /* let's try other things */
+            errno = 0;
+        }
+    }
+#endif  /* HAVE_DECL_FICLONE */
+    if (ftruncate(dd, input_size) != 0)
+    {
+        Log(LOG_LEVEL_ERR, "Failed to preset size for '%s': %m", dst_name);
+        *total_bytes_written = 0;
+        return false;
+    }
+    if (in_sb.st_blocks == 0)
+    {
+        /* Nothing to copy. */
+        Log(LOG_LEVEL_VERBOSE, "'%s' copied successfully to '%s'", src_name, dst_name);
+        *total_bytes_written = input_size;
+        *last_write_was_a_hole = false;
+        return true;
+    }
+
+    /* man:inode(7) says about st_blocks:
+     * This field indicates the number of blocks allocated to the file, 512-byte
+     * units, (This may be smaller than st_size/512 when the file has holes.)
+     * The POSIX.1 standard notes that the unit for the st_blocks member of the stat
+     * structure is not defined by the standard.  On many implementations it is 512
+     * bytes; on a few systems, a different unit is used, such as 1024. Furthermore,
+     * the unit may differ on a per-filesystem basis.
+     * So using 512 is the best we can do although it might not be perfect.
+     */
+    if (fallocate(dd, FALLOC_FL_KEEP_SIZE|FALLOC_FL_PUNCH_HOLE, 0, in_sb.st_blocks * 512) != 0)
+    {
+        Log(LOG_LEVEL_ERR, "Failed to pre-allocate space for '%s': %m", dst_name);
+        *total_bytes_written = 0;
+        return false;
+    }
+
+    off_t in_pos = 0;
+    off_t out_pos = 0;
+    bool done = false;
+    int error = 0;
+    while (!done)
+    {
+        error = 0;
+        in_pos = lseek(sd, in_pos, SEEK_DATA);
+        if (in_pos == -1)
+        {
+            if (errno == ENXIO)
+            {
+                /* ENXIO means we are either seeking past the end of file or
+                   that we seek data and there is only a hole till the end of
+                   the file. IOW, we are done. */
+                done = true;
+                break;
+            }
+            else
+            {
+                error = errno;
+                Log(LOG_LEVEL_ERR, "Failed to seek to next data in '%s'", src_name);
+                break;
+            }
+        }
+        if (in_pos != out_pos)
+        {
+            out_pos = lseek(dd, in_pos - out_pos, SEEK_CUR);
+            if (out_pos == -1) {
+                error = errno;
+                Log(LOG_LEVEL_ERR, "Failed to advance descriptor in '%s'", dst_name);
+                break;
+            }
+        }
+        off_t next_hole = lseek(sd, in_pos, SEEK_HOLE);
+        if (next_hole == -1)
+        {
+            error = errno;
+            Log(LOG_LEVEL_ERR, "Failed to find next hole in '%s'", src_name);
+            break;
+        }
+        if (lseek(sd, in_pos, SEEK_SET) == -1)
+        {
+            error = errno;
+            Log(LOG_LEVEL_ERR, "Failed to seek back to data in '%s'", src_name);
+            break;
+        }
+        ssize_t n_copied;
+#ifdef HAVE_COPY_FILE_RANGE
+        /* copy_file_range() only works on the same device (file system), but
+         * unlike sendfile() it can actually create reflinks instead of copying
+         * the data. */
+        if (same_dev)
+        {
+            n_copied = copy_file_range(sd, NULL, dd, NULL, next_hole - in_pos, 0);
+            error = errno;
+        }
+        else
+#endif /* HAVE_COPY_FILE_RANGE */
+        {
+            n_copied = sendfile(dd, sd, NULL, next_hole - in_pos);
+            error = errno;
+        }
+        if (n_copied > 0)
+        {
+            in_pos += n_copied;
+            out_pos += n_copied;
+            *total_bytes_written += n_copied;
+        }
+        done = ((n_copied <= 0) || ((size_t) in_pos == input_size));
+    }
+    *last_write_was_a_hole = false;
+    return (error == 0);
+#endif  /* SMART_FILE_COPY_SYSCALLS_AVAILABLE */
+}
+#undef SMART_FILE_COPY_SYSCALLS_AVAILABLE
+
+/**
  * Always close a written sparse file using this function, else truncation
  * might occur if the last part was a hole.
  *
@@ -1584,9 +1792,20 @@ bool FileSparseCopy(int sd, const char *src_name,
  */
 bool FileSparseClose(int fd, const char *filename,
                      bool do_sync,
-                     size_t total_bytes_written,
-                     bool last_write_was_hole)
+                     SMART_SYSCALLS_UNUSED size_t total_bytes_written,
+                     SMART_SYSCALLS_UNUSED bool last_write_was_hole)
 {
+#if SMART_FILE_COPY_SYSCALLS_AVAILABLE
+    /* Not much to do here with smart syscalls (see above). */
+    bool success = true;
+    if (do_sync && (fsync(fd) != 0))
+    {
+        Log(LOG_LEVEL_WARNING, "Could not sync to disk file '%s': %m)", filename);
+        success = false;
+    }
+    close(fd);
+    return success;
+#else
     if (last_write_was_hole)
     {
         ssize_t ret1 = FullWrite(fd, "", 1);
@@ -1630,7 +1849,9 @@ bool FileSparseClose(int fd, const char *filename,
     }
 
     return true;
+#endif /* SMART_FILE_COPY_SYSCALLS_AVAILABLE */
 }
+#undef SMART_FILE_COPY_SYSCALLS_AVAILABLE
 
 ssize_t CfReadLine(char **buff, size_t *size, FILE *fp)
 {
