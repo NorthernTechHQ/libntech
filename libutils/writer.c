@@ -351,6 +351,6 @@ void WriterWriteHelp(Writer *w, const Component *component,
         WriterWriteF(w, "\nWebsite: %s\n", component->website);
     }
     if (component->copyright != NULL) {
-        WriterWriteF(w, "This software is Copyright %s.\n ", component->copyright);
+        WriterWriteF(w, "This software is Copyright %s.\n", component->copyright);
     }
 }
