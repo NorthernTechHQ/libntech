@@ -40,6 +40,10 @@ void tests_setup()
         initialized = 0;
         return;
     }
+
+    OPENSSL_init_crypto(0, NULL);
+    initialized = 1;
+
     rsa = RSA_new();
     if (rsa)
     {
@@ -57,8 +61,6 @@ void tests_setup()
         RSA_generate_key_ex(rsa, 1024, bn, NULL);
         BN_free(bn);
     }
-    OpenSSL_add_all_digests();
-    initialized = 1;
 }
 
 void tests_teardown()
