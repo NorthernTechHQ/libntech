@@ -163,8 +163,8 @@ void test_json_array_to_stringset(void)
 void test_stringset_add_f(void) {
     StringSet *set = StringSetNew();
 
-    StringSetAddF(set, "Hello %s!", "CFEngine");
-    StringSetAddF(set, "Bye CFEngine!");
+    StringSetAdd(set, "Hello %s!", "CFEngine");
+    StringSetAdd(set, "Bye CFEngine!");
     StringSetAdd(set, xstrdup(""));
 
     assert_true(StringSetContains(set, "Hello CFEngine!"));
