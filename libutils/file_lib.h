@@ -67,6 +67,18 @@ Writer *FileReadFromFd(int fd, size_t size_max, bool *truncated);
 
 bool FileCanOpen(const char *path, const char *modes);
 
+/**
+ * Returns true if a path (such as a file or a folder) exists
+ * Don't follow symlinks, don't check permissions, don't check if it's a file.
+ * This function is similar to access (man 2 access), consider using that
+ * instead (for example if you want to follow symlinks).
+ */
+static inline bool PathExists(const char *path)
+{
+    struct stat statbuf;
+    return (lstat(path, &statbuf) == 0);
+}
+
 /* Write LEN bytes at PTR to descriptor DESC, retrying if interrupted.
    Return LEN upon success, write's (negative) error code otherwise.  */
 ssize_t FullWrite(int desc, const char *ptr, size_t len);
