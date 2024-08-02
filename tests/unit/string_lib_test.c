@@ -869,7 +869,7 @@ static void test_safe_equal_n(void)
 
 static void test_is_string_in_array(void)
 {
-    char *array[5] = {"one", "two", "three", "four", "five"};
+    const char *array[5] = {"one", "two", "three", "four", "five"};
     assert_true(IsStringInArray("one", array, 5));
     assert_true(IsStringInArray("two", array, 5));
     assert_true(IsStringInArray("three", array, 5));
@@ -879,7 +879,7 @@ static void test_is_string_in_array(void)
     assert_false(IsStringInArray("fire", array, 5));
     assert_false(IsStringInArray("five", array, 3));
 
-    char **new_array = calloc(3, sizeof(char*));
+    const char **new_array = calloc(3, sizeof(char*));
     new_array[0] = "one";
     new_array[1] = "two";
     new_array[2] = "three";
