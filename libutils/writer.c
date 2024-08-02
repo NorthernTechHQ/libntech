@@ -292,7 +292,7 @@ static void WriterWriteOptions(Writer *w, const struct option options[],
     for (int i = 0; options[i].name != NULL; i++)
     {
         char short_option[] = ", -*";
-        if (options[i].val < 128)
+        if (options[i].val < 128 && options[i].val > 0)
         {
             // Within ASCII range, means there is a short option.
             short_option[3] = options[i].val;

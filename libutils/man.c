@@ -154,13 +154,26 @@ static void WriteOptions(Writer *out, const struct option options[],
 
     for (int i = 0; options[i].name != NULL; i++)
     {
-        if (options[i].has_arg)
+        char short_option[] = ", -*";
+        if (options[i].val < 128 && options[i].val > 0)
         {
-            WriterWriteF(out, ".IP \"--%s, -%c value\"\n%s\n", options[i].name, (char) options[i].val, option_hints[i]);
+            // Within ASCII range, means there is a short option.
+            short_option[3] = options[i].val;
         }
         else
         {
-            WriterWriteF(out, ".IP \"--%s, -%c\"\n%s\n", options[i].name, (char) options[i].val, option_hints[i]);
+            // No short option.
+            short_option[0] = '\0';
+        }
+        if (options[i].has_arg)
+        {
+            WriterWriteF(out, ".IP \"--%s%s value\"\n%s\n", options[i].name,
+                         short_option, option_hints[i]);
+        }
+        else
+        {
+            WriterWriteF(out, ".IP \"--%s%s\"\n%s\n", options[i].name,
+                         short_option, option_hints[i]);
         }
     }
 }
