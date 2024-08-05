@@ -727,7 +727,7 @@ int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flag
 #if !HAVE_DECL_FCHMODAT
 int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags);
 #endif
-#if !HAVE_DECL_READLINKAT
+#ifndef HAVE_READLINKAT
 int readlinkat(int dirfd, const char *pathname, char *buf, size_t bufsiz);
 #endif
 #ifndef AT_SYMLINK_NOFOLLOW
