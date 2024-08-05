@@ -26,6 +26,7 @@
 
 #include <stdbool.h> // bool
 #include <sys/types.h> // uid_t
+#include <sys/stat.h> // lstat
 #include <writer.h>
 #include <set.h>
 #include <sequence.h>
