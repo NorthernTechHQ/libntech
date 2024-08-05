@@ -1953,7 +1953,7 @@ static int LockFD(int fd, short int lock_type, bool wait)
         {
             if (errno != EINTR)
             {
-                Log(LOG_LEVEL_DEBUG, "Failed to acquire file lock for FD %d: %s",
+                Log(LOG_LEVEL_DEBUG, "Failed to acquire file lock wait for FD %d: %s",
                     fd, GetErrorStr());
                 return -1;
             }
