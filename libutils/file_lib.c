@@ -187,6 +187,70 @@ bool File_Copy(const char *src, const char *dst)
     return ret;
 }
 
+bool FileCopyKeepPerms(const char *src, const char *dst)
+{
+    assert(src != NULL);
+    assert(dst != NULL);
+
+    struct stat src_sb;
+    if (lstat(src, &src_sb) != 0)
+    {
+        Log(LOG_LEVEL_ERR, "Failed to stat '%s': %s", src, GetErrorStr());
+        return false;
+    }
+
+    int src_fd = safe_open(src, O_RDONLY);
+    if (src_fd == -1)
+    {
+        Log(LOG_LEVEL_ERR, "Failed to open '%s': %s", src, GetErrorStr());
+        return false;
+    }
+
+    int dst_fd = safe_open_create_perms(dst, O_CREAT | O_WRONLY, src_sb.st_mode);
+    if (dst_fd == -1)
+    {
+        Log(LOG_LEVEL_ERR, "Failed to open '%s': %s", dst, GetErrorStr());
+        close(src_fd);
+        return false;
+    }
+
+    char buf[CF_BUFSIZE];
+    ssize_t n_read;
+    do
+    {
+        n_read = read(src_fd, buf, sizeof(buf));
+        if (n_read < 0)
+        {
+            Log(LOG_LEVEL_ERR, "Failed to read from '%s': %s", src, GetErrorStr());
+            close(src_fd);
+            close(dst_fd);
+            unlink(dst);
+            return false;
+        }
+
+        ssize_t n_written = 0;
+        do
+        {
+            ssize_t ret = write(dst_fd, buf, n_read - n_written);
+            if (ret < 0)
+            {
+                Log(LOG_LEVEL_ERR, "Failed to write to '%s': %s", dst, GetErrorStr());
+                close(src_fd);
+                close(dst_fd);
+                unlink(dst);
+                return false;
+            }
+
+            n_written += ret;
+        } while (n_read > n_written);
+    } while (n_read > 0);
+
+    close(src_fd);
+    close(dst_fd);
+    return true;
+}
+
+
 bool File_CopyToDir(const char *src, const char *dst_dir)
 {
     assert(src != NULL);

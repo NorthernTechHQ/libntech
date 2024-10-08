@@ -56,6 +56,15 @@ ssize_t ReadFileStreamToBuffer(FILE *file, size_t max_bytes, char *buf);
 bool File_Copy(const char *src, const char *dst);
 
 /**
+ * @brief Copies a file while keeping permissions.
+ * @param src The file to copy from
+ * @param dst The file to copy to
+ * @return True on success, otherwise false
+ * @note Does not follow symbolic links
+ */
+bool FileCopyKeepPerms(const char *src, const char *dst);
+
+/**
  * Same as CopyFile, except destination is a directory,
  * and filename will match source
  */
