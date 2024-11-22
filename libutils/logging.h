@@ -141,10 +141,18 @@ void LogToSystemLog(const char *msg, LogLevel level);
  *          log level argument and added to the structured log message.
  * @note Only the formatted string from the pair with the "MESSAGE" key is
  *       logged on platforms that does not support structured logging.
+ *
+ *       The function takes an int as the log level, although the desired type
+ *       would be the enum "LogLevel". For some C compilers, the last required
+ *       argument must be self-promoting: that is, the default promotions must
+ *       not change its type (this is actually an ISO C requirement). However,
+ *       enums promote to an int. Thus, we cannot use them and must use int
+ *       instead.
+ *
  * @param[in] level Log level.
  * @param[in] vararg Variable-length argument containing key-value pairs.
  */
-void LogToSystemLogStructured(LogLevel level, ...);
+void LogToSystemLogStructured(int level, ...);
 
 /**
  * This function is here, in order to help implement a CodeQL query for
