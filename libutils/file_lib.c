@@ -993,9 +993,28 @@ FILE *safe_fopen_create_perms(
         return NULL;
     }
 
+    char fdopen_mode_str[3] = {0};
+    int fdopen_mode_idx = 0;
+
     int flags = 0;
     for (int c = 0; mode[c]; c++)
     {
+        /* Ignore mode letters not supported in fdopen() for the mode string
+         * that we will later use in fdopen(). Mode letters like 'x' will for
+         * example cause fdopen() to return error on Windows. According to the
+         * man page fdopen(3), the mode must be one of "r", "r+", "w", "w+",
+         * "a", "a+". Windows also have additional characters that are
+         * Microsoft extensions, but advice against using them to preserve
+         * ANSI portability. */
+        if (strchr("rwa+", mode[c]) != NULL)
+        {
+            if (fdopen_mode_idx >= (sizeof(fdopen_mode_str) - 1))
+            {
+                ProgrammingError("Invalid flag for fdopen: %s", mode);
+            }
+            fdopen_mode_str[fdopen_mode_idx++] = mode[c];
+        }
+
         switch (mode[c])
         {
         case 'r':
@@ -1031,7 +1050,8 @@ FILE *safe_fopen_create_perms(
     {
         return NULL;
     }
-    FILE *ret = fdopen(fd, mode);
+
+    FILE *ret = fdopen(fd, fdopen_mode_str);
     if (!ret)
     {
         close(fd);
