@@ -25,6 +25,11 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "MinSizeRel")
 endif()
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "MinSizeRel")
+  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-flto")
+  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-flto")
+endif()
+
 if(${LIBNTECH_SEQUENCE})
   list(APPEND LIBNTECH_SOURCES
     "${LIBUTILS_DIR}/sequence.c" # main source
