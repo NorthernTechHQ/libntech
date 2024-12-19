@@ -152,3 +152,10 @@ cscope.*
 
 # python
 __pycache__
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+libntech.a
+sequence_example
