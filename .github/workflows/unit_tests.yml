@@ -12,7 +12,7 @@ jobs:
       with:
         submodules: recursive
     - name: Install dependencies
-      run: sudo apt-get update -y && sudo apt-get install -y autoconf automake gcc
+      run: sudo apt-get update -y && sudo apt-get install -y autoconf automake gcc autoconf-archive
     - name: Run autotools / configure
       run: ./autogen.sh --enable-debug --with-pcre2=no --with-openssl=no --with-libyaml=no
     - name: Compile and link (make)
@@ -27,7 +27,7 @@ jobs:
       with:
         submodules: recursive
     - name: Install dependencies
-      run: sudo apt-get update -y && sudo apt-get install -y autoconf automake gcc libssl-dev libpcre2-dev libyaml-dev
+      run: sudo apt-get update -y && sudo apt-get install -y autoconf automake gcc libssl-dev libpcre2-dev libyaml-dev autoconf-archive
     - name: Run autotools / configure
       run: ./autogen.sh --enable-debug
     - name: Compile and link (make)
