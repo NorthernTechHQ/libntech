@@ -28,7 +28,7 @@ dnl # Run ./autogen.sh to build configure script
 dnl #
 dnl ##########################################################################
 
-AC_PREREQ([2.71])
+AC_PREREQ([2.63])
 
 AC_INIT([libntech],[1.0.0],[],[],[https://github.com/NorthernTechHQ/libntech])
 AC_CANONICAL_TARGET
