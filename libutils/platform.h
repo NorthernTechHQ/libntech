@@ -318,14 +318,15 @@ void globfree(glob_t *pglob);
 
 #ifdef HAVE_UTIME_H
 # include <utime.h>             /* use utime not utimes for portability */
-#elif TIME_WITH_SYS_TIME
-# include <sys/time.h>
+#else /* HAVE_UTIME_H */
+  /* All current systems provide time.h; it need not be checked for.
+   * Not all systems provide sys/time.h, but those that do, all allow
+   * you to include it and time.h simultaneously. */
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# endif /* HAVE_SYS_TIME_H */
 # include <time.h>
-#elif HAVE_SYS_TIME_H
-# include <sys/time.h>
-#elif ! defined(AOS)
-# include <time.h>
-#endif
+#endif /* HAVE_UTIME */
 
 #ifdef HAVE_TIME_H
 # include <time.h>
