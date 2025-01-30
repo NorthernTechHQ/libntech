@@ -79,6 +79,7 @@ libutils_la_SOURCES = \
 	version_comparison.c version_comparison.h \
 	writer.c writer.h \
 	xml_writer.c xml_writer.h \
+	fsattrs.c fsattrs.h \
 	glob_lib.c glob_lib.h
 
 EXTRA_DIST = stack_base.c
