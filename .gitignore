@@ -159,3 +159,4 @@ CMakeFiles/
 cmake_install.cmake
 libntech.a
 sequence_example
+json_example
