@@ -30,7 +30,7 @@ endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "MinSizeRel")
   set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-flto")
-  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-flto")
+  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-flto -s")
 endif()
 
 # TODO: string_lib, logging and even writer as separate components
