@@ -1,0 +1,22 @@
+name: Build examples with CMake
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  cmake_examples:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Install dependencies
+      run: sudo apt-get update -y && sudo apt-get install -y cmake
+    - name: Run CMake
+      run: cmake . -DLIBNTECH_SEQUENCE=ON -DLIBNTECH_JSON=ON
+    - name: Compile and link (make)
+      run: make
+    - name: Run the examples
+      run: ./sequence_example && ./json_example
+
