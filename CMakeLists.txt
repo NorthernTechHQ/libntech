@@ -12,6 +12,9 @@ add_library(ntech) # so that we get libntech.a
 #       https://stackoverflow.com/questions/54702582/how-to-configure-project-with-components-in-cmake
 #       https://github.com/markeastwood82/nomnoms/blob/master/noms/fruit/CMakeLists.txt
 option(LIBNTECH_SEQUENCE "Include support for the sequence data structure" OFF)
+option(LIBNTECH_JSON "Include JSON support" OFF)
+
+option(LIBNTECH_EXAMPLES "Build examples" ON)
 
 get_filename_component(LIBUTILS_DIR ${CMAKE_CURRENT_LIST_DIR}/libutils ABSOLUTE)
 get_filename_component(LIBCOMPAT_DIR ${CMAKE_CURRENT_LIST_DIR}/libcompat ABSOLUTE)
@@ -27,7 +30,17 @@ endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "MinSizeRel")
   set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-flto")
-  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-flto")
+  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-flto -s")
+endif()
+
+# TODO: string_lib, logging and even writer as separate components
+if(${LIBNTECH_JSON})
+  list(APPEND LIBNTECH_SOURCES
+    "${LIBUTILS_DIR}/json.c" # main source
+    "${LIBUTILS_DIR}/logging.c" "${LIBUTILS_DIR}/misc_lib.c" "${LIBUTILS_DIR}/string_lib.c" "${LIBUTILS_DIR}/writer.c" # dependencies
+  )
+  # JSON support requires the sequence type
+  set(LIBNTECH_SEQUENCE ON)
 endif()
 
 if(${LIBNTECH_SEQUENCE})
@@ -40,8 +53,16 @@ endif()
 target_sources(ntech PRIVATE ${LIBNTECH_SOURCES})
 target_include_directories(ntech PUBLIC "${LIBUTILS_DIR}" "${CMAKE_CURRENT_LIST_DIR}")
 
-if(${LIBNTECH_SEQUENCE})
-  add_executable(sequence_example "${CMAKE_CURRENT_SOURCE_DIR}/examples/sequence_example.c")
-  target_link_libraries(sequence_example ntech)
-  target_include_directories(sequence_example PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+if(${LIBNTECH_EXAMPLES})
+  if(${LIBNTECH_SEQUENCE})
+    add_executable(sequence_example "${CMAKE_CURRENT_SOURCE_DIR}/examples/sequence_example.c")
+    target_link_libraries(sequence_example ntech)
+    target_include_directories(sequence_example PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  endif()
+
+  if(${LIBNTECH_JSON})
+    add_executable(json_example "${CMAKE_CURRENT_SOURCE_DIR}/examples/json_example.c")
+    target_link_libraries(json_example ntech)
+    target_include_directories(json_example PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  endif()
 endif()

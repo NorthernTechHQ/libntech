@@ -7,6 +7,7 @@
 list(APPEND INCLUDE_CHECKS
   "HAVE_DIRENT_H"
   "HAVE_ENDIAN_H"
+  "HAVE_GETOPT_H"
   "HAVE_INTTYPES_H"
   "HAVE_MALLOC_H"
   "HAVE_NDIR_H"
@@ -34,6 +35,22 @@ list(APPEND INCLUDE_CHECKS
 foreach(include_check IN LISTS INCLUDE_CHECKS)
   target_compile_definitions(ntech PRIVATE ${include_check}=1)
 endforeach()
+
+# Special handling for GETOPT_H, see libutils/writer.h.in for example.
+set(HAVE_GETOPT_H_DEFINE "#define HAVE_GETOPT_H 1")
+configure_file(
+  "${LIBUTILS_DIR}/writer.h.in"
+  "${LIBUTILS_DIR}/writer.h"
+  IMMEDIATE @ONLY)
+
+# Special handling for libyaml, see libutils/json-yaml.h.in for details.
+# TODO: support enabling json-yaml and check for libyaml
+set(HAVE_LIBYAML_DEFINE "")
+configure_file(
+  "${LIBUTILS_DIR}/json-yaml.h.in"
+  "${LIBUTILS_DIR}/json-yaml.h"
+  IMMEDIATE @ONLY)
+
 
 # Special handling for CLOCKID_T, see libutils/clockid_t.h.in for details.
 set(HAVE_CLOCKID_T_DEFINE "#define HAVE_CLOCKID_T 1")
