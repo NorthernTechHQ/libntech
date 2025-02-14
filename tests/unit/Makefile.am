@@ -85,6 +85,7 @@ check_PROGRAMS = \
 	alloc_test \
 	string_writer_test \
 	file_writer_test \
+	fsattrs_test \
 	xml_writer_test \
 	sequence_test \
 	json_test \
