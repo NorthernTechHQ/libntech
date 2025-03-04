@@ -1287,6 +1287,7 @@ AC_CONFIG_FILES([Makefile
     libutils/json-yaml.h
     config.post.h
     tests/Makefile
+    tests/static-check/Makefile
     tests/unit/Makefile])
 
 AC_OUTPUT

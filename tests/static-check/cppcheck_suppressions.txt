@@ -1,0 +1,20 @@
+// suppress warnings for access to individual bytes of a uint32 in platform.h
+objectIndex:libutils/platform.h
+
+// cppcheck is not clever enough to see that if (i >= PLATFORM_CONTEXT_MAX) then 'found' is false
+arrayIndexOutOfBounds:libenv/sysinfo.c:587
+
+// 'psin' is assigned to 'ai->ai_addr' and 'ai' is returned to the caller
+memleak:libcompat/getaddrinfo.c:153
+
+// cppcheck doesn't understand va_copy() properly
+va_list_usedBeforeStarted:libcompat/snprintf.c:1505
+va_list_usedBeforeStarted:libcompat/snprintf.c:1506
+
+// too cryptic code for cppcheck to see that the 'tmp' variable is initialized
+// through a pointer to the same address space (and the same applies to 'dst')
+uninitvar:libcompat/inet_pton.c:115
+uninitvar:libcompat/snprintf.c:1494
+
+// cppcheck doesn't like VA_COPY, it seems
+Uninit:libcompat/snprintf.c:1505

@@ -35,6 +35,7 @@ stamp-h1
 /libutils/Makefile
 /tests/Makefile
 /tests/unit/Makefile
+/tests/static-check/Makefile
 /ext/Makefile
 
 /install-sh
