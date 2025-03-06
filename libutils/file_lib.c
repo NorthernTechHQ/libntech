@@ -1935,21 +1935,6 @@ ssize_t CfReadLines(char **buff, size_t *size, FILE *fp, Seq *lines)
 
 /*******************************************************************/
 
-const char* GetRelocatedProcdirRoot()
-{
-    const char *procdir = getenv("CFENGINE_TEST_OVERRIDE_PROCDIR");
-    if (procdir == NULL)
-    {
-        procdir = "";
-    }
-    else
-    {
-        Log(LOG_LEVEL_VERBOSE, "Overriding /proc location to be %s", procdir);
-    }
-
-    return procdir;
-}
-
 
 #if !defined(__MINGW32__)
 
