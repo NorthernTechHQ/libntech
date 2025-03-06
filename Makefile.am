@@ -124,6 +124,11 @@ cf__v_SED_ = $(cf__v_SED_$(AM_DEFAULT_VERBOSITY))
 cf__v_SED_0 = @echo "  SED     " "$@";
 cf__v_SED_1 =
 
+static-check:
+	tests/static-check/run.sh
+
+static-check-f%:
+	STATIC_CHECKS_FEDORA_VERSION=$* tests/static-check/run.sh
 
 #
 # Get everything removed down to where rebuilding requires:

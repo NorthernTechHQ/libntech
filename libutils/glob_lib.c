@@ -322,7 +322,7 @@ static void *GlobFindDataCopy(void *const data)
     assert(data != NULL);
 
     GlobFindData *const old = data;
-    GlobFindData *const new = malloc(sizeof(GlobFindData));
+    GlobFindData *const new = xmalloc(sizeof(GlobFindData));
 
     const size_t length = SeqLength(old->components);
     new->components = SeqNew(length, free);

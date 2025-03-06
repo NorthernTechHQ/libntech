@@ -83,7 +83,8 @@ inet_pton4(src, dst)
 {
 	static const char digits[] = "0123456789";
 	int saw_digit, octets, ch;
-	unsigned char tmp[NS_INADDRSZ], *tp;
+        unsigned char tmp[NS_INADDRSZ] = {0};
+        unsigned char *tp;
 
 	saw_digit = 0;
 	octets = 0;
