@@ -5,24 +5,21 @@ set -x
 n_procs="$(getconf _NPROCESSORS_ONLN)"
 
 function check_with_gcc() {
-  rm -f config.cache
   make clean
-  ./autogen.sh --config-cache --enable-debug CC=gcc
+  ./autogen.sh --enable-debug CC=gcc
   local gcc_exceptions="-Wno-sign-compare -Wno-enum-int-mismatch"
   make -j -l${n_procs} --keep-going CFLAGS="-Werror -Wall -Wextra $gcc_exceptions"
 }
 
 function check_with_clang() {
-  rm -f config.cache
   make clean
-  ./autogen.sh --config-cache --enable-debug CC=clang
+  ./autogen.sh --enable-debug CC=clang
   make -j -l${n_procs} --keep-going CFLAGS="-Werror -Wall -Wextra -Wno-sign-compare"
 }
 
 function check_with_cppcheck() {
-  rm -f config.cache
   make clean
-  ./autogen.sh --config-cache --enable-debug
+  ./autogen.sh --enable-debug
 
   # print out cppcheck version for comparisons over time in case of regressions due to newer versions
   cppcheck --version
