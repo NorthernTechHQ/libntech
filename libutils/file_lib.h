@@ -210,12 +210,6 @@ ssize_t CfReadLine(char **buff, size_t *size, FILE *fp);
  */
 ssize_t CfReadLines(char **buff, size_t *size, FILE *fp, Seq *lines);
 
-/**
- * @brief For testing things against /proc, uses env var CFENGINE_TEST_OVERRIDE_PROCDIR
- * @return the extra directory to add BEFORE /proc in the path
- */
-const char* GetRelocatedProcdirRoot();
-
 /*********** File locking ***********/
 
 typedef struct _FileLock {

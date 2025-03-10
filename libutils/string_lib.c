@@ -374,7 +374,7 @@ char *StringConcatenate(size_t count, const char *first, ...)
     char *result = xcalloc(total_length + 1, sizeof(char));
     if (first)
     {
-        strcat(result, first);
+        strncpy(result, first, total_length);
     }
 
     va_start(args, first);
