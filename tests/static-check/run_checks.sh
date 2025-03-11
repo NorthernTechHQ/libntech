@@ -6,7 +6,7 @@ n_procs="$(getconf _NPROCESSORS_ONLN)"
 
 function check_with_gcc() {
   make clean
-  ./autogen.sh --enable-debug CC=gcc
+  ./autogen.sh --enable-debug CC=gcc NO_CONFIGURE=1
   local gcc_exceptions="-Wno-sign-compare -Wno-enum-int-mismatch"
   make -j -l${n_procs} --keep-going CFLAGS="-Werror -Wall -Wextra $gcc_exceptions"
 }
