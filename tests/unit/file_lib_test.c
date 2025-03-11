@@ -27,6 +27,8 @@
 #include <file_lib.h>
 #include <stdbool.h>
 
+#include "../../libutils/file_lib.c"
+
 #define TEMP_DIR "/tmp/file_lib_test"
 #define TEST_FILE "file_lib_test.txt"
 #define TEST_LINK "file_lib_test.link"
