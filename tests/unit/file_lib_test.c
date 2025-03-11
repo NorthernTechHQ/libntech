@@ -27,6 +27,13 @@
 #include <file_lib.h>
 #include <stdbool.h>
 
+/* The unit tests are failing unless I include this file. I'm not smart enough
+ * to figure out why. Previously we used to compile this file as well as
+ * linking with libutils. However, this is problematic when subdir-objects is
+ * enabled in configure.ac. This is because it breaks the make distclean
+ * target on the Debian 9 bootstrap host. */
+#include "../../libutils/file_lib.c"
+
 #define TEMP_DIR "/tmp/file_lib_test"
 #define TEST_FILE "file_lib_test.txt"
 #define TEST_LINK "file_lib_test.link"
