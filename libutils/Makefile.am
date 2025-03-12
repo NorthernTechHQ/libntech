@@ -42,6 +42,7 @@ libutils_la_SOURCES = \
 	deprecated.h \
 	dir.h dir_priv.h \
 	file_lib.c file_lib.h \
+	fsattrs.c fsattrs.h \
 	hash_map.c hash_map_priv.h \
 	hash_method.h \
 	ip_address.c ip_address.h \
