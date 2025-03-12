@@ -131,8 +131,18 @@ if test "x$with_pthreads" != x && test "x$with_pthreads" != "xyes" && test "x$wi
    CPPFLAGS="-I$with_pthreads/include $CPPFLAGS"
 fi
 
-AX_PTHREAD([],
-           [AC_MSG_ERROR(pthread-compatible library is required to build CFEngine)])
+case "$target_os" in
+  mingw* | cygwin*)
+    # This macro is deprecated but works on Windows
+    ACX_PTHREAD([],
+               [AC_MSG_ERROR(pthread-compatible library is required to build CFEngine)])
+    ;;
+  *)
+    # This macro is not deprecated but does not work on Windows
+    AX_PTHREAD([],
+               [AC_MSG_ERROR(pthread-compatible library is required to build CFEngine)])
+    ;;
+esac
 
 CC="$PTHREAD_CC"
 CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
