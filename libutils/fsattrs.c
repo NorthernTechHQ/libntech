@@ -61,6 +61,15 @@ static FSAttrsResult ImmutableFlag(
 
     if (*flag)
     {
+        if (attrs & FS_IMMUTABLE_FL)
+        {
+            Log(LOG_LEVEL_DEBUG,
+                "The immutable bit is already set in inode flags for file '%s'",
+                filename);
+            close(fd);
+            return FS_ATTRS_SUCCESS;
+        }
+
         Log(LOG_LEVEL_DEBUG,
             "Setting immutable bit in inode flags for file '%s'",
             filename);
@@ -68,6 +77,15 @@ static FSAttrsResult ImmutableFlag(
     }
     else
     {
+        if (!(attrs & FS_IMMUTABLE_FL))
+        {
+            Log(LOG_LEVEL_DEBUG,
+                "The immutable bit is already cleared in inode flags for file '%s'",
+                filename);
+            close(fd);
+            return FS_ATTRS_SUCCESS;
+        }
+
         Log(LOG_LEVEL_DEBUG,
             "Clearing immutable bit in inode flags for file '%s'",
             filename);
@@ -100,6 +118,14 @@ static FSAttrsResult ImmutableFlag(
 
     if (*flag)
     {
+        if (sb.st_flags & SF_IMMUTABLE)
+        {
+            Log(LOG_LEVEL_DEBUG,
+                "The immutable bit is already set in inode flags for file '%s'",
+                filename);
+            return FS_ATTRS_SUCCESS;
+        }
+
         Log(LOG_LEVEL_DEBUG,
             "Setting immutable bit in inode flags for file '%s'",
             filename);
@@ -107,6 +133,14 @@ static FSAttrsResult ImmutableFlag(
     }
     else
     {
+        if (!(sb.st_flags & SF_IMMUTABLE))
+        {
+            Log(LOG_LEVEL_DEBUG,
+                "The immutable bit is already cleared in inode flags for file '%s'",
+                filename);
+            return FS_ATTRS_SUCCESS;
+        }
+
         Log(LOG_LEVEL_DEBUG,
             "Clearing immutable bit in inode flags for file '%s'",
             filename);
