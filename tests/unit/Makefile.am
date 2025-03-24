@@ -28,7 +28,7 @@ AM_CPPFLAGS = $(CORE_CPPFLAGS) \
 	-I$(srcdir)/../../libutils \
 	-DTESTDATADIR='"$(srcdir)/data"'
 
-LDADD = ../../libutils/libutils.la libtest.la
+LDADD = libtest.la
 
 # automake does not support "maude_LIBS" variables. We can only alter
 # the generic LIBS one. In case the functions are mocked in the test
@@ -41,39 +41,9 @@ AM_CFLAGS = $(CORE_CFLAGS) $(PTHREAD_CFLAGS)
 
 
 check_LTLIBRARIES = libtest.la
-libtest_la_SOURCES = cmockery.c cmockery.h schema.h test.c test.h \
-	../../libutils/alloc.c \
-	../../libutils/known_dirs.c \
-	../../libutils/map.c \
-	../../libutils/array_map.c \
-	../../libutils/hash_map.c
+libtest_la_SOURCES = cmockery.c cmockery.h schema.h test.c test.h
 
-if WITH_OPENSSL
-libtest_la_SOURCES += \
-	../../libutils/hash.c
-endif
-
-libtest_la_LIBADD = ../../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS) $(LIBYAML_LIBS)
-
-check_LTLIBRARIES += libstr.la
-libstr_la_SOURCES = \
-	../../libutils/buffer.c \
-	../../libutils/logging.c \
-	../../libutils/misc_lib.c \
-	../../libutils/sequence.c \
-	../../libutils/string_lib.c \
-	../../libutils/writer.c
-libstr_la_LIBADD = libtest.la
-
-if WITH_OPENSSL
-libstr_la_SOURCES += \
-	../../libutils/encode.c
-endif
-
-if WITH_PCRE2
-libstr_la_SOURCES += \
-	../../libutils/regex.c
-endif
+libtest_la_LIBADD = ../../libutils/libutils.la ../../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS) $(LIBYAML_LIBS)
 
 check_PROGRAMS = \
 	cleanup_test \
@@ -133,26 +103,23 @@ TESTS_ENVIRONMENT = DYLD_FORCE_FLAT_NAMESPACE=yes
 
 cleanup_test_SOURCES = cleanup_test.c
 
-csv_writer_test_SOURCES = csv_writer_test.c ../../libutils/csv_writer.c \
-	../../libutils/cleanup.c
-csv_writer_test_LDADD = libtest.la libstr.la
+csv_writer_test_SOURCES = csv_writer_test.c
+csv_writer_test_LDADD = libtest.la
 
-xml_writer_test_SOURCES = xml_writer_test.c \
-	../../libutils/xml_writer.c \
-	../../libutils/cleanup.c
-xml_writer_test_LDADD = libtest.la libstr.la
+xml_writer_test_SOURCES = xml_writer_test.c
+xml_writer_test_LDADD = libtest.la
 
 list_test_SOURCES = list_test.c
 
-refcount_test_SOURCES = refcount_test.c ../../libutils/refcount.c
+refcount_test_SOURCES = refcount_test.c
 
-buffer_test_SOURCES = buffer_test.c ../../libutils/buffer.c
+buffer_test_SOURCES = buffer_test.c
 # Workaround for object file basename conflicts, search the web for
 # "automake created with both libtool and without"
 buffer_test_CPPFLAGS = $(AM_CPPFLAGS)
 
-csv_parser_test_SOURCES = csv_parser_test.c ../../libutils/csv_parser.c
-csv_parser_test_LDADD = libtest.la ../../libutils/libutils.la
+csv_parser_test_SOURCES = csv_parser_test.c
+csv_parser_test_LDADD = libtest.la
 
 #file_writer_test_CPPFLAGS = -I$(top_srcdir)/libutils
 file_writer_test_SOURCES = file_writer_test.c
@@ -166,58 +133,16 @@ CLEANFILES = *.gcno *.gcda cfengine-enterprise.so
 clean-local:
 	rm -rf test_glob_file_list_??????
 
-file_lib_test_SOURCES = file_lib_test.c \
-	../../libutils/file_lib.c \
-	../../libutils/logging.c \
-	../../libutils/misc_lib.c \
-	../../libutils/path.c \
-	../../libutils/string_lib.c \
-	../../libutils/sequence.c \
-	../../libutils/set.c \
-	../../libutils/buffer.c \
-	../../libutils/json.c \
-	../../libutils/json-yaml.c \
-	../../libutils/unix_dir.c \
-	../../libutils/cleanup.c \
-	../../libutils/writer.c
-
-if WITH_PCRE2
-file_lib_test_SOURCES += \
-	../../libutils/regex.c
-endif
-
-file_lib_test_LDADD = libtest.la
+file_lib_test_SOURCES = file_lib_test.c
 file_lib_test_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_SYMLINK_ATOMICITY
 
-ipaddress_test_SOURCES = ipaddress_test.c \
-	../../libutils/file_lib.c \
-	../../libutils/logging.c \
-	../../libutils/misc_lib.c \
-	../../libutils/path.c \
-	../../libutils/string_lib.c \
-	../../libutils/sequence.c \
-	../../libutils/set.c \
-	../../libutils/buffer.c \
-	../../libutils/json.c \
-	../../libutils/json-yaml.c \
-	../../libutils/unix_dir.c \
-	../../libutils/cleanup.c \
-	../../libutils/writer.c
-
-if WITH_PCRE2
-ipaddress_test_SOURCES += \
-	../../libutils/regex.c
-endif
-
-ipaddress_test_LDADD = libtest.la
+ipaddress_test_SOURCES = ipaddress_test.c
 ipaddress_test_CPPFLAGS = $(AM_CPPFLAGS)
 
 logging_timestamp_test_SOURCES = logging_timestamp_test.c \
 	../../libutils/logging.h
-logging_timestamp_test_LDADD = libtest.la ../../libutils/libutils.la
 
 hash_test_SOURCES = hash_test.c
-hash_test_LDADD = ../../libutils/libutils.la libtest.la
 
 libcompat_test_CPPFLAGS = -I$(top_srcdir)/libcompat -I$(top_srcdir)/libutils
 libcompat_test_SOURCES = libcompat_test.c
@@ -238,10 +163,7 @@ threaded_deque_test_SOURCES = threaded_deque_test.c
 threaded_stack_test_SOURCES = threaded_stack_test.c
 
 file_lock_test_SOURCES = file_lock_test.c
-file_lock_test_LDADD = ../../libutils/libutils.la
 
 glob_lib_test_SOURCES = glob_lib_test.c
-glob_lib_test_LDADD = ../../libutils/libutils.la libtest.la
 
 string_sequence_test_SOURCES = string_sequence_test.c
-string_sequence_test_LDADD = ../../libutils/libutils.la libtest.la
