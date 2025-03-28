@@ -258,7 +258,10 @@ AC_ARG_WITH(openssl,
     [AS_HELP_STRING([--with-openssl[[=PATH]]],
     [Specify OpenSSL path])], [], [with_openssl=yes])
 
-AS_IF([test "x$have_brew" = "xyes" && test -d $(brew --prefix openssl)/], [with_openssl=$(brew --prefix openssl)])
+AS_IF(
+  [(test "x$with_openssl" = xyes || test "x$with_openssl" = xcheck) \
+   && test "x$have_brew" = "xyes" && test -d $(brew --prefix openssl)/],
+  [with_openssl=$(brew --prefix openssl)])
 
 if test "x$with_openssl" != "xno"; then
   CF3_WITH_LIBRARY(openssl, [
@@ -308,7 +311,10 @@ fi
 AC_ARG_WITH([pcre2], [AS_HELP_STRING([--with-pcre2[[=PATH]]], [Specify PCRE2 path])], [], [with_pcre2=yes])
 
 if test "x$with_pcre" != "xno" && test "x$with_pcre2" != "xno"; then
-  AS_IF([test "x$have_brew" = "xyes" && test -d $(brew --prefix pcre2)/], [with_pcre2=$(brew --prefix pcre2)])
+  AS_IF(
+    [(test "x$with_pcre2" = xyes || test "x$with_pcre2" = xcheck) \
+     && test "x$have_brew" = "xyes" && test -d $(brew --prefix pcre2)/],
+    [with_pcre2=$(brew --prefix pcre2)])
 
   CF3_WITH_LIBRARY(pcre2, [
     AC_CHECK_LIB(pcre2-8, pcre2_compile_8, [], [AC_MSG_ERROR(Cannot find PCRE2)])
@@ -347,7 +353,10 @@ AC_ARG_WITH([libyaml],
 
 if test "x$with_libyaml" != xno
 then
-  AS_IF([test "x$have_brew" = "xyes" && test -d $(brew --prefix libyaml)/], [with_libyaml=$(brew --prefix libyaml)])
+  AS_IF(
+    [(test "x$with_libyaml" = xyes || test "x$with_libyaml" = xcheck) \
+     && test "x$have_brew" = "xyes" && test -d $(brew --prefix libyaml)/],
+    [with_libyaml=$(brew --prefix libyaml)])
 
   CF3_WITH_LIBRARY(libyaml, [
     AC_CHECK_LIB(yaml, yaml_parser_initialize,
