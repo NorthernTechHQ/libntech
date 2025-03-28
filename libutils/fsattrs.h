@@ -35,6 +35,26 @@ typedef enum {
 } FSAttrsResult;
 
 /**
+ * @brief Get string representation of error code
+ * @param res Error code (see FSAttrsResult)
+ * @return String representation of error code
+ */
+static inline const char *FSAttrsErrorCodeToString(FSAttrsResult res)
+{
+  switch (res)
+  {
+  case FS_ATTRS_SUCCESS:
+    return "Success";
+  case FS_ATTRS_FAILURE:
+    return "Unexpected failure";
+  case FS_ATTRS_DOES_NOT_EXIST:
+    return "File does not exist";
+  case FS_ATTRS_NOT_SUPPORTED:
+    return "Operation is not supported";
+  }
+}
+
+/**
  * @brief Get immutable flag of inode given the filename
  * @param filename The filename
  * @param flag The flag; true if flag is set, otherwise false
