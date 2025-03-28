@@ -88,9 +88,22 @@ dnl ######################################################################
 dnl Checks for programs.
 dnl ######################################################################
 
+AC_PROG_GREP
+AC_PROG_EGREP
 AC_PROG_CC
 AC_PROG_MKDIR_P
 AC_EXEEXT
+
+AS_CASE([${target_os}],
+[darwin*], [
+    AC_CHECK_PROG([BREW], [brew], [brew])
+    AC_MSG_CHECKING([for OS X Homebrew])
+    AS_IF([test "x$BREW" = "xbrew"], [
+            have_brew=yes
+            AC_MSG_RESULT([OS X Homebrew detected])
+        ],
+        [have_brew=])
+])
 
 dnl GCC specific flags
 m4_include([m4/cf3_gcc_flags.m4])
@@ -245,13 +258,7 @@ AC_ARG_WITH(openssl,
     [AS_HELP_STRING([--with-openssl[[=PATH]]],
     [Specify OpenSSL path])], [], [with_openssl=yes])
 
-if  test -d /usr/local/Cellar/ && \
-    test -d /usr/local/opt/openssl/ && \
-    test "x$with_openssl" = "xyes" ; then
-    with_openssl=$(brew --prefix openssl)
-    echo "OS X Homebrew detected"
-    echo "Defaulting to: --with-openssl=$with_openssl"
-fi
+AS_IF([test "x$have_brew" = "xyes" && test -d $(brew --prefix openssl)/], [with_openssl=$(brew --prefix openssl)])
 
 if test "x$with_openssl" != "xno"; then
   CF3_WITH_LIBRARY(openssl, [
@@ -301,6 +308,8 @@ fi
 AC_ARG_WITH([pcre2], [AS_HELP_STRING([--with-pcre2[[=PATH]]], [Specify PCRE2 path])], [], [with_pcre2=yes])
 
 if test "x$with_pcre" != "xno" && test "x$with_pcre2" != "xno"; then
+  AS_IF([test "x$have_brew" = "xyes" && test -d $(brew --prefix pcre2)/], [with_pcre2=$(brew --prefix pcre2)])
+
   CF3_WITH_LIBRARY(pcre2, [
     AC_CHECK_LIB(pcre2-8, pcre2_compile_8, [], [AC_MSG_ERROR(Cannot find PCRE2)])
     AC_CHECK_HEADERS(
@@ -338,6 +347,8 @@ AC_ARG_WITH([libyaml],
 
 if test "x$with_libyaml" != xno
 then
+  AS_IF([test "x$have_brew" = "xyes" && test -d $(brew --prefix libyaml)/], [with_libyaml=$(brew --prefix libyaml)])
+
   CF3_WITH_LIBRARY(libyaml, [
     AC_CHECK_LIB(yaml, yaml_parser_initialize,
       [],

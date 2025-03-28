@@ -66,7 +66,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.guess config.sub \
 ACLOCAL_AMFLAGS = -I m4
 
 list:
-	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
+	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | $EGREP -v -e '^[^[:alnum:]]' -e '^$@$$'
 
 install-data-local:
 	$(MKDIR_P) -m 700 $(DESTDIR)$(workdir)/inputs
