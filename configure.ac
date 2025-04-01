@@ -85,6 +85,28 @@ dnl
 ENV_CFLAGS="$CFLAGS"
 
 dnl ######################################################################
+dnl Enable debugging
+dnl ######################################################################
+
+AC_ARG_ENABLE(debug,
+              AS_HELP_STRING([--enable-debug], [Enable debugging]),
+              [debug=$enableval],
+              [debug=no])
+AM_CONDITIONAL([NDEBUG], [test x"$debug" = x"no"])
+
+AC_MSG_CHECKING([for debug option])
+if test x"$debug" = x"yes"
+then
+    AC_MSG_RESULT(yes)
+    CFLAGS="-g3 -O0"
+else
+    AC_MSG_RESULT(no)
+    CFLAGS="-O2 -DNDEBUG"
+fi
+
+CFLAGS="$CFLAGS $ENV_CFLAGS"
+
+dnl ######################################################################
 dnl Checks for programs.
 dnl ######################################################################
 
@@ -226,31 +248,6 @@ AS_CASE([${target_os}],
     # Disable printf format warnings, because our wrapper supports more
     # flags than vanilla Windows version, so they are false positives.
     [CFLAGS="$CFLAGS -Wno-format"])
-
-dnl ######################################################################
-dnl Enable debugging
-dnl ######################################################################
-
-AC_ARG_ENABLE(debug,
-              AS_HELP_STRING([--enable-debug], [Enable debugging]),
-              [debug=$enableval],
-              [debug=no])
-AM_CONDITIONAL([NDEBUG], [test x"$debug" = x"no"])
-
-dnl Even though CFLAGS should contain the command-line CFLAGS
-dnl as last, some macro seem to messes the order up and insert
-dnl its own optimisation flags as well. So we append ENV_CFLAGS
-dnl at the end manually, causing a bit of flag duplication.
-
-AC_MSG_CHECKING([for debug option])
-if test x"$debug" = x"yes"
-then
-    AC_MSG_RESULT(yes)
-    CFLAGS="$CFLAGS -g3 -O0 $ENV_CFLAGS"
-else
-    AC_MSG_RESULT(no)
-    CFLAGS="$CFLAGS -O2 -DNDEBUG $ENV_CFLAGS"
-fi
 
 dnl ######################################################################
 dnl Checks for libraries.
@@ -1275,7 +1272,7 @@ dnl Collect all the options
 dnl ######################################################################
 
 CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $CPPFLAGS"
-CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $CFLAGS"
+CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS"
 CORE_LDFLAGS="$PCRE2_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $LDFLAGS"
 CORE_LIBS="$PCRE2_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $LIBS"
 
