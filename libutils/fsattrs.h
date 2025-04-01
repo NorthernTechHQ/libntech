@@ -53,6 +53,9 @@ static inline const char *FSAttrsErrorCodeToString(FSAttrsResult res)
     case FS_ATTRS_NOT_SUPPORTED:
         return "Operation is not supported";
     }
+
+    assert(false && "Bad argument in FSAttrsErrorCodeToString()");
+    return "";
 }
 
 /**
