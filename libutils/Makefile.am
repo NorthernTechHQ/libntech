@@ -70,6 +70,7 @@ libutils_la_SOURCES = \
 	sequence.c sequence.h \
 	string_sequence.c string_sequence.h \
 	set.c set.h \
+	signal_lib.h \
 	stack.c stack.h \
 	threaded_stack.c threaded_stack.h \
 	statistics.c statistics.h \
