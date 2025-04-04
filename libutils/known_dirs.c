@@ -25,6 +25,7 @@
 #include <known_dirs.h>
 #include <definitions.h>
 #include <file_lib.h>
+#include <string_lib.h>
 
 static char OVERRIDE_BINDIR[PATH_MAX] = {0};
 
@@ -132,6 +133,21 @@ const char *GetWorkDir(void)
     const char *workdir = getenv("CFENGINE_TEST_OVERRIDE_WORKDIR");
 
     return workdir == NULL ? GetDefaultWorkDir() : workdir;
+}
+
+const char *GetModuleDir(void)
+{
+    const char *module_dir = getenv("CFENGINE_TEST_OVERRIDE_MODULE_DIR");
+
+    if (module_dir == NULL) 
+    {
+        const char* workdir = GetWorkDir(); 
+        char *default_module_dir = strdup(workdir);
+        PathAppend(default_module_dir, PATH_MAX, "modules", '/');
+
+        return default_module_dir;
+    }
+    return module_dir;
 }
 
 const char *GetBinDir(void)
