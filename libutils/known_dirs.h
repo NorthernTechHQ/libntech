@@ -25,6 +25,7 @@
 #define CFENGINE_KNOWN_DIRS_H
 
 const char *GetWorkDir(void);
+const char *GetModuleDir(void);
 const char *GetBinDir(void);
 const char *GetDataDir(void);
 const char *GetLogDir(void);
