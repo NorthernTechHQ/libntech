@@ -1,3 +1,5 @@
+craig test github statuses in libntech
+
 # libntech
 
 libntech is a lightweight C library used in CFEngine.
