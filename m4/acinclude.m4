@@ -105,7 +105,7 @@ for flag in $acx_pthread_flags; do
         save_LIBS="$LIBS"
         save_CFLAGS="$CFLAGS"
         LIBS="$PTHREAD_LIBS $LIBS"
-        CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+        CFLAGS="$PTHREAD_CFLAGS"
 
         # Check for various functions.  We must include pthread.h,
         # since some functions may be macros.  (On the Sequent, we
