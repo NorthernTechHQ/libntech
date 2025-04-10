@@ -1446,7 +1446,8 @@ static bool DeleteDirectoryTreeInternal(const char *basepath, const char *path)
         }
 
         char subpath[PATH_MAX];
-        snprintf(subpath, sizeof(subpath), "%s" FILE_SEPARATOR_STR "%s", path, dirp->d_name);
+        NDEBUG_UNUSED int ret = snprintf(subpath, sizeof(subpath), "%s" FILE_SEPARATOR_STR "%s", path, dirp->d_name);
+        assert(ret >= 0 && (size_t) ret < sizeof(subpath));
 
         struct stat lsb;
         if (lstat(subpath, &lsb) == -1)
