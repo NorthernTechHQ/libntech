@@ -161,7 +161,7 @@ static void JsonParseYamlData(yaml_parser_t *parser, JsonElement *element, const
                     if (key == NULL)
                     {
                         // save key
-                        key = xstrdup(event.data.scalar.value);
+                        key = xstrdup((char *) event.data.scalar.value);
                     }
                     else
                     {
@@ -343,7 +343,7 @@ JsonParseError JsonParseYamlString(const char **data, JsonElement **json_out)
         return JSON_PARSE_ERROR_LIBYAML_FAILURE;
     }
 
-    yaml_parser_set_input_string(&parser, *data, strlen(*data));
+    yaml_parser_set_input_string(&parser, (unsigned char *) *data, strlen(*data));
 
     JsonElement *holder = JsonArrayCreate(1);
     JsonParseYamlData(&parser, holder, 0);

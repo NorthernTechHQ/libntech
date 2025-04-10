@@ -715,7 +715,7 @@ const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern,
      * with twice the size of the input and expand it if needed. */
     bool had_enough_space = false;
     size_t out_size = BufferSize(buffer) * 2;
-    char *result = xmalloc(out_size);
+    unsigned char *result = xmalloc(out_size);
     while (!had_enough_space)
     {
         ret = pcre2_substitute(regex, (PCRE2_SPTR) BufferData(buffer), BufferSize(buffer),
@@ -746,7 +746,7 @@ const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern,
                 substitute, BufferData(buffer));
         }
     }
-    BufferSet(buffer, result, out_size);
+    BufferSet(buffer, (const char *) result, out_size);
 
     pcre2_match_data_free(match_data);
     pcre2_code_free(regex);
