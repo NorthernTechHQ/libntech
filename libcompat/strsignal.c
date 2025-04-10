@@ -33,7 +33,6 @@ int rpl_snprintf(char *, size_t, const char *, ...);
 
 #if !HAVE_DECL_STRSIGNAL
 char *strsignal(int sig);
-#endif
 
 #include <stdio.h>
 
@@ -44,4 +43,4 @@ char *strsignal(int sig)
     snprintf(SIGNAL_TEXT, 16, "Signal #%d", sig);
     return SIGNAL_TEXT;
 }
-
+#endif

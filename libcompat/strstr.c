@@ -29,7 +29,6 @@
 
 #if !HAVE_DECL_STRSTR
 char *strstr(const char *haystack, const char *needle);
-#endif
 
 char *strstr(const char *haystack, const char *needle)
 {
@@ -45,3 +44,4 @@ char *strstr(const char *haystack, const char *needle)
 
     return NULL;
 }
+#endif

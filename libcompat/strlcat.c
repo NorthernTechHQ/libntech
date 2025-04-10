@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <string.h>
 
+#if !HAVE_DECL_STRLCAT
 size_t strlcat(char *dst, const char *src, size_t siz);
 
 /*
@@ -59,3 +60,4 @@ strlcat(char *dst, const char *src, size_t siz)
 
 	return(dlen + (s - src));	/* count does not include NUL */
 }
+#endif

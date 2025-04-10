@@ -27,7 +27,6 @@
 
 #if !HAVE_DECL_STRCASECMP
 int strncasecmp(const char *s1, const char *s2);
-#endif
 
 int strncasecmp(const char *s1, const char *s2, size_t n)
 {
@@ -58,3 +57,4 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
     }
     return 0;
 }
+#endif

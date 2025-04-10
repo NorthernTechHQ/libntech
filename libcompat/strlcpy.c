@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <string.h>
 
+#if !HAVE_DECL_STRLCPY
 size_t strlcpy(char *dst, const char *src, size_t siz);
 
 /*
@@ -55,3 +56,4 @@ strlcpy(char *dst, const char *src, size_t siz)
 
 	return(s - src - 1);	/* count does not include NUL */
 }
+#endif

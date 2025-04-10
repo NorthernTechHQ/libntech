@@ -32,7 +32,6 @@ size_t strnlen(const char *str, size_t maxlen);
 
 #if !HAVE_DECL_STRNDUP
 char *strndup(const char *str, size_t n);
-#endif
 
 char *
 strndup(const char *str, size_t maxlen)
@@ -49,3 +48,4 @@ strndup(const char *str, size_t maxlen)
 
 	return copy;
 }
+#endif

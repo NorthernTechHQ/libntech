@@ -29,7 +29,6 @@
 
 #if !HAVE_DECL_STRERROR
 char *strerror(int err);
-#endif
 
 char *strerror(int err)
 {
@@ -38,3 +37,4 @@ char *strerror(int err)
     snprintf(buffer, 20, "Error number %d\n", err);
     return buffer;
 }
+#endif

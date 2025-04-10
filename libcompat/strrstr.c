@@ -38,7 +38,6 @@
 
 #if !HAVE_DECL_STRRSTR
 char *strrstr(const char *haystack, const char *needle);
-#endif
 
 char *strrstr(const char *str, const char *pat) {
 	size_t len, patlen;
@@ -57,4 +56,4 @@ char *strrstr(const char *str, const char *pat) {
 			return (char *) p;
 	return NULL;
 }
-
+#endif
