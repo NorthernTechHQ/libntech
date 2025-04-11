@@ -1271,10 +1271,10 @@ dnl ######################################################################
 dnl Collect all the options
 dnl ######################################################################
 
-CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $CPPFLAGS"
+CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS"
 CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS"
-CORE_LDFLAGS="$PCRE2_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $LDFLAGS"
-CORE_LIBS="$PCRE2_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $LIBS"
+CORE_LDFLAGS="$PCRE2_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS"
+CORE_LIBS="$PCRE2_LIBS $OPENSSL_LIBS $LIBYAML_LIBS"
 
 dnl ######################################################################
 dnl Make them available to subprojects.
