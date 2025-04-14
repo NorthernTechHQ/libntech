@@ -168,6 +168,7 @@ AS_IF([test x"$enable_fhs" = xyes], [
   MASTERDIR='default'
   INPUTDIR='default'
   DATADIR='default'
+  KEYDIR='default'
   LOGDIR='${localstatedir}/log/cfengine'
   MODULEDIR='default'
   PIDDIR='${runstatedir:-${localstatedir}/run}/cfengine'
@@ -181,6 +182,7 @@ AS_IF([test x"$enable_fhs" = xyes], [
         MASTERDIR=default
         INPUTDIR=default
         DATADIR=default
+        KEYDIR=default
         LOGDIR=$(cmd /c "echo %PROGRAMFILES%\\Cfengine" | sed 's/\\/\\\\/g')
         MODULEDIR='default'
         PIDDIR=$(cmd /c "echo %PROGRAMFILES%\\Cfengine" | sed 's/\\/\\\\/g')
@@ -191,6 +193,7 @@ AS_IF([test x"$enable_fhs" = xyes], [
         MASTERDIR=default
         INPUTDIR=default
         DATADIR=default
+        KEYDIR=default
         LOGDIR=/var/cfengine
         MODULEDIR='default'
         PIDDIR=/var/cfengine
@@ -202,6 +205,7 @@ AS_IF([test x"$enable_fhs" = xyes], [
     MASTERDIR="default"
     INPUTDIR="default"
     DATADIR="default"
+    KEYDIR="default"
     LOGDIR="${localstatedir}/${PACKAGE}"
     MODULEDIR='default'
     PIDDIR="${localstatedir}/${PACKAGE}"
@@ -1098,6 +1102,23 @@ adl_RECURSIVE_EVAL("${DATADIR}", DATADIR)
 dnl There's a conflict on mingw where they have a type called DATADIR!
 AC_DEFINE_UNQUOTED(CF_DATADIR, "${DATADIR}", [Datadir location])
 AC_SUBST(datadir, "${DATADIR}")
+
+AC_ARG_WITH(keydir,
+    [  --with-keydir=KEYDIR  default for internal data directory ],
+    [
+        if test "x$withval" != x ; then
+            KEYDIR="$withval"
+        fi
+    ],
+)
+
+dnl Expand ${prefix} and whatnot in KEYDIR
+
+adl_RECURSIVE_EVAL("${KEYDIR}", KEYDIR)
+
+dnl There's a conflict on mingw where they have a type called KEYDIR!
+AC_DEFINE_UNQUOTED(KEYDIR, "${KEYDIR}", [Keydir location])
+AC_SUBST(keydir, "${KEYDIR}")
 
 AC_ARG_WITH(logdir,
     [  --with-logdir=LOGDIR  default for internal log directory ],
