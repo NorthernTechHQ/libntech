@@ -169,6 +169,7 @@ AS_IF([test x"$enable_fhs" = xyes], [
   INPUTDIR='default'
   DATADIR='default'
   LOGDIR='${localstatedir}/log/cfengine'
+  MODULEDIR='default'
   PIDDIR='${runstatedir:-${localstatedir}/run}/cfengine'
   STATEDIR='default'
 ], [
@@ -181,6 +182,7 @@ AS_IF([test x"$enable_fhs" = xyes], [
         INPUTDIR=default
         DATADIR=default
         LOGDIR=$(cmd /c "echo %PROGRAMFILES%\\Cfengine" | sed 's/\\/\\\\/g')
+        MODULEDIR='default'
         PIDDIR=$(cmd /c "echo %PROGRAMFILES%\\Cfengine" | sed 's/\\/\\\\/g')
         STATEDIR=default
       ;;
@@ -190,6 +192,7 @@ AS_IF([test x"$enable_fhs" = xyes], [
         INPUTDIR=default
         DATADIR=default
         LOGDIR=/var/cfengine
+        MODULEDIR='default'
         PIDDIR=/var/cfengine
         STATEDIR=default
       ;;
@@ -200,6 +203,7 @@ AS_IF([test x"$enable_fhs" = xyes], [
     INPUTDIR="default"
     DATADIR="default"
     LOGDIR="${localstatedir}/${PACKAGE}"
+    MODULEDIR='default'
     PIDDIR="${localstatedir}/${PACKAGE}"
     STATEDIR="default"
   fi
@@ -1116,6 +1120,23 @@ AC_ARG_WITH(piddir,
     [
         if test "x$withval" != x ; then
             PIDDIR="$withval"
+        fi
+    ],
+)
+
+dnl Expand ${prefix} and whatnot in MODULEDIR
+
+adl_RECURSIVE_EVAL("${MODULEDIR}", MODULEDIR)
+
+dnl There's a conflict on mingw where they have a type called MODULEDIR!
+AC_DEFINE_UNQUOTED(MODULEDIR, "${MODULEDIR}", [Moduledir location])
+AC_SUBST(moduledir, "${MODULEDIR}")
+
+AC_ARG_WITH(logdir,
+    [  --with-logdir=LOGDIR  default for internal log directory ],
+    [
+        if test "x$withval" != x ; then
+            LOGDIR="$withval"
         fi
     ],
 )

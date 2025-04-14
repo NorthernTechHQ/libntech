@@ -39,6 +39,7 @@ const char *GetDefaultDataDir(void);
 const char *GetDefaultPidDir(void);
 const char *GetDefaultMasterDir(void);
 const char *GetDefaultInputDir(void);
+const char *GetDefaultModuleDir(void);
 
 #endif
 
@@ -60,6 +61,7 @@ GET_DEFAULT_DIRECTORY_DEFINE(Pid, PIDDIR)
 GET_DEFAULT_DIRECTORY_DEFINE(Input, INPUTDIR)
 GET_DEFAULT_DIRECTORY_DEFINE(Master, MASTERDIR)
 GET_DEFAULT_DIRECTORY_DEFINE(State, STATEDIR)
+GET_DEFAULT_DIRECTORY_DEFINE(Module, MODULEDIR)
 
 #elif !defined(__MINGW32__)
 
@@ -122,6 +124,7 @@ GET_DEFAULT_DIRECTORY_DEFINE(Pid, pid, PIDDIR, NULL)
 GET_DEFAULT_DIRECTORY_DEFINE(Master, master, MASTERDIR, "masterfiles")
 GET_DEFAULT_DIRECTORY_DEFINE(Input, input, INPUTDIR, "inputs")
 GET_DEFAULT_DIRECTORY_DEFINE(State, state, STATEDIR, "state")
+GET_DEFAULT_DIRECTORY_DEFINE(Module, module, MODULEDIR, "modules")
 #endif
 
 
@@ -199,6 +202,8 @@ const char *GetInputDir(void)
     GET_DIRECTORY_DEFINE_FUNC_BODY(Input, input, INPUT, inputs)
 const char *GetMasterDir(void)
     GET_DIRECTORY_DEFINE_FUNC_BODY(Master, master, MASTER, masterfiles)
+const char *GetModuleDir(void)
+    GET_DIRECTORY_DEFINE_FUNC_BODY(Module, module, MODULE, modules)
 const char *GetStateDir(void)
     GET_DIRECTORY_DEFINE_FUNC_BODY(State, state, STATE, state)
 const char *GetDataDir(void)
