@@ -53,9 +53,9 @@ test -z "$srcdir" && srcdir=.
 cd "$srcdir"
 
 echo "$0: Running autoreconf ..."
-autoreconf -Wno-portability --force --install -I m4  ||  exit
+autoreconf -Wno-portability --force --install -I m4 || exit
 
-cd -  >/dev/null              # back to original directory
+cd - >/dev/null              # back to original directory
 
 if [ -z "$NO_CONFIGURE" ]
 then
