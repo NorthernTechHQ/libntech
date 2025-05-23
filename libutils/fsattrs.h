@@ -26,6 +26,7 @@
 #define CFENGINE_FSATTR_H
 
 #include <stdbool.h>
+#include <assert.h>
 
 typedef enum
 {
