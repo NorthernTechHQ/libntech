@@ -23,9 +23,6 @@
 noinst_LTLIBRARIES = libutils.la
 
 # TODO remove the openssl dependency! It's only there for base64 encoding.
-AM_CFLAGS   = $(CORE_CFLAGS)   $(PCRE2_CFLAGS)   $(OPENSSL_CFLAGS)
-AM_CPPFLAGS = $(CORE_CPPFLAGS) $(PCRE2_CPPFLAGS) $(OPENSSL_CPPFLAGS)
-AM_LDFLAGS  = $(CORE_LDFLAGS)  $(PCRE2_LDFLAGS)  $(OPENSSL_LDFLAGS)
 
 libutils_la_LIBADD = ../libcompat/libcompat.la $(PCRE2_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS) $(LIBYAML_LIBS)
 

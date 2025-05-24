@@ -26,7 +26,6 @@
 
 #if !HAVE_DECL_STRNLEN
 size_t strnlen(const char *str, size_t maxlen);
-#endif
 
 size_t
 strnlen(const char *str, size_t maxlen)
@@ -38,4 +37,4 @@ strnlen(const char *str, size_t maxlen)
 
 	return (size_t)(cp - str);
 }
-
+#endif
