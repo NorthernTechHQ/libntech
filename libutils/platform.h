@@ -341,8 +341,8 @@ void globfree(glob_t *pglob);
 #endif
 
 #ifndef __MINGW32__
-# include <pwd.h>
 # include <grp.h>
+# include <pwd.h>
 #endif
 
 #ifdef HAVE_SYS_SOCKIO_H
