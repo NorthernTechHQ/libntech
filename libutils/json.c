@@ -101,6 +101,8 @@ const char *JsonPrimitiveTypeToString(const JsonPrimitiveType type)
         return "number";
     case JSON_PRIMITIVE_TYPE_BOOL:
         return "boolean";
+    case JSON_PRIMITIVE_TYPE_NULL:
+        return "null";
     default:
         UnexpectedError("Unknown JSON primitive type: %d", type);
         return "(null)";
