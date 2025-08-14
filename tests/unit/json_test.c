@@ -2363,6 +2363,64 @@ static void test_json_object_merge_deep()
     ));
 }
 
+static void test_json_get_type_as_string()
+{
+    {
+        JsonElement *element = JsonStringCreate("foo");
+        const char *expected = "string";
+        const char *actual = JsonGetTypeAsString(element);
+        assert_string_equal(expected, actual);
+        JsonDestroy(element);
+    }
+
+    {
+        JsonElement *element = JsonIntegerCreate(42);
+        const char *expected = "number";
+        const char *actual = JsonGetTypeAsString(element);
+        assert_string_equal(expected, actual);
+        JsonDestroy(element);
+    }
+
+    {
+        JsonElement *element = JsonRealCreate(3.14);
+        const char *expected = "number";
+        const char *actual = JsonGetTypeAsString(element);
+        assert_string_equal(expected, actual);
+        JsonDestroy(element);
+    }
+
+    {
+        JsonElement *element = JsonBoolCreate(true);
+        const char *expected = "boolean";
+        const char *actual = JsonGetTypeAsString(element);
+        assert_string_equal(expected, actual);
+        JsonDestroy(element);
+    }
+
+    {
+        JsonElement *element = JsonNullCreate(true);
+        const char *expected = "null";
+        const char *actual = JsonGetTypeAsString(element);
+        assert_string_equal(expected, actual);
+        JsonDestroy(element);
+    }
+
+    {
+        JsonElement *element = JsonObjectCreate(0);
+        const char *expected = "object";
+        const char *actual = JsonGetTypeAsString(element);
+        assert_string_equal(expected, actual);
+        JsonDestroy(element);
+    }
+
+    {
+        JsonElement *element = JsonArrayCreate(0);
+        const char *expected = "array";
+        const char *actual = JsonGetTypeAsString(element);
+        assert_string_equal(expected, actual);
+        JsonDestroy(element);
+    }
+}
 
 int main()
 {
@@ -2435,6 +2493,7 @@ int main()
         unit_test(test_json_null_not_null),
         unit_test(test_json_object_merge_deep),
         unit_test(test_compare_container_type_mismatch),
+        unit_test(test_json_get_type_as_string),
     };
 
     return run_tests(tests);
