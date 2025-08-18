@@ -233,6 +233,8 @@ const char *JsonGetPropertyAsString(const JsonElement *element);
 #define NULL_JSON(json) ((json == NULL) || (JsonGetType(json) == JSON_TYPE_NULL))
 #define JSON_NOT_NULL(json) ((json != NULL) && (JsonGetType(json) != JSON_TYPE_NULL))
 
+const char *JsonGetTypeAsString(const JsonElement *element);
+
 //////////////////////////////////////////////////////////////////////////////
 // JSON Primitives
 //////////////////////////////////////////////////////////////////////////////

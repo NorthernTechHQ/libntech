@@ -76,6 +76,20 @@ struct JsonElement_
 // JsonElement Functions
 // *******************************************************************************************
 
+const char *JsonGetTypeAsString(const JsonElement *element)
+{
+    switch (JsonGetElementType(element))
+    {
+    case JSON_ELEMENT_TYPE_CONTAINER:
+        return JsonContainerTypeToString(JsonGetContainerType(element));
+    case JSON_ELEMENT_TYPE_PRIMITIVE:
+        return JsonPrimitiveTypeToString(JsonGetPrimitiveType(element));
+    default:
+        UnexpectedError("Unknown JSON container type: %d", JsonGetType(element));
+        return "(null)";
+    }
+}
+
 const char *JsonContainerTypeToString(const JsonContainerType type)
 {
     switch (type)
@@ -101,6 +115,8 @@ const char *JsonPrimitiveTypeToString(const JsonPrimitiveType type)
         return "number";
     case JSON_PRIMITIVE_TYPE_BOOL:
         return "boolean";
+    case JSON_PRIMITIVE_TYPE_NULL:
+        return "null";
     default:
         UnexpectedError("Unknown JSON primitive type: %d", type);
         return "(null)";
