@@ -117,6 +117,7 @@ void MapPrintStats(const Map *map, FILE *f);
     {                                                                   \
         Map *impl;                                                      \
     } Prefix##Map;                                                      \
+    typedef MapIterator Prefix##MapIterator;                            \
                                                                         \
     Prefix##Map *Prefix##MapNew(void);                                  \
     bool Prefix##MapInsert(const Prefix##Map *map, KeyType key, ValueType value); \
@@ -129,6 +130,8 @@ void MapPrintStats(const Map *map, FILE *f);
     void Prefix##MapSoftDestroy(Prefix##Map *map);                          \
     bool Prefix##MapContainsSameKeys(const Prefix##Map *map1, const Prefix##Map *map2); \
     void Prefix##MapPrintStats(const Prefix##Map *map, FILE *f); \
+    Prefix##MapIterator Prefix##MapIteratorInit(Prefix##Map *map);      \
+    MapKeyValue *Prefix##MapIteratorNext(Prefix##MapIterator *iter);    \
 
 #define TYPED_MAP_DEFINE(Prefix, KeyType, ValueType, hash_fn, equal_fn, \
                          destroy_key_fn, destroy_value_fn)              \
@@ -206,6 +209,16 @@ void MapPrintStats(const Map *map, FILE *f);
     {                                                                   \
         assert(map);                                                    \
         return MapPrintStats(map->impl, f);                             \
+    }                                                                   \
+                                                                        \
+    Prefix##MapIterator Prefix##MapIteratorInit(Prefix##Map *map)       \
+    {                                                                   \
+        return MapIteratorInit(map->impl);                              \
+    }                                                                   \
+                                                                        \
+    MapKeyValue *Prefix##MapIteratorNext(Prefix##MapIterator *iter)     \
+    {                                                                   \
+        return MapIteratorNext(iter);                                   \
     }                                                                   \
 
 TYPED_MAP_DECLARE(String, char *, char *)
