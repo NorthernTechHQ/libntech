@@ -347,6 +347,13 @@ JsonParseError JsonParseYamlString(const char **data, JsonElement **json_out)
 
     JsonElement *holder = JsonArrayCreate(1);
     JsonParseYamlData(&parser, holder, 0);
+    if (JsonLength(holder) == 0)
+    {
+        JsonDestroy(holder);
+        yaml_parser_delete(&parser);
+        return JSON_PARSE_ERROR_NO_DATA;
+    }
+    assert(JsonAt(holder, 0) != NULL);
     *json_out = JsonCopy(JsonAt(holder, 0));
     JsonDestroy(holder);
 
