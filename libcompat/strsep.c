@@ -36,7 +36,6 @@
 
 #if !HAVE_DECL_STRSEP
 char *strsep(char **stringp, const char *delim);
-#endif
 
 /*
  * Get next token from string *stringp, where tokens are possibly-empty
@@ -75,3 +74,4 @@ strsep(char **stringp, const char *delim)
 	}
 	/* NOTREACHED */
 }
+#endif

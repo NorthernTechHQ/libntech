@@ -30,7 +30,6 @@
 
 #if !HAVE_DECL_STRCASESTR
 char *strcasestr(const char *haystack, const char *needle);
-#endif
 
 char *strcasestr(const char *haystack, const char *needle)
 {
@@ -45,3 +44,4 @@ char *strcasestr(const char *haystack, const char *needle)
     }
     return NULL;
 }
+#endif
