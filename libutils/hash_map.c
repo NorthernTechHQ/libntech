@@ -116,8 +116,14 @@ bool HashMapInsert(HashMap *map, void *key, void *value)
             /* Replace the key with the new one despite those two being the
              * same, since the new key might be referenced somewhere inside
              * the new value. */
-            map->destroy_key_fn(i->value.key);
-            map->destroy_value_fn(i->value.value);
+            if (map->destroy_key_fn != NULL)
+            {
+                map->destroy_key_fn(i->value.key);
+            }
+            if (map->destroy_value_fn != NULL)
+            {
+                map->destroy_value_fn(i->value.value);
+            }
             i->value.key   = key;
             i->value.value = value;
             return true;
@@ -154,8 +160,14 @@ bool HashMapRemove(HashMap *map, const void *key)
         BucketListItem *cur = *prev;
         if (map->equal_fn(cur->value.key, key))
         {
-            map->destroy_key_fn(cur->value.key);
-            map->destroy_value_fn(cur->value.value);
+            if (map->destroy_key_fn != NULL)
+            {
+                map->destroy_key_fn(cur->value.key);
+            }
+            if (map->destroy_value_fn != NULL)
+            {
+                map->destroy_value_fn(cur->value.value);
+            }
             *prev = cur->next;
             free(cur);
             map->load--;
@@ -195,8 +207,14 @@ static void FreeBucketListItem(HashMap *map, BucketListItem *item)
         FreeBucketListItem(map, item->next);
     }
 
-    map->destroy_key_fn(item->value.key);
-    map->destroy_value_fn(item->value.value);
+    if (map->destroy_key_fn != NULL)
+    {
+        map->destroy_key_fn(item->value.key);
+    }
+    if (map->destroy_value_fn != NULL)
+    {
+        map->destroy_value_fn(item->value.value);
+    }
     free(item);
     map->load--;
 }
