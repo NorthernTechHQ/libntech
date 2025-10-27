@@ -23,10 +23,9 @@
 # Just recursively include in dist tarball all data we need for unit tests
 EXTRA_DIST = data
 
-AM_CPPFLAGS = $(CORE_CPPFLAGS) \
-	$(ENTERPRISE_CFLAGS) \
+AM_CPPFLAGS += $(ENTERPRISE_CFLAGS) \
 	-I$(srcdir)/../../libutils \
-	-DTESTDATADIR='"$(srcdir)/data"'
+	-DTESTDATADIR='"$(srcdir)/$(EXTRA_DIST)"'
 
 LDADD = libtest.la
 
@@ -34,10 +33,6 @@ LDADD = libtest.la
 # the generic LIBS one. In case the functions are mocked in the test
 # implementation, then we are pretty sure that they will be overriden by
 # our local implementation. So we include *everything*...
-LIBS = $(CORE_LIBS)
-AM_LDFLAGS = $(CORE_LDFLAGS)
-
-AM_CFLAGS = $(CORE_CFLAGS) $(PTHREAD_CFLAGS)
 
 
 check_LTLIBRARIES = libtest.la
@@ -116,7 +111,7 @@ refcount_test_SOURCES = refcount_test.c
 buffer_test_SOURCES = buffer_test.c
 # Workaround for object file basename conflicts, search the web for
 # "automake created with both libtool and without"
-buffer_test_CPPFLAGS = $(AM_CPPFLAGS)
+# buffer_test_CPPFLAGS = $(AM_CPPFLAGS)
 
 csv_parser_test_SOURCES = csv_parser_test.c
 csv_parser_test_LDADD = libtest.la
@@ -137,7 +132,6 @@ file_lib_test_SOURCES = file_lib_test.c
 file_lib_test_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_SYMLINK_ATOMICITY
 
 ipaddress_test_SOURCES = ipaddress_test.c
-ipaddress_test_CPPFLAGS = $(AM_CPPFLAGS)
 
 logging_timestamp_test_SOURCES = logging_timestamp_test.c \
 	../../libutils/logging.h

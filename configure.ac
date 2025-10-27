@@ -84,18 +84,57 @@ dnl It is restored later.
 dnl
 ENV_CFLAGS="$CFLAGS"
 
+# Do not use autoconf's CFLAGS defaults set via AC_PROG_CC macro
+# https://www.gnu.org/software/autoconf/manual/autoconf-2.67/html_node/C-Compiler.html
+CFLAGS=
+
+dnl ######################################################################
+dnl Enable debugging
+dnl ######################################################################
+
+AC_ARG_ENABLE(debug,
+              AS_HELP_STRING([--enable-debug], [Enable debugging]),
+              [debug=$enableval],
+              [debug=no])
+AM_CONDITIONAL([NDEBUG], [test x"$debug" = x"no"])
+
+AC_MSG_CHECKING([for debug option])
+if test x"$debug" = x"yes"
+then
+    AC_MSG_RESULT(yes)
+    AM_CFLAGS="$AM_CFLAGS -g3 -O0"
+else
+    AC_MSG_RESULT(no)
+    AM_CFLAGS="$AM_CFLAGS -O2 -DNDEBUG"
+fi
+
 dnl ######################################################################
 dnl Checks for programs.
 dnl ######################################################################
 
 AC_PROG_GREP
 AC_PROG_EGREP
-AC_PROG_CC
+# check for clang first so we can use this info on macOS
+AC_PROG_CC([clang gcc cc])
 AC_PROG_MKDIR_P
 AC_EXEEXT
 
 AS_CASE([${target_os}],
 [darwin*], [
+    # Since 15.4, macOS has strchrnul(), but only allows it for deployment version
+    # >= 15.4. Add -mmacosx-version-min parameter to CFLAGS if we're using clang
+    AS_IF([test "x$CC" = "xclang"], [
+      AC_CHECK_PROG([xcrun], [xcrun], [xcrun])
+      if test "x$xcrun" = "xxcrun" ; then
+        AC_MSG_CHECKING([for macOS SDK version])
+        MACOS_SDK_VERSION=`xcrun --show-sdk-version`
+        AC_MSG_RESULT([$MACOS_SDK_VERSION])
+        case "${MACOS_SDK_VERSION}" in
+          *.*) test "${MACOS_SDK_VERSION%.*}" -ge 15 && test "${MACOS_SDK_VERSION#*.}" -ge 4 && AM_CFLAGS="$AM_CFLAGS -mmacosx-version-min=$MACOS_SDK_VERSION";;
+        esac
+      fi
+    ])
+
     AC_CHECK_PROG([BREW], [brew], [brew])
     AC_MSG_CHECKING([for OS X Homebrew])
     AS_IF([test "x$BREW" = "xbrew"], [
@@ -141,14 +180,14 @@ AC_ARG_WITH([pthreads],
 
 if test "x$with_pthreads" != x && test "x$with_pthreads" != "xyes" && test "x$with_pthreads" != "xno"; then
    LIBS="$LIBS -L$with_pthreads/lib"
-   CPPFLAGS="-I$with_pthreads/include $CPPFLAGS"
+   AM_CPPFLAGS="-I$with_pthreads/include $AM_CPPFLAGS"
 fi
 
 ACX_PTHREAD([],
             [AC_MSG_ERROR(pthread-compatible library is required to build CFEngine)])
 
 CC="$PTHREAD_CC"
-CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
+AM_CFLAGS="$PTHREAD_CFLAGS $AM_CFLAGS"
 LIBS="$PTHREAD_LIBS $LIBS"
 
 dnl ######################################################################
@@ -225,32 +264,7 @@ AS_CASE([${target_os}],
   [mingw*],
     # Disable printf format warnings, because our wrapper supports more
     # flags than vanilla Windows version, so they are false positives.
-    [CFLAGS="$CFLAGS -Wno-format"])
-
-dnl ######################################################################
-dnl Enable debugging
-dnl ######################################################################
-
-AC_ARG_ENABLE(debug,
-              AS_HELP_STRING([--enable-debug], [Enable debugging]),
-              [debug=$enableval],
-              [debug=no])
-AM_CONDITIONAL([NDEBUG], [test x"$debug" = x"no"])
-
-dnl Even though CFLAGS should contain the command-line CFLAGS
-dnl as last, some macro seem to messes the order up and insert
-dnl its own optimisation flags as well. So we append ENV_CFLAGS
-dnl at the end manually, causing a bit of flag duplication.
-
-AC_MSG_CHECKING([for debug option])
-if test x"$debug" = x"yes"
-then
-    AC_MSG_RESULT(yes)
-    CFLAGS="$CFLAGS -g3 -O0 $ENV_CFLAGS"
-else
-    AC_MSG_RESULT(no)
-    CFLAGS="$CFLAGS -O2 -DNDEBUG $ENV_CFLAGS"
-fi
+    [AM_CFLAGS="$AM_CFLAGS -Wno-format"])
 
 dnl ######################################################################
 dnl Checks for libraries.
@@ -488,7 +502,7 @@ AC_TYPE_OFF_T
 # off_t, which causes a conflict.
 #
 if test "x$ac_cv_sys_large_files" = x1; then
-  CPPFLAGS="-D_LARGE_FILES=1 $CPPFLAGS"
+  AM_CPPFLAGS="-D_LARGE_FILES=1 $AM_CPPFLAGS"
 fi
 
 dnl ######################################################################
@@ -998,7 +1012,7 @@ case "$target_os" in
         AC_DEFINE(_PSTAT64, 1, [Enable wide data structures everywhere])
         ;;
    aix*)
-        CPPFLAGS="$CPPFLAGS -w"
+        AM_CPPFLAGS="$AM_CPPFLAGS -w"
         ;;
    linux*|*bsd*|*gnu*)
         AC_CHECK_LIB(nss_nis, yp_get_default_domain)
@@ -1210,7 +1224,7 @@ dnl #####################################################################
 AC_PATH_PROG(HOSTNAME, hostname, "", $PATH)
 
 AC_DEFINE_UNQUOTED(AUTOCONF_HOSTNAME, "`$HOSTNAME`", [Special CFEngine symbol])
-AC_DEFINE_UNQUOTED(AUTOCONF_SYSNAME, "$target_os", [Speial CFEngine symbol])
+AC_DEFINE_UNQUOTED(AUTOCONF_SYSNAME, "$target_os", [Special CFEngine symbol])
 
 
 dnl #####################################################################
@@ -1261,8 +1275,8 @@ if test "x$use_coverage" = "xyes"; then
   changequote([,])
 
   dnl Add the special gcc flags
-  CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage"
-  LDFLAGS="$LDFLAGS -lgcov"
+  AM_CFLAGS="$AM_CFLAGS -fprofile-arcs -ftest-coverage"
+  AM_LDFLAGS="$AM_LDFLAGS -lgcov"
   # Need to set ENABLE_COVERAGE so that tests/unit/Makefile.am can adapt for one
   # test which needs gcov stubs if core not built with coverage.
   AM_CONDITIONAL([ENABLE_COVERAGE], true)
@@ -1274,19 +1288,19 @@ dnl ######################################################################
 dnl Collect all the options
 dnl ######################################################################
 
-CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $CPPFLAGS"
-CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $CFLAGS"
-CORE_LDFLAGS="$PCRE2_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $LDFLAGS"
-CORE_LIBS="$PCRE2_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $LIBS"
+AM_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $AM_CPPFLAGS"
+AM_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $AM_CFLAGS $ENV_CFLAGS"
+AM_LDFLAGS="$PCRE2_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $AM_LDFLAGS"
+AM_LIBS="$PCRE2_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $AM_LIBS"
 
 dnl ######################################################################
 dnl Make them available to subprojects.
 dnl ######################################################################
 
-AC_SUBST([CORE_CPPFLAGS])
-AC_SUBST([CORE_CFLAGS])
-AC_SUBST([CORE_LDFLAGS])
-AC_SUBST([CORE_LIBS])
+AC_SUBST([AM_CFLAGS])
+AC_SUBST([AM_CPPFLAGS])
+AC_SUBST([AM_LDFLAGS])
+AC_SUBST([AM_LIBS])
 
 #
 # Populate contents of config.post.h
@@ -1313,7 +1327,7 @@ dnl ######################################################################
 dnl Summarize
 dnl ######################################################################
 
-AC_MSG_RESULT( )
+AC_MSG_RESULT
 
 AC_MSG_RESULT(Summary:)
 AC_MSG_RESULT(> Version: AC_PACKAGE_VERSION)
@@ -1330,7 +1344,7 @@ else
   AC_MSG_RESULT([-> libyaml: disabled])
 fi
 
-AC_MSG_RESULT( )
+AC_MSG_RESULT
 
 dnl ######################################################################
 dnl Now make the Makefiles

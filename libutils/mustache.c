@@ -579,7 +579,7 @@ static bool IsKeyExtensionVar(TagType tag_type, const char *tag_start,
             return true;
         }
 
-        /* the special case of unescaped form using {{{@}}} iff "{{" and "}}" are
+        /* the special case of unescaped form using {{{@}}} if "{{" and "}}" are
          * used as delimiters */
         if ((delim_start_len == 2) && (delim_end_len == 2) &&
             StringEqual(delim_start, "{{") &&

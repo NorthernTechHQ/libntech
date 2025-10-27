@@ -28,10 +28,10 @@ AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
 #if defined __HP_cc
 #This is HP-UX ANSI C
 #endif
-]])], [
-HP_UX_AC="no"], [
-CFLAGS="$CFLAGS -Agcc"
-CPPFLAGS="$CPPFLAGS -Agcc"
+]])],
+[HP_UX_AC="no"],
+[AM_CFLAGS="$AM_CFLAGS -Agcc"
+AM_CPPFLAGS="$AM_CPPFLAGS -Agcc"
 HP_UX_AC="yes"])
 
 AC_MSG_CHECKING(for HP-UX aC)
@@ -43,33 +43,35 @@ fi
 
 AC_MSG_CHECKING(for GCC specific compile flags)
 if test x"$GCC" = "xyes" && test x"$HP_UX_AC" != x"yes"; then
-    CFLAGS="$CFLAGS -g -Wall"
-    CPPFLAGS="$CPPFLAGS -std=gnu99"
+    AM_CFLAGS="$AM_CFLAGS -Wall"
     AC_MSG_RESULT(yes)
 
     save_CFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS -Wno-pointer-sign"
     AC_MSG_CHECKING(for -Wno-pointer-sign)
     AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])],
-     [AC_MSG_RESULT(yes)],
-     [AC_MSG_RESULT(no)
-     CFLAGS="$save_CFLAGS"])
+     [AC_MSG_RESULT(yes)
+     AM_CFLAGS="$AM_CFLAGS -Wno-pointer-sign"],
+     [AC_MSG_RESULT(no)])
+    CFLAGS="$save_CFLAGS"
 
     save_CFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS -Werror=implicit-function-declaration"
     AC_MSG_CHECKING(for -Werror=implicit-function-declaration)
     AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])],
-     [AC_MSG_RESULT(yes)],
-     [AC_MSG_RESULT(no)
-     CFLAGS="$save_CFLAGS"])
+     [AC_MSG_RESULT(yes)
+     AM_CFLAGS="$AM_CFLAGS -Werror=implicit-function-declaration"],
+     [AC_MSG_RESULT(no)])
+    CFLAGS="$save_CFLAGS"
 
     save_CFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS -Wunused-parameter"
     AC_MSG_CHECKING(for -Wunused-parameter)
     AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])],
-     [AC_MSG_RESULT(yes)],
-     [AC_MSG_RESULT(no)
-     CFLAGS="$save_CFLAGS"])
+     [AC_MSG_RESULT(yes)
+     AM_CFLAGS="$AM_CFLAGS -Wunused-parameter"],
+     [AC_MSG_RESULT(no)])
+    CFLAGS="$save_CFLAGS"
 
     dnl Clang does not like 'const const' construct arising from
     dnl expansion of TYPED_SET_DECLARE macro
@@ -83,7 +85,7 @@ if test x"$GCC" = "xyes" && test x"$HP_UX_AC" != x"yes"; then
 #endif
 int main() {}])],
      [AC_MSG_RESULT(yes)
-     CFLAGS="$save_CFLAGS -Wno-duplicate-decl-specifier"],
+     AM_CFLAGS="$AM_CFLAGS -Wno-duplicate-decl-specifier"],
      [AC_MSG_RESULT(no)])
 else 
     AC_MSG_RESULT(no)
