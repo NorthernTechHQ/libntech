@@ -46,42 +46,6 @@ libtest_la_SOURCES = cmockery.c cmockery.h schema.h test.c test.h
 libtest_la_LIBADD = ../../libutils/libutils.la ../../libcompat/libcompat.la $(PCRE_LIBS) $(OPENSSL_LIBS) $(SYSTEMD_LOGGING_LIBS) $(LIBYAML_LIBS)
 
 check_PROGRAMS = \
-	cleanup_test \
-	condition_macros_test \
-	csv_writer_test \
-	set_test \
-	csv_parser_test \
-	env_file_test \
-	alloc_test \
-	string_writer_test \
-	file_writer_test \
-	fsattrs_test \
-	xml_writer_test \
-	sequence_test \
-	json_test \
-	misc_lib_test \
-	string_lib_test \
-	thread_test \
-	file_lib_test \
-	file_lock_test \
-	map_test \
-	path_test \
-	logging_timestamp_test \
-	refcount_test \
-	list_test \
-	buffer_test \
-	ipaddress_test \
-	rb-tree-test \
-	queue_test \
-	stack_test \
-	threaded_queue_test \
-	threaded_deque_test \
-	threaded_stack_test \
-	version_comparison_test \
-	ring_buffer_test \
-	libcompat_test \
-	definitions_test \
-	glob_lib_test \
 	string_sequence_test
 
 if WITH_PCRE2

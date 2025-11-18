@@ -1569,6 +1569,19 @@ SMART_SYSCALLS_UNUSED static bool FileSparseCopyShoveling(int sd, const char *sr
     assert(total_bytes_written   != NULL);
     assert(last_write_was_a_hole != NULL);
 
+    Log(LOG_LEVEL_INFO, "ENT-13508: Debugging HP-UX is always a joy :)");
+
+    struct stat sb;
+    if (fstat(sd, &sb) == -1) {
+        Log(LOG_LEVEL_ERR, "ENT-13508: fstat on source %s: %s", dst_name, GetErrorStr());
+    }
+    Log(LOG_LEVEL_INFO, "ENT-13508: fstat on source %s = %jd Bytes", dst_name, (intmax_t)sb.st_size);
+
+    if (fstat(dd, &sb) == -1) {
+        Log(LOG_LEVEL_ERR, "ENT-13508: fstat on dest %s: %s", dst_name, GetErrorStr());
+    }
+    Log(LOG_LEVEL_INFO, "ENT-13508: fstat on dest %s = %jd Bytes", dst_name, (intmax_t)sb.st_size);
+
     const size_t buf_size  = blk_size;
     void *buf              = xmalloc(buf_size);
 
@@ -1606,6 +1619,7 @@ SMART_SYSCALLS_UNUSED static bool FileSparseCopyShoveling(int sd, const char *sr
     }
 
     free(buf);
+    Log(LOG_LEVEL_INFO, "ENT-13508: Total read from %s is %zu Bytes", src_name, n_read_total);
     *total_bytes_written   = n_read_total;
     return retval;
 }
