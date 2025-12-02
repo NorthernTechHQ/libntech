@@ -1846,6 +1846,33 @@ static void test_string_escape(void)
     assert_json_strings_eq(
         "Hello, world!\n'Blah', \"blah\".",
         "Hello, world!\\n'Blah', \\\"blah\\\".");
+    assert_json_strings_eq(
+        "Hello blah",
+        "Hello \\u001bblah");
+
+    const char unescaped_short_hex[] = {
+        'B', 'l', 'a', 'h', '\\', 'u', '0', '0', '\0'};
+    const char escaped_short_hex[] = {
+        'B', 'l', 'a', 'h', '\\', '\\', 'u', '0', '0', '\0'};
+    assert_json_strings_eq(unescaped_short_hex, escaped_short_hex);
+
+    const char unescaped_invalid_u[] = {
+        'B', 'l', 'a', 'h', '\\', 'u', '\0'};
+    const char escaped_invalid_u[] = {
+        'B', 'l', 'a', 'h', '\\', '\\', 'u', '\0'};
+    assert_json_strings_eq(unescaped_invalid_u, escaped_invalid_u);
+
+    const char unescaped_valid_hex[] = {
+        'B', 'l', 'a', 'h', '\\', 'u', '0', '0', '1', 'b', '\0'};
+    const char escaped_valid_hex[] = {
+        'B', 'l', 'a', 'h', '\\', '\\', 'u', '0', '0', '1', 'b', '\0'};
+    assert_json_strings_eq(unescaped_valid_hex, escaped_valid_hex);
+
+    const char unescaped_invalid_hex[] = {
+        'B', 'l', 'a', 'h', '\\', 'u', '0', 'z', '1', 'b', '\0'};
+    const char escaped_invalid_hex[] = {
+        'B', 'l', 'a', 'h', '\\', '\\', 'u', '0', 'z', '1', 'b', '\0'};
+    assert_json_strings_eq(unescaped_invalid_hex, escaped_invalid_hex);
 }
 
 #define assert_json5_data_eq(_size, unescaped, escaped)           \

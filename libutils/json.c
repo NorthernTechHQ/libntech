@@ -1012,7 +1012,14 @@ void JsonEncodeStringWriter(
             WriterWriteChar(writer, 't');
             break;
         default:
-            WriterWriteChar(writer, *c);
+            if (CharIsPrintableAscii(*c))
+            {
+                WriterWriteChar(writer, *c);
+            }
+            else
+            {
+                WriterWriteF(writer, "\\u%04x", (unsigned char) *c);
+            }
         }
     }
 }
@@ -1024,6 +1031,41 @@ char *JsonEncodeString(const char *const unescaped_string)
     JsonEncodeStringWriter(unescaped_string, writer);
 
     return StringWriterClose(writer);
+}
+
+static bool HexStringToChar(const char *hex_string, char *res)
+{
+    assert(hex_string != NULL);
+
+    const int hex_len = 4;
+    if (strlen(hex_string) < hex_len)
+    {
+        return false;
+    }
+
+    char tmp[hex_len + 1];
+    memcpy(tmp, hex_string, hex_len);
+    tmp[hex_len] = '\0';
+
+    for (int i = 0; i < hex_len; ++i)
+    {
+        if (!isdigit(tmp[i]) &&
+          !(tmp[i] >= 'A' && tmp[i] <= 'F') &&
+          !(tmp[i] >= 'a' && tmp[i] <= 'f'))
+        {
+            return false;
+        }
+    }
+
+    char *end;
+    long c = strtol(tmp, &end, 16);
+    if ((*end != '\0') || (c > 255) || (c < 0))
+    {
+        return false;
+    }
+
+    *res = (unsigned char) c;
+    return true;
 }
 
 static void JsonDecodeStringWriter(
@@ -1061,6 +1103,19 @@ static void JsonDecodeStringWriter(
             case 't':
                 WriterWriteChar(w, '\t');
                 c++;
+                break;
+            case 'u':
+                if (c[2] == '\0')
+                {
+                    break;
+                }
+
+                char d;
+                if (HexStringToChar(c + 2, &d))
+                {
+                    WriterWriteF(w, "%c", (unsigned char) d);
+                    c += 5;
+                }
                 break;
             default:
                 WriterWriteChar(w, *c);
