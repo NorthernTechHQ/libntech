@@ -27,7 +27,6 @@
 
 #if !HAVE_DECL_STRCASECMP
 int strcasecmp(const char *s1, const char *s2);
-#endif
 
 int strcasecmp(const char *s1, const char *s2)
 {
@@ -58,3 +57,4 @@ int strcasecmp(const char *s1, const char *s2)
     }
     return 0;
 }
+#endif

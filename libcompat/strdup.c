@@ -30,7 +30,6 @@
 
 #if !HAVE_DECL_STRDUP
 char *strdup(const char *str);
-#endif
 
 char *strdup(const char *str)
 {
@@ -44,3 +43,4 @@ char *strdup(const char *str)
     memcpy(sp, str, len);
     return sp;
 }
+#endif
