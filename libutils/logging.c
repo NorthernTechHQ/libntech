@@ -188,6 +188,10 @@ LogLevel LogLevelFromString(const char *const level)
     {
         return LOG_LEVEL_DEBUG;
     }
+    if (StringEqualN_IgnoreCase(level, "none", len))
+    {
+        return LOG_LEVEL_NONE;
+    }
     return LOG_LEVEL_NOTHING;
 }
 
