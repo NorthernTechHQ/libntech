@@ -271,7 +271,7 @@ static void test_glob_find(void)
     {
         Seq *const matches = GlobFind(".");
         assert_int_equal(SeqLength(matches), 1);
-        assert_string_equal(SeqAt(matches, 0), "." FILE_SEPARATOR_STR);
+        assert_string_equal(SeqAt(matches, 0), ".");
         SeqDestroy(matches);
     }
 }
@@ -289,10 +289,10 @@ static void test_glob_file_list(void)
     // Create test subdirectories.
 
     static const char *const test_subdirs[] = {
-        "foo" FILE_SEPARATOR_STR,
-        "foo" FILE_SEPARATOR_STR "bar" FILE_SEPARATOR_STR,
-        "foo" FILE_SEPARATOR_STR "bar" FILE_SEPARATOR_STR "baz" FILE_SEPARATOR_STR,
-        "qux" FILE_SEPARATOR_STR,
+        "foo",
+        "foo" FILE_SEPARATOR_STR "bar",
+        "foo" FILE_SEPARATOR_STR "bar" FILE_SEPARATOR_STR "baz",
+        "qux",
     };
     const size_t num_test_subdirs =
         sizeof(test_subdirs) / sizeof(const char *);
@@ -471,14 +471,14 @@ static void test_glob_file_list(void)
     matches = GlobFileList(pattern);
     assert_int_equal(StringSetSize(matches), 4);
 
-    ret = snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_STR "foo" FILE_SEPARATOR_STR, test_dir);
+    ret = snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_STR "foo", test_dir);
     assert_true(ret < PATH_MAX && ret >= 0);
     assert_true(StringSetContains(matches, path));
 
     ret = snprintf(
         path,
         PATH_MAX,
-        "%s" FILE_SEPARATOR_STR "foo" FILE_SEPARATOR_STR "bar" FILE_SEPARATOR_STR,
+        "%s" FILE_SEPARATOR_STR "foo" FILE_SEPARATOR_STR "bar",
         test_dir);
     assert_true(ret < PATH_MAX && ret >= 0);
     assert_true(StringSetContains(matches, path));
@@ -487,12 +487,12 @@ static void test_glob_file_list(void)
         path,
         PATH_MAX,
         "%s" FILE_SEPARATOR_STR "foo" FILE_SEPARATOR_STR
-        "bar" FILE_SEPARATOR_STR "baz" FILE_SEPARATOR_STR,
+        "bar" FILE_SEPARATOR_STR "baz",
         test_dir);
     assert_true(ret < PATH_MAX && ret >= 0);
     assert_true(StringSetContains(matches, path));
 
-    ret = snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_STR "qux" FILE_SEPARATOR_STR, test_dir);
+    ret = snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_STR "qux", test_dir);
     assert_true(ret < PATH_MAX && ret >= 0);
     assert_true(StringSetContains(matches, path));
 
@@ -676,14 +676,14 @@ static void test_glob_file_list(void)
 
     assert_int_equal(StringSetSize(matches), 2);
 
-    ret = snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_STR "foo" FILE_SEPARATOR_STR, test_dir);
+    ret = snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_STR "foo", test_dir);
     assert_true(ret < PATH_MAX && ret >= 0);
     assert_true(StringSetContains(matches, path));
 
     ret = snprintf(
         path,
         PATH_MAX,
-        "%s" FILE_SEPARATOR_STR "foo" FILE_SEPARATOR_STR "bar" FILE_SEPARATOR_STR,
+        "%s" FILE_SEPARATOR_STR "foo" FILE_SEPARATOR_STR "bar",
         test_dir);
     assert_true(ret < PATH_MAX && ret >= 0);
     assert_true(StringSetContains(matches, path));
