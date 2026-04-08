@@ -432,7 +432,7 @@ static void PathWalkCallback(
     {
         /* We have matched each and every part of the glob pattern, thus we
          * have a full match. */
-        char *const match = StringFormat("%s" FILE_SEPARATOR_STR, dirpath);
+        char *const match = xstrdup(dirpath);
         SeqAppend(data->matches, match);
         Log(LOG_LEVEL_DEBUG,
             "Full match! Directory '%s' has matched all previous sub patterns",
@@ -675,18 +675,11 @@ StringSet *GlobFileList(const char *pattern)
         free(expanded);
         expanded = tmp;
 
-        struct stat sb;
         if (glob(expanded, 0, NULL, &globbuf) == 0)
         {
             for (size_t j = 0; j < globbuf.gl_pathc; j++)
             {
-                if (stat(globbuf.gl_pathv[j], &sb) != 1)
-                {
-                    char *path = S_ISDIR(sb.st_mode)
-                        ? StringFormat("%s" FILE_SEPARATOR_STR, globbuf.gl_pathv[j])
-                        : SafeStringDuplicate(globbuf.gl_pathv[j]);
-                    StringSetAdd(set, path);
-                }
+                StringSetAdd(set, SafeStringDuplicate(globbuf.gl_pathv[j]));
             }
             globfree(&globbuf);
         }
