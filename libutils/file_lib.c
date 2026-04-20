@@ -1716,6 +1716,9 @@ bool FileSparseCopy(int sd, const char *src_name,
             *total_bytes_written = 0;
             return false;
         }
+        /* Clear errno so a later 'error = errno' in the copy loop doesn't
+         * capture this stale EOPNOTSUPP and cause a false failure report. */
+        errno = 0;
     }
 
     off_t in_pos = 0;
