@@ -1710,9 +1710,10 @@ bool FileSparseCopy(int sd, const char *src_name,
      */
     if (fallocate(dd, FALLOC_FL_KEEP_SIZE|FALLOC_FL_PUNCH_HOLE, 0, in_sb.st_blocks * 512) != 0)
     {
-        Log((errno == EOPNOTSUPP) ? LOG_LEVEL_VERBOSE : LOG_LEVEL_ERR,
+        bool prealloc_not_supported = errno == EOPNOTSUPP;
+        Log(prealloc_not_supported ? LOG_LEVEL_VERBOSE : LOG_LEVEL_ERR,
             "Failed to pre-allocate space for '%s': %m", dst_name);
-        if (errno != EOPNOTSUPP) {
+        if (!prealloc_not_supported) {
             *total_bytes_written = 0;
             return false;
         }
