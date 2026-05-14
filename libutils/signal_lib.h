@@ -1,3 +1,5 @@
+#include <signal.h>
+
 static inline void MaskTerminationSignalsInThread()
 {
     /* Mask termination signals in a thread so that they always end up in the
