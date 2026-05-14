@@ -497,6 +497,7 @@ dnl ######################################################################
 
 AC_CHECK_LIB(m, sqrt)
 AC_CHECK_LIB(rt, clock_gettime)
+AC_CHECK_LIB(pthread, clock_gettime)
 AC_CHECK_LIB(dl, dlopen)
 
 dnl ######################################################################
