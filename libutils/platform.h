@@ -191,10 +191,6 @@ struct utsname
 #  define IPV6_V6ONLY 27
 # endif
 
-// Not available in MinGW headers unless you raise WINVER and _WIN32_WINNT, but
-// that is very badly supported in MinGW ATM.
-ULONGLONG WINAPI GetTickCount64(void);
-
 #else /* !__MINGW32__ */
 # include <syslog.h>
 #endif
