@@ -1852,7 +1852,9 @@ void JsonObjectWrite(
         PrintIndent(writer, indent_level + 1);
 
         assert(child->propertyName != NULL);
-        WriterWriteF(writer, "\"%s\": ", child->propertyName);
+        char *encoded = JsonEncodeString(child->propertyName);
+        WriterWriteF(writer, "\"%s\": ", encoded);
+        free(encoded);
 
         switch (child->type)
         {
@@ -1987,7 +1989,9 @@ static void JsonObjectWriteCompact(
     {
         JsonElement *child = SeqAt(children, i);
 
-        WriterWriteF(writer, "\"%s\":", child->propertyName);
+        char *encoded = JsonEncodeString(child->propertyName);
+        WriterWriteF(writer, "\"%s\":", encoded);
+        free(encoded);
 
         switch (child->type)
         {
