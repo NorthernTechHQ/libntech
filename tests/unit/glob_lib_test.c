@@ -762,6 +762,27 @@ static void test_glob_file_list(void)
     StringSetDestroy(matches);
 }
 
+#ifdef WITH_PCRE2
+static void test_is_glob_literal(void)
+{
+    /* Empty string and ordinary names have no metacharacters. */
+    assert_true(IsGlobLiteral(""));
+    assert_true(IsGlobLiteral("var"));
+    assert_true(IsGlobLiteral("CFEngine-3.24.1-Install.log"));
+    assert_true(IsGlobLiteral("path/with/slashes"));
+    assert_true(IsGlobLiteral("dots.and-dashes_ok"));
+
+    /* Any of '*', '?', '[', ']' anywhere flips it to non-literal. */
+    assert_false(IsGlobLiteral("*"));
+    assert_false(IsGlobLiteral("a*"));
+    assert_false(IsGlobLiteral("*a"));
+    assert_false(IsGlobLiteral("file?.txt"));
+    assert_false(IsGlobLiteral("[abc].cf"));
+    assert_false(IsGlobLiteral("a]b"));
+    assert_false(IsGlobLiteral("CFEngine*Install.log"));
+}
+#endif // WITH_PCRE2
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -772,6 +793,7 @@ int main()
         unit_test(test_translate_bracket),
         unit_test(test_translate_glob),
         unit_test(test_glob_match),
+        unit_test(test_is_glob_literal),
         unit_test(test_glob_find),
 #endif // WITH_PCRE2
         unit_test(test_glob_file_list),

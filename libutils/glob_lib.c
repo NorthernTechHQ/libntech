@@ -277,6 +277,17 @@ static char *TranslateGlob(const char *const pattern)
     return res;
 }
 
+bool IsGlobLiteral(const char *const str)
+{
+    assert(str != NULL);
+    /* Conservative: backslash escapes (e.g. "\*", "\?") are NOT recognized
+     * here, so a component containing an escaped metacharacter still returns
+     * false. Such a component falls back to PathWalk() + GlobMatch(), which
+     * does honor the escape — correctness is preserved, only the
+     * literal-prefix optimization is forfeited for that component. */
+    return strpbrk(str, "*?[]") == NULL;
+}
+
 bool GlobMatch(const char *const _pattern, const char *const _filename)
 {
     assert(_pattern != NULL);
@@ -605,13 +616,52 @@ Seq *GlobFind(const char *pattern)
             }
             else
             {
-                // Path like '/...'.
+                /* Path like '/...'. Peel literal components from the head of
+                 * the component sequence so PathWalk() starts at the deepest
+                 * literal directory instead of '/'. This avoids enumerating
+                 * unrelated mounts (e.g. stale NFS) and unrelated top-level
+                 * directories. See ENT-14146. */
+                char *start_dir = SafeStringDuplicate(FILE_SEPARATOR_STR);
+                while (SeqLength(data.components) > 1)
+                {
+                    char *const head = SeqAt(data.components, 0);
+                    if (!IsGlobLiteral(head))
+                    {
+                        break;
+                    }
+                    char *const next = Path_JoinAlloc(start_dir, head);
+                    free(start_dir);
+                    start_dir = next;
+                    /* SeqSoftRemove() detaches the element from the sequence
+                     * without freeing it (mirroring how PathWalkCallback()
+                     * pops components). Free the orphaned string ourselves. */
+                    SeqSoftRemove(data.components, 0);
+                    free(head);
+                }
+
+                /* Confirm the literal prefix exists and is a directory. If
+                 * not, this pattern has no matches; skip PathWalk() entirely
+                 * and avoid touching unrelated directories. stat(2) follows
+                 * symlinks, so a symlinked literal prefix still resolves. */
+                struct stat sb;
+                if (stat(start_dir, &sb) != 0 || !S_ISDIR(sb.st_mode))
+                {
+                    Log(LOG_LEVEL_DEBUG,
+                        "Literal prefix '%s' does not exist or is not a "
+                        "directory; pattern '%s' has no matches.",
+                        start_dir, pattern);
+                    free(start_dir);
+                    SeqDestroy(data.components);
+                    continue;
+                }
+
                 PathWalk(
-                    FILE_SEPARATOR_STR,
+                    start_dir,
                     PathWalkCallback,
                     &data,
                     GlobFindDataCopy,
                     GlobFindDataDestroy);
+                free(start_dir);
             }
         }
         else

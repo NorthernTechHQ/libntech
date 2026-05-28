@@ -76,6 +76,14 @@ Seq *GlobFind(const char *pattern);
  */
 bool GlobMatch(const char *pattern, const char *filename);
 
+/**
+ * @brief Return true if str contains no glob metacharacters ('*', '?', '[', ']').
+ *
+ * A literal path component can be resolved with a single stat(2) instead of
+ * an opendir(3) + getdents(2) + stat-each-entry walk. See ENT-14146.
+ */
+bool IsGlobLiteral(const char *str);
+
 #endif // WITH_PCRE2
 
 /**
