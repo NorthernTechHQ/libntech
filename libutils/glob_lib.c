@@ -277,6 +277,28 @@ static char *TranslateGlob(const char *const pattern)
     return res;
 }
 
+bool IsWildcardPattern(const char *const str)
+{
+    assert(str != NULL);
+    /* A component is a wildcard pattern if it contains any glob metacharacter
+     * ('*', '?', '['/']') OR a brace-expansion character ('{', '}').
+     *
+     * Braces matter because GlobMatch() expands them (see ExpandBraces()): a
+     * directory component like "{lib,log}" must NOT be peeled as a literal
+     * prefix, or PeelLiteralPrefix() would stat(2) it verbatim and the whole
+     * pattern would silently match nothing (ENT-14146 review).
+     *
+     * Conservative by design -- it may report a pattern where none truly
+     * exists; this only forfeits the literal-prefix optimization, it never
+     * changes match results, because such a component then falls back to
+     * PathWalk() + GlobMatch():
+     *  - Backslash-escaped metacharacters (e.g. "\\*") still count as a
+     *    pattern here; the fallback path honors the escape.
+     *  - A lone ']' with no matching '[' is not really a wildcard, but is
+     *    reported as one anyway. */
+    return strpbrk(str, "*?[]{}") != NULL;
+}
+
 bool GlobMatch(const char *const _pattern, const char *const _filename)
 {
     assert(_pattern != NULL);
@@ -545,6 +567,84 @@ static bool EmptyStringFilter(void *item)
     return StringEqual(str, "");
 }
 
+/**
+ * Peel literal components off the head of @p components so that PathWalk()
+ * can begin at the deepest literal directory instead of the filesystem root
+ * (for absolute patterns) or the current directory (for relative patterns).
+ * Removed components are detached from the sequence and freed.
+ *
+ * @p seed is the directory prefix that the first peeled component is joined
+ * to -- "/" for absolute patterns, "" (or NULL) for relative patterns. The
+ * empty/NULL form deliberately avoids prepending "./", because PathWalk()
+ * formats matches differently when started at "." versus a named relative
+ * directory: starting at "." emits matches without a "./" prefix, while
+ * starting at "./foo" emits "./foo/match". Building the relative start_dir
+ * bare (e.g. "test_dir/sub") preserves the convention that matches for a
+ * relative pattern come back without a "./" prefix.
+ *
+ * Returns a newly-allocated directory path; the caller must free it.
+ * Returns NULL if the literal prefix does not exist or is not a directory,
+ * in which case the pattern has no matches and PathWalk() should be skipped
+ * entirely. If no components were peeled, the returned path is "/" (when
+ * seed is "/") or "." (when seed is "" or NULL). See ENT-14146.
+ *
+ * At least one component is always retained in @p components for the final
+ * match step performed by PathWalkCallback().
+ */
+static char *PeelLiteralPrefix(const char *const seed, Seq *const components)
+{
+    assert(components != NULL);
+
+    char *start_dir = NULL;
+    while (SeqLength(components) > 1)
+    {
+        char *const head = SeqAt(components, 0);
+        if (IsWildcardPattern(head))
+        {
+            break;
+        }
+        char *next;
+        if (start_dir == NULL)
+        {
+            /* First peel. For absolute patterns, prefix with the seed
+             * ("/" + "var" = "/var"). For relative patterns, take the
+             * component bare so the output path stays relative without a
+             * "./" prefix. */
+            next = (seed == NULL || seed[0] == '\0')
+                       ? SafeStringDuplicate(head)
+                       : Path_JoinAlloc(seed, head);
+        }
+        else
+        {
+            next = Path_JoinAlloc(start_dir, head);
+        }
+        free(start_dir);
+        start_dir = next;
+        /* SeqSoftRemove() detaches the element from the sequence without
+         * freeing it (mirroring how PathWalkCallback() pops components).
+         * Free the orphaned string ourselves. */
+        SeqSoftRemove(components, 0);
+        free(head);
+    }
+
+    if (start_dir == NULL)
+    {
+        /* Nothing peeled -- fall back to the seed (or "." for relative). */
+        return SafeStringDuplicate(
+            (seed != NULL && seed[0] != '\0') ? seed : ".");
+    }
+
+    /* Confirm the resolved prefix exists and is a directory. stat(2) follows
+     * symlinks, so a symlinked literal prefix still resolves. */
+    struct stat sb;
+    if (stat(start_dir, &sb) != 0 || !S_ISDIR(sb.st_mode))
+    {
+        free(start_dir);
+        return NULL;
+    }
+    return start_dir;
+}
+
 Seq *GlobFind(const char *pattern)
 {
     assert(pattern != NULL);
@@ -605,23 +705,54 @@ Seq *GlobFind(const char *pattern)
             }
             else
             {
-                // Path like '/...'.
+                /* Path like '/...'. */
+                char *const start_dir =
+                    PeelLiteralPrefix(FILE_SEPARATOR_STR, data.components);
+                if (start_dir == NULL)
+                {
+                    Log(LOG_LEVEL_DEBUG,
+                        "Literal prefix of pattern '%s' does not exist or "
+                        "is not a directory; no matches.",
+                        pattern);
+                    SeqDestroy(data.components);
+                    continue;
+                }
+
                 PathWalk(
-                    FILE_SEPARATOR_STR,
+                    start_dir,
                     PathWalkCallback,
                     &data,
                     GlobFindDataCopy,
                     GlobFindDataDestroy);
+                free(start_dir);
             }
         }
         else
         {
+            /* Relative path like "foo/bar/glob". Same literal-prefix peel
+             * as for absolute paths -- start PathWalk() at the deepest
+             * literal directory instead of always at '.'. Pass NULL as the
+             * seed so the peel builds a bare relative path (e.g. "foo/bar")
+             * rather than "./foo/bar"; PathWalk() formats its matches
+             * differently when started at "." versus a named directory. */
+            char *const start_dir = PeelLiteralPrefix(NULL, data.components);
+            if (start_dir == NULL)
+            {
+                Log(LOG_LEVEL_DEBUG,
+                    "Literal prefix of pattern '%s' does not exist or is "
+                    "not a directory; no matches.",
+                    pattern);
+                SeqDestroy(data.components);
+                continue;
+            }
+
             PathWalk(
-                ".",
+                start_dir,
                 PathWalkCallback,
                 &data,
                 GlobFindDataCopy,
                 GlobFindDataDestroy);
+            free(start_dir);
         }
 
         SeqDestroy(data.components);

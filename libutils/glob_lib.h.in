@@ -76,6 +76,18 @@ Seq *GlobFind(const char *pattern);
  */
 bool GlobMatch(const char *pattern, const char *filename);
 
+/**
+ * @brief Return true if @p str is a wildcard pattern -- i.e. it contains a
+ *        glob metacharacter ('*', '?', '[', ']') or a brace-expansion
+ *        character ('{', '}').
+ *
+ * The inverse (a non-pattern) is a literal path component, which can be
+ * resolved with a single stat(2) instead of an opendir(3) + getdents(2) +
+ * stat-each-entry walk. Brace characters count because GlobMatch() performs
+ * brace expansion (see ExpandBraces()). See ENT-14146.
+ */
+bool IsWildcardPattern(const char *str);
+
 #endif // WITH_PCRE2
 
 /**

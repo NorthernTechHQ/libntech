@@ -274,6 +274,82 @@ static void test_glob_find(void)
         assert_string_equal(SeqAt(matches, 0), "." FILE_SEPARATOR_STR);
         SeqDestroy(matches);
     }
+    /* Relative pattern with a multi-component literal prefix. Exercises the
+     * PeelLiteralPrefix() path that starts PathWalk() under a deeper
+     * subdirectory than '.', avoiding enumeration of unrelated siblings.
+     * See ENT-14146. */
+    {
+        char template[] = "test_glob_find_rel_XXXXXX";
+        const char *const test_dir = mkdtemp(template);
+        assert_true(test_dir != NULL);
+
+        char path[PATH_MAX];
+        int ret = snprintf(
+            path,
+            PATH_MAX,
+            "%s" FILE_SEPARATOR_STR "alpha" FILE_SEPARATOR_STR "beta"
+                FILE_SEPARATOR_STR "gamma",
+            test_dir);
+        assert_true(ret < PATH_MAX && ret >= 0);
+        for (size_t depth = 1; depth <= 3; depth++)
+        {
+            char partial[PATH_MAX];
+            const char *const parts[3] = {"alpha", "beta", "gamma"};
+            int n = snprintf(partial, PATH_MAX, "%s", test_dir);
+            for (size_t k = 0; k < depth; k++)
+            {
+                n += snprintf(partial + n, PATH_MAX - n,
+                              FILE_SEPARATOR_STR "%s", parts[k]);
+                assert_true(n < PATH_MAX && n >= 0);
+            }
+            assert_int_equal(mkdir(partial, (mode_t) 0700), 0);
+        }
+
+        char file1[PATH_MAX], file2[PATH_MAX], sibling[PATH_MAX];
+        ret = snprintf(file1, PATH_MAX, "%s" FILE_SEPARATOR_STR "one.txt", path);
+        assert_true(ret < PATH_MAX && ret >= 0);
+        ret = snprintf(file2, PATH_MAX, "%s" FILE_SEPARATOR_STR "two.txt", path);
+        assert_true(ret < PATH_MAX && ret >= 0);
+        ret = snprintf(sibling, PATH_MAX,
+                       "%s" FILE_SEPARATOR_STR "alpha" FILE_SEPARATOR_STR
+                       "should-not-be-matched.txt", test_dir);
+        assert_true(ret < PATH_MAX && ret >= 0);
+        FILE *fp;
+        assert_true((fp = fopen(file1, "w")) != NULL);
+        fclose(fp);
+        assert_true((fp = fopen(file2, "w")) != NULL);
+        fclose(fp);
+        assert_true((fp = fopen(sibling, "w")) != NULL);
+        fclose(fp);
+
+        char rel[PATH_MAX];
+        ret = snprintf(rel, PATH_MAX,
+                       "%s" FILE_SEPARATOR_STR "alpha" FILE_SEPARATOR_STR
+                       "beta" FILE_SEPARATOR_STR "gamma" FILE_SEPARATOR_STR
+                       "*.txt", test_dir);
+        assert_true(ret < PATH_MAX && ret >= 0);
+
+        Seq *const matches = GlobFind(rel);
+        assert_int_equal(SeqLength(matches), 2);
+        SeqDestroy(matches);
+
+        unlink(file1);
+        unlink(file2);
+        unlink(sibling);
+        char pdir[PATH_MAX];
+        ret = snprintf(pdir, PATH_MAX, "%s" FILE_SEPARATOR_STR "alpha"
+                       FILE_SEPARATOR_STR "beta" FILE_SEPARATOR_STR "gamma",
+                       test_dir);
+        rmdir(pdir);
+        ret = snprintf(pdir, PATH_MAX, "%s" FILE_SEPARATOR_STR "alpha"
+                       FILE_SEPARATOR_STR "beta", test_dir);
+        rmdir(pdir);
+        ret = snprintf(pdir, PATH_MAX, "%s" FILE_SEPARATOR_STR "alpha",
+                       test_dir);
+        rmdir(pdir);
+        rmdir(test_dir);
+        (void) ret;
+    }
 }
 
 #endif // WITH_PCRE2
@@ -762,6 +838,38 @@ static void test_glob_file_list(void)
     StringSetDestroy(matches);
 }
 
+#ifdef WITH_PCRE2
+static void test_is_wildcard_pattern(void)
+{
+    /* Literal components -- empty string and ordinary names are NOT patterns. */
+    assert_false(IsWildcardPattern(""));
+    assert_false(IsWildcardPattern("var"));
+    assert_false(IsWildcardPattern("CFEngine-3.24.1-Install.log"));
+    assert_false(IsWildcardPattern("path/with/slashes"));
+    assert_false(IsWildcardPattern("dots.and-dashes_ok"));
+
+    /* Any of '*', '?', '[', ']' anywhere makes it a wildcard pattern. */
+    assert_true(IsWildcardPattern("*"));
+    assert_true(IsWildcardPattern("a*"));
+    assert_true(IsWildcardPattern("*a"));
+    assert_true(IsWildcardPattern("file?.txt"));
+    assert_true(IsWildcardPattern("[abc].cf"));
+    assert_true(IsWildcardPattern("CFEngine*Install.log"));
+
+    /* Brace expansion is performed by GlobMatch()/ExpandBraces(), so a brace
+     * component is a pattern too -- otherwise a directory like "{lib,log}"
+     * would be peeled as a literal prefix and match nothing (ENT-14146). */
+    assert_true(IsWildcardPattern("utils.{c,h}"));
+    assert_true(IsWildcardPattern("{lib,log}"));
+
+    /* Conservative case: a lone ']' with no matching '[' is not truly a
+     * wildcard, but is reported as one. This only forfeits the literal-prefix
+     * optimization for the rare name containing ']'; match results are
+     * unchanged because the component falls back to PathWalk()+GlobMatch(). */
+    assert_true(IsWildcardPattern("a]b"));
+}
+#endif // WITH_PCRE2
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -772,6 +880,7 @@ int main()
         unit_test(test_translate_bracket),
         unit_test(test_translate_glob),
         unit_test(test_glob_match),
+        unit_test(test_is_wildcard_pattern),
         unit_test(test_glob_find),
 #endif // WITH_PCRE2
         unit_test(test_glob_file_list),
