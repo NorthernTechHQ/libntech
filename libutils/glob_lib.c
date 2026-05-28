@@ -556,6 +556,84 @@ static bool EmptyStringFilter(void *item)
     return StringEqual(str, "");
 }
 
+/**
+ * Peel literal components off the head of @p components so that PathWalk()
+ * can begin at the deepest literal directory instead of the filesystem root
+ * (for absolute patterns) or the current directory (for relative patterns).
+ * Removed components are detached from the sequence and freed.
+ *
+ * @p seed is the directory prefix that the first peeled component is joined
+ * to -- "/" for absolute patterns, "" (or NULL) for relative patterns. The
+ * empty/NULL form deliberately avoids prepending "./", because PathWalk()
+ * formats matches differently when started at "." versus a named relative
+ * directory: starting at "." emits matches without a "./" prefix, while
+ * starting at "./foo" emits "./foo/match". Building the relative start_dir
+ * bare (e.g. "test_dir/sub") preserves the convention that matches for a
+ * relative pattern come back without a "./" prefix.
+ *
+ * Returns a newly-allocated directory path; the caller must free it.
+ * Returns NULL if the literal prefix does not exist or is not a directory,
+ * in which case the pattern has no matches and PathWalk() should be skipped
+ * entirely. If no components were peeled, the returned path is "/" (when
+ * seed is "/") or "." (when seed is "" or NULL). See ENT-14146.
+ *
+ * At least one component is always retained in @p components for the final
+ * match step performed by PathWalkCallback().
+ */
+static char *PeelLiteralPrefix(const char *const seed, Seq *const components)
+{
+    assert(components != NULL);
+
+    char *start_dir = NULL;
+    while (SeqLength(components) > 1)
+    {
+        char *const head = SeqAt(components, 0);
+        if (!IsGlobLiteral(head))
+        {
+            break;
+        }
+        char *next;
+        if (start_dir == NULL)
+        {
+            /* First peel. For absolute patterns, prefix with the seed
+             * ("/" + "var" = "/var"). For relative patterns, take the
+             * component bare so the output path stays relative without a
+             * "./" prefix. */
+            next = (seed == NULL || seed[0] == '\0')
+                       ? SafeStringDuplicate(head)
+                       : Path_JoinAlloc(seed, head);
+        }
+        else
+        {
+            next = Path_JoinAlloc(start_dir, head);
+        }
+        free(start_dir);
+        start_dir = next;
+        /* SeqSoftRemove() detaches the element from the sequence without
+         * freeing it (mirroring how PathWalkCallback() pops components).
+         * Free the orphaned string ourselves. */
+        SeqSoftRemove(components, 0);
+        free(head);
+    }
+
+    if (start_dir == NULL)
+    {
+        /* Nothing peeled -- fall back to the seed (or "." for relative). */
+        return SafeStringDuplicate(
+            (seed != NULL && seed[0] != '\0') ? seed : ".");
+    }
+
+    /* Confirm the resolved prefix exists and is a directory. stat(2) follows
+     * symlinks, so a symlinked literal prefix still resolves. */
+    struct stat sb;
+    if (stat(start_dir, &sb) != 0 || !S_ISDIR(sb.st_mode))
+    {
+        free(start_dir);
+        return NULL;
+    }
+    return start_dir;
+}
+
 Seq *GlobFind(const char *pattern)
 {
     assert(pattern != NULL);
@@ -616,41 +694,15 @@ Seq *GlobFind(const char *pattern)
             }
             else
             {
-                /* Path like '/...'. Peel literal components from the head of
-                 * the component sequence so PathWalk() starts at the deepest
-                 * literal directory instead of '/'. This avoids enumerating
-                 * unrelated mounts (e.g. stale NFS) and unrelated top-level
-                 * directories. See ENT-14146. */
-                char *start_dir = SafeStringDuplicate(FILE_SEPARATOR_STR);
-                while (SeqLength(data.components) > 1)
-                {
-                    char *const head = SeqAt(data.components, 0);
-                    if (!IsGlobLiteral(head))
-                    {
-                        break;
-                    }
-                    char *const next = Path_JoinAlloc(start_dir, head);
-                    free(start_dir);
-                    start_dir = next;
-                    /* SeqSoftRemove() detaches the element from the sequence
-                     * without freeing it (mirroring how PathWalkCallback()
-                     * pops components). Free the orphaned string ourselves. */
-                    SeqSoftRemove(data.components, 0);
-                    free(head);
-                }
-
-                /* Confirm the literal prefix exists and is a directory. If
-                 * not, this pattern has no matches; skip PathWalk() entirely
-                 * and avoid touching unrelated directories. stat(2) follows
-                 * symlinks, so a symlinked literal prefix still resolves. */
-                struct stat sb;
-                if (stat(start_dir, &sb) != 0 || !S_ISDIR(sb.st_mode))
+                /* Path like '/...'. */
+                char *const start_dir =
+                    PeelLiteralPrefix(FILE_SEPARATOR_STR, data.components);
+                if (start_dir == NULL)
                 {
                     Log(LOG_LEVEL_DEBUG,
-                        "Literal prefix '%s' does not exist or is not a "
-                        "directory; pattern '%s' has no matches.",
-                        start_dir, pattern);
-                    free(start_dir);
+                        "Literal prefix of pattern '%s' does not exist or "
+                        "is not a directory; no matches.",
+                        pattern);
                     SeqDestroy(data.components);
                     continue;
                 }
@@ -666,12 +718,30 @@ Seq *GlobFind(const char *pattern)
         }
         else
         {
+            /* Relative path like "foo/bar/glob". Same literal-prefix peel
+             * as for absolute paths -- start PathWalk() at the deepest
+             * literal directory instead of always at '.'. Pass NULL as the
+             * seed so the peel builds a bare relative path (e.g. "foo/bar")
+             * rather than "./foo/bar"; PathWalk() formats its matches
+             * differently when started at "." versus a named directory. */
+            char *const start_dir = PeelLiteralPrefix(NULL, data.components);
+            if (start_dir == NULL)
+            {
+                Log(LOG_LEVEL_DEBUG,
+                    "Literal prefix of pattern '%s' does not exist or is "
+                    "not a directory; no matches.",
+                    pattern);
+                SeqDestroy(data.components);
+                continue;
+            }
+
             PathWalk(
-                ".",
+                start_dir,
                 PathWalkCallback,
                 &data,
                 GlobFindDataCopy,
                 GlobFindDataDestroy);
+            free(start_dir);
         }
 
         SeqDestroy(data.components);

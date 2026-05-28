@@ -274,6 +274,82 @@ static void test_glob_find(void)
         assert_string_equal(SeqAt(matches, 0), "." FILE_SEPARATOR_STR);
         SeqDestroy(matches);
     }
+    /* Relative pattern with a multi-component literal prefix. Exercises the
+     * PeelLiteralPrefix() path that starts PathWalk() under a deeper
+     * subdirectory than '.', avoiding enumeration of unrelated siblings.
+     * See ENT-14146. */
+    {
+        char template[] = "test_glob_find_rel_XXXXXX";
+        const char *const test_dir = mkdtemp(template);
+        assert_true(test_dir != NULL);
+
+        char path[PATH_MAX];
+        int ret = snprintf(
+            path,
+            PATH_MAX,
+            "%s" FILE_SEPARATOR_STR "alpha" FILE_SEPARATOR_STR "beta"
+                FILE_SEPARATOR_STR "gamma",
+            test_dir);
+        assert_true(ret < PATH_MAX && ret >= 0);
+        for (size_t depth = 1; depth <= 3; depth++)
+        {
+            char partial[PATH_MAX];
+            const char *const parts[3] = {"alpha", "beta", "gamma"};
+            int n = snprintf(partial, PATH_MAX, "%s", test_dir);
+            for (size_t k = 0; k < depth; k++)
+            {
+                n += snprintf(partial + n, PATH_MAX - n,
+                              FILE_SEPARATOR_STR "%s", parts[k]);
+                assert_true(n < PATH_MAX && n >= 0);
+            }
+            assert_int_equal(mkdir(partial, (mode_t) 0700), 0);
+        }
+
+        char file1[PATH_MAX], file2[PATH_MAX], sibling[PATH_MAX];
+        ret = snprintf(file1, PATH_MAX, "%s" FILE_SEPARATOR_STR "one.txt", path);
+        assert_true(ret < PATH_MAX && ret >= 0);
+        ret = snprintf(file2, PATH_MAX, "%s" FILE_SEPARATOR_STR "two.txt", path);
+        assert_true(ret < PATH_MAX && ret >= 0);
+        ret = snprintf(sibling, PATH_MAX,
+                       "%s" FILE_SEPARATOR_STR "alpha" FILE_SEPARATOR_STR
+                       "should-not-be-matched.txt", test_dir);
+        assert_true(ret < PATH_MAX && ret >= 0);
+        FILE *fp;
+        assert_true((fp = fopen(file1, "w")) != NULL);
+        fclose(fp);
+        assert_true((fp = fopen(file2, "w")) != NULL);
+        fclose(fp);
+        assert_true((fp = fopen(sibling, "w")) != NULL);
+        fclose(fp);
+
+        char rel[PATH_MAX];
+        ret = snprintf(rel, PATH_MAX,
+                       "%s" FILE_SEPARATOR_STR "alpha" FILE_SEPARATOR_STR
+                       "beta" FILE_SEPARATOR_STR "gamma" FILE_SEPARATOR_STR
+                       "*.txt", test_dir);
+        assert_true(ret < PATH_MAX && ret >= 0);
+
+        Seq *const matches = GlobFind(rel);
+        assert_int_equal(SeqLength(matches), 2);
+        SeqDestroy(matches);
+
+        unlink(file1);
+        unlink(file2);
+        unlink(sibling);
+        char pdir[PATH_MAX];
+        ret = snprintf(pdir, PATH_MAX, "%s" FILE_SEPARATOR_STR "alpha"
+                       FILE_SEPARATOR_STR "beta" FILE_SEPARATOR_STR "gamma",
+                       test_dir);
+        rmdir(pdir);
+        ret = snprintf(pdir, PATH_MAX, "%s" FILE_SEPARATOR_STR "alpha"
+                       FILE_SEPARATOR_STR "beta", test_dir);
+        rmdir(pdir);
+        ret = snprintf(pdir, PATH_MAX, "%s" FILE_SEPARATOR_STR "alpha",
+                       test_dir);
+        rmdir(pdir);
+        rmdir(test_dir);
+        (void) ret;
+    }
 }
 
 #endif // WITH_PCRE2
