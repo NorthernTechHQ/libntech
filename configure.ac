@@ -90,6 +90,8 @@ dnl ######################################################################
 
 AC_PROG_GREP
 AC_PROG_EGREP
+: ${CFLAGS=""}
+: ${CPPFLAGS=""}
 AC_PROG_CC
 AC_PROG_MKDIR_P
 AC_EXEEXT
@@ -1283,8 +1285,8 @@ dnl ######################################################################
 dnl Collect all the options
 dnl ######################################################################
 
-CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $CPPFLAGS"
-CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $CFLAGS"
+CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS"
+CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS"
 CORE_LDFLAGS="$PCRE2_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $LDFLAGS"
 CORE_LIBS="$PCRE2_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $LIBS"
 
