@@ -721,7 +721,7 @@ const char* BufferSearchAndReplace(Buffer *buffer, const char *pattern,
         ret = pcre2_substitute(regex, (PCRE2_SPTR) BufferData(buffer), BufferSize(buffer),
                                0, subst_opts, match_data, NULL,
                                (PCRE2_SPTR) substitute, PCRE2_ZERO_TERMINATED,
-                               result, &out_size);
+                               (PCRE2_UCHAR8 *) result, &out_size);
         if (ret == PCRE2_ERROR_NOMEMORY)
         {
             result = xrealloc(result, out_size);
