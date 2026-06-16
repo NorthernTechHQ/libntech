@@ -24,6 +24,8 @@ noinst_LTLIBRARIES = libcompat.la
 
 AM_CPPFLAGS = -I$(top_srcdir)/libutils            # platform.h
 
+AM_CFLAGS = $(CORE_CFLAGS)
+
 libcompat_la_LIBADD = $(LTLIBOBJS)
 
 libcompat_la_SOURCES = \

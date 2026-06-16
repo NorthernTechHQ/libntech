@@ -28,6 +28,8 @@ AM_CPPFLAGS = $(CORE_CPPFLAGS) \
 	-I$(srcdir)/../../libutils \
 	-DTESTDATADIR='"$(srcdir)/data"'
 
+AM_CFLAGS = $(CORE_CFLAGS)
+
 LDADD = libtest.la
 
 # automake does not support "maude_LIBS" variables. We can only alter
