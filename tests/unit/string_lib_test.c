@@ -1470,6 +1470,43 @@ static void test_StringMatchesOption(void)
     assert_true(StringMatchesOption("--host", "--hosts", "-H"));
 }
 
+static void test_StringIsSHA1Hex(void)
+{
+    // A valid 40-character SHA1 hex string (lower case):
+    assert_true(StringIsSHA1Hex(
+        "da39a3ee5e6b4b0d3255bfef95601890afd80709"));
+
+    // Upper case and mixed case are accepted:
+    assert_true(StringIsSHA1Hex(
+        "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"));
+    assert_true(StringIsSHA1Hex(
+        "Da39A3ee5e6b4b0d3255bfef95601890afd80709"));
+
+    // Too short (39 chars):
+    assert_false(StringIsSHA1Hex(
+        "da39a3ee5e6b4b0d3255bfef95601890afd8070"));
+
+    // Too long (41 chars):
+    assert_false(StringIsSHA1Hex(
+        "da39a3ee5e6b4b0d3255bfef95601890afd807090"));
+
+    // Empty string:
+    assert_false(StringIsSHA1Hex(""));
+
+    // Correct length but contains a non-hex character ('g' / 'z'):
+    assert_false(StringIsSHA1Hex(
+        "ga39a3ee5e6b4b0d3255bfef95601890afd80709"));
+    assert_false(StringIsSHA1Hex(
+        "da39a3ee5e6b4b0d3255bfef95601890afd8070z"));
+
+    // Correct length but contains a space:
+    assert_false(StringIsSHA1Hex(
+        "da39a3ee5e6b4b0d3255bfef9560189 afd80709"));
+
+    // NULL is allowed and yields false:
+    assert_false(StringIsSHA1Hex(NULL));
+}
+
 static void test_StringFind(void)
 {
     static const char *const str = "Hello CFEngine";
@@ -1585,6 +1622,7 @@ int main()
         unit_test(test_StrCatDelim),
 
         unit_test(test_StringMatchesOption),
+        unit_test(test_StringIsSHA1Hex),
         unit_test(test_StringFind),
     };
 

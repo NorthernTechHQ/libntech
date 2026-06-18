@@ -89,6 +89,13 @@ bool StringIsNumeric(const char *name);
 bool StringIsPrintable(const char *name);
 
 /**
+ * @brief Check whether a string is a valid SHA1 hash in hex form.
+ * @param str String to evaluate (NULL is allowed and yields false).
+ * @return True if str is exactly 40 hex digits, false otherwise.
+ */
+bool StringIsSHA1Hex(const char *str);
+
+/**
  * @brief Check if a char is "printable", replacement for isprint
  *
  * isprint takes a (signed) int, so if you send in a (signed) char there is an
