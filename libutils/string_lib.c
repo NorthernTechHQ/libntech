@@ -32,6 +32,7 @@
 #include <definitions.h> // CF_BUFSIZE
 #include <condition_macros.h> // nt_static_assert()
 #include <printsize.h>
+#include <hash_method.h> // CF_SHA1_LEN
 
 char *StringVFormat(const char *fmt, va_list ap)
 {
@@ -454,6 +455,30 @@ bool StringIsPrintable(const char *s)
     }
 
     return true;
+}
+
+bool StringIsSHA1Hex(const char *str)
+{
+    if (str == NULL)
+    {
+        return false;
+    }
+
+    int i;
+    for (i = 0; str[i] != '\0'; i++)
+    {
+        if (i >= (2 * CF_SHA1_LEN))
+        {
+            return false;
+        }
+
+        if (!isxdigit(str[i]))
+        {
+            return false;
+        }
+    }
+
+    return (i == (2 * CF_SHA1_LEN));
 }
 
 bool EmptyString(const char *s)
