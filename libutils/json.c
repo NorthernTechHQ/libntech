@@ -1043,7 +1043,8 @@ static bool HexStringToChar(const char *hex_string, char *res)
         return false;
     }
 
-    char tmp[hex_len + 1];
+    char *tmp;
+    tmp = alloca(hex_len + 1);
     memcpy(tmp, hex_string, hex_len);
     tmp[hex_len] = '\0';
 
