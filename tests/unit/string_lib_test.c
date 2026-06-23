@@ -410,6 +410,14 @@ static void test_substring_empty_input(void)
     free(new_string);
 }
 
+static void test_substring_empty_output(void)
+{
+    char *new_string = StringSubstring("\"\"", 2, 1, -1);
+    assert_string_equal(new_string, "");
+    free(new_string);
+}
+
+
 static void test_substring_positive(void)
 {
     char *new_string = StringSubstring("abcdef", 6, 2, 3);
@@ -437,8 +445,9 @@ static void test_substring_negative(void)
 static void test_substring_evil(void)
 {
     char *new_string = StringSubstring("abcdef", 6, 4, -4);
+    assert_string_equal(new_string, "");
+    free(new_string);
 
-    assert_int_equal(new_string, NULL);
 }
 
 static void test_string_to_long(void)
@@ -1611,6 +1620,7 @@ int main()
         unit_test(test_substring_overshoot),
         unit_test(test_substring_result_is_one_char),
         unit_test(test_substring_empty_input),
+        unit_test(test_substring_empty_output),
         unit_test(test_substring_positive),
         unit_test(test_substring_negative_length),
         unit_test(test_substring_negative),
