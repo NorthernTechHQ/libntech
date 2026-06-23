@@ -418,7 +418,7 @@ char *StringSubstring(const char *source, size_t source_len, int start, int len)
         start = source_len + start;
     }
 
-    if (start >= end)
+    if (start > end)
     {
         return NULL;
     }
