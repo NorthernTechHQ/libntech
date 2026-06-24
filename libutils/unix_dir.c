@@ -92,7 +92,7 @@ const struct dirent *DirRead(Dir *dir)
 {
     assert(dir != NULL);
     errno = 0;
-#if defined __linux__ || defined DARWIN
+#if defined (__linux__) || defined (__APPLE__)
     return readdir((DIR *) dir->dirh); // Sets errno for error
 #else // "exotics" use readdir_r
 
