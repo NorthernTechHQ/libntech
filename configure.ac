@@ -78,18 +78,19 @@ dnl
 m4_define(incstart,sinc)
 m4_define(incend,lude)
 
-dnl
-dnl Save environment CFLAGS before autoconf starts messing with it.
-dnl It is restored later.
-dnl
-ENV_CFLAGS="$CFLAGS"
-
 dnl ######################################################################
 dnl Checks for programs.
 dnl ######################################################################
 
 AC_PROG_GREP
 AC_PROG_EGREP
+
+dnl
+dnl Prevent AC_PROG_CC from defaulting to "-g -O2".
+dnl CFLAGS is left for the user; project flags go into CF3_CFLAGS via cf3_gcc_flags.m4.
+dnl
+: ${CFLAGS=""}
+: ${CPPFLAGS=""}
 AC_PROG_CC
 AC_PROG_MKDIR_P
 AC_EXEEXT
@@ -149,6 +150,7 @@ ACX_PTHREAD([],
 
 CC="$PTHREAD_CC"
 CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
+dnl TODO: PTHREAD_CFLAGS should be handled via AM_CFLAGS in Makefile.am 
 LIBS="$PTHREAD_LIBS $LIBS"
 
 dnl ######################################################################
@@ -225,7 +227,7 @@ AS_CASE([${target_os}],
   [mingw*],
     # Disable printf format warnings, because our wrapper supports more
     # flags than vanilla Windows version, so they are false positives.
-    [CFLAGS="$CFLAGS -Wno-format"])
+    [CF3_CFLAGS="$CF3_CFLAGS -Wno-format"])
 
 dnl ######################################################################
 dnl Enable debugging
@@ -237,20 +239,16 @@ AC_ARG_ENABLE(debug,
               [debug=no])
 AM_CONDITIONAL([NDEBUG], [test x"$debug" = x"no"])
 
-dnl Even though CFLAGS should contain the command-line CFLAGS
-dnl as last, some macro seem to messes the order up and insert
-dnl its own optimisation flags as well. So we append ENV_CFLAGS
-dnl at the end manually, causing a bit of flag duplication.
-
 AC_MSG_CHECKING([for debug option])
 if test x"$debug" = x"yes"
 then
     AC_MSG_RESULT(yes)
-    CFLAGS="$CFLAGS -g3 -O0 $ENV_CFLAGS"
+    DEBUG_CFLAGS="-g3 -O0"
 else
     AC_MSG_RESULT(no)
-    CFLAGS="$CFLAGS -O2 -DNDEBUG $ENV_CFLAGS"
+    DEBUG_CFLAGS="-O2 -DNDEBUG"
 fi
+AC_SUBST([DEBUG_CFLAGS])
 
 dnl ######################################################################
 dnl Checks for libraries.
@@ -1264,13 +1262,14 @@ if test "x$use_coverage" = "xyes"; then
     AC_MSG_ERROR([Could not find genhtml from the LTP package])
   fi
 
-  dnl Remove all optimization flags from CFLAGS
+  dnl Remove all optimization flags from CF3_CFLAGS
   changequote({,})
-  CFLAGS=`echo "$CFLAGS" | $SED -e 's/-O[0-9]*//g'`
+  CF3_CFLAGS=`echo "$CF3_CFLAGS" | $SED -e 's/-O[0-9]*//g'`
+  DEBUG_CFLAGS=""
   changequote([,])
 
   dnl Add the special gcc flags
-  CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage"
+  CF3_CFLAGS="$CF3_CFLAGS -fprofile-arcs -ftest-coverage"
   LDFLAGS="$LDFLAGS -lgcov"
   # Need to set ENABLE_COVERAGE so that tests/unit/Makefile.am can adapt for one
   # test which needs gcov stubs if core not built with coverage.
@@ -1283,8 +1282,8 @@ dnl ######################################################################
 dnl Collect all the options
 dnl ######################################################################
 
-CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS $CPPFLAGS"
-CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $CFLAGS"
+CORE_CPPFLAGS="$PCRE2_CPPFLAGS $OPENSSL_CPPFLAGS $LIBYAML_CPPFLAGS"
+CORE_CFLAGS="$PCRE2_CFLAGS $OPENSSL_CFLAGS $LIBYAML_CFLAGS $CF3_CFLAGS $DEBUG_CFLAGS"
 CORE_LDFLAGS="$PCRE2_LDFLAGS $OPENSSL_LDFLAGS $LIBYAML_LDFLAGS $LDFLAGS"
 CORE_LIBS="$PCRE2_LIBS $OPENSSL_LIBS $LIBYAML_LIBS $LIBS"
 
