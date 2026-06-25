@@ -2157,6 +2157,8 @@ const char *JsonParseErrorToString(const JsonParseError error)
             "Unable to parse json data as object, ':' seen without having specified an l-value",
         [JSON_PARSE_ERROR_OBJECT_COMMA] =
             "Unable to parse json data as object, ',' seen without having specified an r-value",
+        [JSON_PARSE_ERROR_OBJECT_COMMA_MISSING] =
+            "Unable to parse json data as object, new key started without preceding ','",
         [JSON_PARSE_ERROR_OBJECT_ARRAY_LVAL] =
             "Unable to parse json data as object, array not allowed as l-value",
         [JSON_PARSE_ERROR_OBJECT_OBJECT_LVAL] =
@@ -2670,6 +2672,11 @@ static JsonParseError JsonParseAsObject(
             }
             else
             {
+                if (prev_char != '{' && prev_char != ',')
+                {
+                    JsonDestroy(object);
+                    return JSON_PARSE_ERROR_OBJECT_COMMA_MISSING;
+                }
                 property_name = NULL;
                 JsonParseError err = JsonParseAsString(data, &property_name);
                 if (err != JSON_PARSE_OK)
