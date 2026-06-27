@@ -2449,6 +2449,44 @@ static void test_json_get_type_as_string()
     }
 }
 
+static void test_json_parse_object_missing_comma(void)
+{
+    {
+        const char *data =
+            "{ \"first\": \"one\" \"second\": \"two\" }";
+        JsonElement *json = NULL;
+        assert_int_not_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_false(json);
+    }
+
+    {
+        const char *data =
+            "{\"first\":\"one\"\"second\":\"two\"}";
+        JsonElement *json = NULL;
+        assert_int_not_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_false(json);
+    }
+
+    {
+        const char *data =
+            "{ \"first\": \"one\", \"second\": \"two\" \"third\": \"three\" }";
+        JsonElement *json = NULL;
+        assert_int_not_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_false(json);
+    }
+
+    {
+        const char *data =
+            "{ \"first\": \"one\", \"second\": \"two\" }";
+        JsonElement *json = NULL;
+        assert_int_equal(JSON_PARSE_OK, JsonParse(&data, &json));
+        assert_true(json);
+        assert_string_equal(JsonObjectGetAsString(json, "first"), "one");
+        assert_string_equal(JsonObjectGetAsString(json, "second"), "two");
+        JsonDestroy(json);
+    }
+}
+
 int main()
 {
     PRINT_TEST_BANNER();
@@ -2521,6 +2559,7 @@ int main()
         unit_test(test_json_object_merge_deep),
         unit_test(test_compare_container_type_mismatch),
         unit_test(test_json_get_type_as_string),
+        unit_test(test_json_parse_object_missing_comma),
     };
 
     return run_tests(tests);
