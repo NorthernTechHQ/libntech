@@ -329,7 +329,14 @@ if test "x$with_pcre" != "xno" && test "x$with_pcre2" != "xno"; then
       [],
       AC_MSG_ERROR(Cannot find PCRE2),
       [#define PCRE2_CODE_UNIT_WIDTH 8]
-      )]
+      )
+    dnl libutils/buffer.c uses these substitute options (PCRE2 10.34+).
+    dnl core's ci/dependencies.sh reads this line to check the system PCRE2 has them.
+    AC_CHECK_DECLS([PCRE2_SUBSTITUTE_MATCHED, PCRE2_SUBSTITUTE_LITERAL], [],
+      [AC_MSG_ERROR(This release of CFEngine requires PCRE2 with PCRE2_SUBSTITUTE_MATCHED and PCRE2_SUBSTITUTE_LITERAL (10.34+))],
+      [[#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>]])
+    ]
   )
   AC_DEFINE(WITH_PCRE2, 1, [Define if PCRE2 is being used])
   AM_CONDITIONAL(WITH_PCRE2, true)
