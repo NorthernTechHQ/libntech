@@ -44,7 +44,7 @@ struct ThreadedStack_ {
     pthread_mutex_t *lock;            /**< Thread lock for accessing data. */
 };
 
-ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (ItemDestroy) (void *item))
+ThreadedStack *(ThreadedStackNew)(size_t initial_capacity, void (ItemDestroy) (void *item))
 {
     ThreadedStack *stack = xmalloc(sizeof(ThreadedStack));
 

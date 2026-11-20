@@ -73,7 +73,7 @@ ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
         Log(LOG_LEVEL_ERR,
             "Failed to use error-checking mutexes for queue, "
             "falling back to normal ones (pthread_mutexattr_settype: %s)",
-            GetErrorStrFromCode(ret));
+            strerror(ret));
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
@@ -83,7 +83,7 @@ ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
     {
         Log(LOG_LEVEL_ERR,
             "Failed to initialize mutex (pthread_mutex_init: %s)",
-            GetErrorStrFromCode(ret));
+            strerror(ret));
         pthread_mutexattr_destroy(&attr);
         free(queue->lock);
         free(queue);
@@ -98,7 +98,7 @@ ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
     {
         Log(LOG_LEVEL_ERR,
             "Failed to initialize thread condition (pthread_cond_init: %s)",
-            GetErrorStrFromCode(ret));
+            strerror(ret));
         free(queue->lock);
         free(queue->cond_non_empty);
         free(queue);
@@ -112,7 +112,7 @@ ThreadedQueue *ThreadedQueueNew(size_t initial_capacity,
         Log(LOG_LEVEL_ERR,
             "Failed to initialize thread condition "
             "(pthread_cond_init: %s)",
-            GetErrorStrFromCode(ret));
+            strerror(ret));
         free(queue->lock);
         free(queue->cond_empty);
         free(queue->cond_non_empty);
@@ -462,7 +462,7 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
         Log(LOG_LEVEL_ERR,
             "Failed to use error-checking mutexes for queue, "
             "falling back to normal ones (pthread_mutexattr_settype: %s)",
-            GetErrorStrFromCode(ret));
+            strerror(ret));
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     }
 
@@ -472,7 +472,7 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
     {
         Log(LOG_LEVEL_ERR,
             "Failed to initialize mutex (pthread_mutex_init: %s)",
-            GetErrorStrFromCode(ret));
+            strerror(ret));
         pthread_mutexattr_destroy(&attr);
         free(new_queue->lock);
         free(new_queue);
@@ -486,7 +486,7 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
         Log(LOG_LEVEL_ERR,
             "Failed to initialize thread condition "
             "(pthread_cond_init: %s)",
-            GetErrorStrFromCode(ret));
+            strerror(ret));
         free(new_queue->lock);
         free(new_queue->cond_non_empty);
         free(new_queue);
@@ -500,7 +500,7 @@ ThreadedQueue *ThreadedQueueCopy(ThreadedQueue *queue)
         Log(LOG_LEVEL_ERR,
             "Failed to initialize thread condition "
             "(pthread_cond_init: %s)",
-            GetErrorStrFromCode(ret));
+            strerror(ret));
         free(new_queue->lock);
         free(new_queue->cond_empty);
         free(new_queue->cond_non_empty);

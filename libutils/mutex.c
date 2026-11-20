@@ -41,7 +41,7 @@ void __ThreadLock(pthread_mutex_t *mutex,
         fprintf(stderr,
                 "Locking failure at %s:%d function %s! "
                 "(pthread_mutex_lock: %s)",
-                filename, lineno, funcname, GetErrorStrFromCode(result));
+                filename, lineno, funcname, strerror(result));
         fflush(stdout);
         fflush(stderr);
         DoCleanupAndExit(101);
@@ -60,7 +60,7 @@ void __ThreadUnlock(pthread_mutex_t *mutex,
         fprintf(stderr,
                 "Locking failure at %s:%d function %s! "
                 "(pthread_mutex_unlock: %s)",
-                filename, lineno, funcname, GetErrorStrFromCode(result));
+                filename, lineno, funcname, strerror(result));
         fflush(stdout);
         fflush(stderr);
         DoCleanupAndExit(101);
@@ -92,7 +92,7 @@ int __ThreadWait(pthread_cond_t *pcond, pthread_mutex_t *mutex, int timeout,
             Log(LOG_LEVEL_DEBUG,
                 "Thread condition timed out at %s:%d function %s! "
                 "(pthread_cond_timewait): %s)",
-                filename, lineno, funcname, GetErrorStrFromCode(result));
+                filename, lineno, funcname, strerror(result));
         }
         else
         {
@@ -101,7 +101,7 @@ int __ThreadWait(pthread_cond_t *pcond, pthread_mutex_t *mutex, int timeout,
             fprintf(stderr,
                     "Failed to wait for thread condition at %s:%d function "
                     "%s! (pthread_cond_(wait|timewait)): %s)",
-                    filename, lineno, funcname, GetErrorStrFromCode(result));
+                    filename, lineno, funcname, strerror(result));
             fflush(stdout);
             fflush(stderr);
             DoCleanupAndExit(101);

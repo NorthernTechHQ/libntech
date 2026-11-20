@@ -26,7 +26,7 @@
 #include <logging.h>
 #include <stack_base.c>
 
-Stack *StackNew(size_t initial_capacity, void (ItemDestroy) (void *item))
+Stack *(StackNew)(size_t initial_capacity, void (ItemDestroy) (void *item))
 {
     Stack *stack = xmalloc(sizeof(Stack));
 
