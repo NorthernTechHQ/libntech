@@ -33,7 +33,10 @@ typedef struct Stack_ Stack;
   @param [in] initial_capacity Initial capacity, defaults to 1.
   @param [in] ItemDestroy Function used to destroy data elements.
   */
-Stack *StackNew(size_t initial_capacity, void (*ItemDestroy) ());
+Stack *StackNew(size_t initial_capacity, void (*ItemDestroy) (void *item));
+/* Cast so callers may pass a destroyer taking a typed pointer (see SeqNew). */
+#define StackNew(initial_capacity, ItemDestroy) \
+    StackNew((initial_capacity), (void (*)(void *)) (ItemDestroy))
 
 /**
   @brief Destroys the stack and frees the memory it occupies.

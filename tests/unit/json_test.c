@@ -2425,7 +2425,7 @@ static void test_json_get_type_as_string()
     }
 
     {
-        JsonElement *element = JsonNullCreate(true);
+        JsonElement *element = JsonNullCreate();
         const char *expected = "null";
         const char *actual = JsonGetTypeAsString(element);
         assert_string_equal(expected, actual);

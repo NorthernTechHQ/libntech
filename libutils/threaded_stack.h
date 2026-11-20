@@ -33,7 +33,10 @@ typedef struct ThreadedStack_ ThreadedStack;
   @param [in] initial_capacity Initial capacity, defaults to 1.
   @param [in] ItemDestroy Function used to destroy data elements.
   */
-ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (*ItemDestroy) ());
+ThreadedStack *ThreadedStackNew(size_t initial_capacity, void (*ItemDestroy) (void *item));
+/* Cast so callers may pass a destroyer taking a typed pointer (see SeqNew). */
+#define ThreadedStackNew(initial_capacity, ItemDestroy) \
+    ThreadedStackNew((initial_capacity), (void (*)(void *)) (ItemDestroy))
 
 /**
   @brief Destroys the stack and frees the memory it occupies.

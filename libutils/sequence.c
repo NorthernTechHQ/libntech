@@ -27,7 +27,7 @@
 
 static const size_t EXPAND_FACTOR = 2;
 
-Seq *SeqNew(size_t initialCapacity, void (ItemDestroy) (void *item))
+Seq *(SeqNew)(size_t initialCapacity, void (ItemDestroy) (void *item))
 {
     Seq *seq = xmalloc(sizeof(Seq));
 
